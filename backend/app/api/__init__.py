@@ -1,0 +1,1 @@
+I apologize for the confusion. Please provide the source code you would like translated, and I'll be happy to assist you.

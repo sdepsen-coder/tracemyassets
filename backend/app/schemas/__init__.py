@@ -1,0 +1,1 @@
+It seems there is no source code provided for translation. Please provide the code you would like to have translated, and I'll be happy to assist!
