@@ -4,25 +4,25 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
-from app.core.config import ALLOWED_ORIGINS
-from app.db.base import init_db
+from app.core.config import settings
+from app.db.base import initialize_database
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()
+    initialize_database()
     yield
 
 
 app = FastAPI(
     title="TraceMyAssets API",
-    version="1.0.0",
+    version="0.1.0",
     lifespan=lifespan,
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

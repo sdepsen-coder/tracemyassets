@@ -1,7 +1,6 @@
-from datetime import date, datetime
-from typing import Optional
+from datetime import datetime
 
-from sqlalchemy import Date, DateTime, Float, Integer, String, Text
+from sqlalchemy import DateTime, ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -10,24 +9,16 @@ from app.models.base import Base
 class Asset(Base):
     __tablename__ = "assets"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    tag: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
-    name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
-    category: Mapped[str] = mapped_column(String(120), nullable=False, default="General")
-    status: Mapped[str] = mapped_column(String(50), nullable=False, default="available")
-    location: Mapped[str] = mapped_column(String(255), nullable=False, default="")
-    assigned_to: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    purchase_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
-    purchase_price: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True, nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    original_url: Mapped[str] = mapped_column(String(1024), nullable=False)
+    watermarked_url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    phash_value: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    watermark_payload: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="active")
     created_at: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
+        server_default=func.now(),
         nullable=False,
-        default=datetime.utcnow,
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        nullable=False,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
     )

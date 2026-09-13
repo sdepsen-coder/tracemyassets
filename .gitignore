@@ -18,3 +18,64 @@ venv
 
 .DS_Store
 Thumbs.db
+# Private uploaded assets
+/backend/storage/
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Generated files
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+node_modules/
+.next/
+*.tsbuildinfo
+
+# Private files
+/backend/storage/
+/backend/backups/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+
+# Local backups and review exports
+*.bak
+*.bak-*
+/project-review*.txt
+
+# Secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Generated files
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+node_modules/
+.next/
+*.tsbuildinfo
+
+# Private storage and databases
+/backend/storage/
+/backend/backups/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+
+# Local backups and review files
+*.bak
+*.bak-*
+/project-review*.txt

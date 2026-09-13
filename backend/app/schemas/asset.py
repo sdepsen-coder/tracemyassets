@@ -1,40 +1,16 @@
-from datetime import date, datetime
-from typing import Optional
+from datetime import datetime
+from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
-
-
-class AssetBase(BaseModel):
-    tag: str = Field(min_length=1, max_length=64)
-    name: str = Field(min_length=1, max_length=255)
-    category: str = Field(default="General", max_length=120)
-    status: str = Field(default="available", max_length=50)
-    location: str = Field(default="", max_length=255)
-    assigned_to: Optional[str] = Field(default=None, max_length=255)
-    purchase_date: Optional[date] = None
-    purchase_price: Optional[float] = Field(default=None, ge=0)
-    notes: Optional[str] = None
+from pydantic import BaseModel
 
 
-class AssetCreate(AssetBase):
-    pass
-
-
-class AssetUpdate(BaseModel):
-    tag: Optional[str] = Field(default=None, min_length=1, max_length=64)
-    name: Optional[str] = Field(default=None, min_length=1, max_length=255)
-    category: Optional[str] = Field(default=None, max_length=120)
-    status: Optional[str] = Field(default=None, max_length=50)
-    location: Optional[str] = Field(default=None, max_length=255)
-    assigned_to: Optional[str] = Field(default=None, max_length=255)
-    purchase_date: Optional[date] = None
-    purchase_price: Optional[float] = Field(default=None, ge=0)
-    notes: Optional[str] = None
-
-
-class AssetRead(AssetBase):
+class AssetRead(BaseModel):
     id: int
+    user_id: int
+    title: str
+    original_url: str
+    thumbnail_url: str
+    watermarked_url: str | None = None
+    phash_value: str | None
+    status: Literal["active", "archived"]
     created_at: datetime
-    updated_at: datetime
-
-    model_config = ConfigDict(from_attributes=True)

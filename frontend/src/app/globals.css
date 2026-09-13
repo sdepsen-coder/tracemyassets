@@ -2,19 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: dark;
-}
-
 html,
 body {
-  height: 100%;
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
 }
 
 body {
-  @apply bg-slate-950 text-slate-100 antialiased;
+  background: #0e1320;
+  color: #dee2f5;
+  overscroll-behavior: none;
 }
 
-* {
-  box-sizing: border-box;
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
