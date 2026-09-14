@@ -14,3 +14,7 @@ class AssetRead(BaseModel):
     phash_value: str | None
     status: Literal["active", "archived"]
     created_at: datetime
+class AssetStats(BaseModel):
+    total: int
+    active: int
+    archived: int

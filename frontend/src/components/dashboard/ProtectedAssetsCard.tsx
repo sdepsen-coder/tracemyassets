@@ -12,6 +12,7 @@ import { useAuth } from "@/components/AuthGate";
 import { AssetRow } from "@/components/dashboard/AssetRow";
 import { Panel } from "@/components/ui/Panel";
 import { api, ApiError, type Asset } from "@/lib/api";
+import { useAssetStats } from "@/components/dashboard/AssetStatsProvider";
 
 const MAX_FILE_BYTES = 25 * 1024 * 1024;
 const LIST_LIMIT = 100;
@@ -19,7 +20,7 @@ const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
 export function ProtectedAssetsCard() {
   const { user, logout } = useAuth();
-
+  const { refresh: refreshStats } = useAssetStats();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState("");
@@ -196,6 +197,7 @@ export function ProtectedAssetsCard() {
       }
 
       setSuccess(`"${created.title}" was registered successfully.`);
+	        void refreshStats();
     } catch (error) {
       if (controller.signal.aborted) return;
 
@@ -225,7 +227,7 @@ export function ProtectedAssetsCard() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-[20px] font-semibold tracking-[-0.02em] text-slate-100">
-            Protected Assets
+            Registered Assets
           </h3>
           <p className="mt-1 text-[12px] text-slate-400">
             Registered files and visual fingerprints from your account.
@@ -240,9 +242,10 @@ export function ProtectedAssetsCard() {
           <button
             type="button"
             disabled={loading || uploading}
-            onClick={() => {
+                        onClick={() => {
               setLoading(true);
               setRefreshKey((value) => value + 1);
+              void refreshStats();
             }}
             className="rounded-lg border border-white/10 px-3 py-1 text-xs text-slate-300 hover:bg-white/5 disabled:opacity-50"
           >

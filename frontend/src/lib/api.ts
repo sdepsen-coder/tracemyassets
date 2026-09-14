@@ -21,6 +21,11 @@ export type Asset = {
   status: "active" | "archived";
   created_at: string;
 };
+export type AssetStats = {
+  total: number;
+  active: number;
+  archived: number;
+};
 
 export class ApiError extends Error {
   constructor(
@@ -111,6 +116,8 @@ async function request<T>(
 }
 
 export const api = {
+	  assetStats: (signal?: AbortSignal) =>
+    request<AssetStats>("/api/v1/assets/stats", { signal }),
   register: (credentials: Credentials) =>
     request<User>("/api/v1/auth/register", {
       method: "POST",

@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
 
 from app.models.asset import Asset
@@ -13,6 +13,7 @@ def get_asset(
         Asset.id == asset_id,
         Asset.user_id == user_id,
     )
+
     return db.scalar(statement)
 
 
@@ -57,3 +58,22 @@ def create_asset(
 
     # The endpoint commits after preparing its response.
     return asset
+
+
+def get_asset_stats(
+    db: Session,
+    user_id: int,
+) -> dict[str, int]:
+    statement = select(
+        func.count(Asset.id),
+        func.count(case((Asset.status == "active", 1))),
+        func.count(case((Asset.status == "archived", 1))),
+    ).where(Asset.user_id == user_id)
+
+    total, active, archived = db.execute(statement).one()
+
+    return {
+        "total": int(total),
+        "active": int(active),
+        "archived": int(archived),
+    }

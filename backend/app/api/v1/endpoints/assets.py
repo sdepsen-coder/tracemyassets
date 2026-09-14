@@ -1,4 +1,6 @@
 import shutil
+from app.crud.asset import get_asset_stats
+from app.schemas.asset import AssetStats
 from pathlib import Path
 
 from fastapi import (
@@ -29,6 +31,13 @@ from app.services.asset_ingestion import (
 
 
 router = APIRouter(prefix="/assets", tags=["assets"])
+@router.get("/stats", response_model=AssetStats)
+def read_asset_stats(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict[str, int]:
+    return get_asset_stats(db, user_id=user.id)
+
 
 PRIVATE_FILE_HEADERS = {
     "Cache-Control": "private, no-store",

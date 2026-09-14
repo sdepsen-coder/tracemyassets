@@ -261,8 +261,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
           </div>
 
           <p className="mx-auto mt-2 max-w-[1440px] text-xs text-amber-300">
-            Assets use live account data. Dashboard statistics, monitoring,
-            and match inspection remain demo content.
+            Asset uploads and counts use live account data. Monitoring and
+            evidence panels are demo previews.
           </p>
 
           {error && (
