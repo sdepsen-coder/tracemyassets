@@ -1,17 +1,23 @@
 from datetime import datetime
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
+from app.core.browser_session import (
+    clear_session_cookie,
+    require_trusted_origin,
+    set_session_cookie,
+)
 from app.core.security import (
     DUMMY_PASSWORD_HASH,
     TOKEN_TTL_SECONDS,
     create_access_token,
+    decode_access_token,
     get_auth_secret,
     hash_password,
     verify_password,
@@ -59,7 +65,7 @@ def normalize_email(email: str) -> str:
 def register(
     payload: RegisterRequest,
     db: Session = Depends(get_db),
-):
+) -> User:
     # Avoid creating accounts while authentication is misconfigured.
     get_auth_secret()
 
@@ -68,6 +74,7 @@ def register(
     existing = db.scalar(
         select(User).where(User.email == email)
     )
+
     if existing is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -99,10 +106,11 @@ def register(
 def login(
     payload: LoginRequest,
     db: Session = Depends(get_db),
-):
+) -> TokenRead:
     get_auth_secret()
 
     email = normalize_email(str(payload.email))
+
     user = db.scalar(
         select(User).where(User.email == email)
     )
@@ -112,6 +120,7 @@ def login(
         if user is not None
         else DUMMY_PASSWORD_HASH
     )
+
     valid_password = verify_password(
         payload.password,
         stored_hash,
@@ -132,5 +141,44 @@ def login(
 @router.get("/me", response_model=UserRead)
 def read_current_user(
     user: User = Depends(get_current_user),
-):
+) -> User:
     return user
+
+
+@router.post(
+    "/session",
+    response_model=UserRead,
+    dependencies=[Depends(require_trusted_origin)],
+)
+def create_browser_session(
+    payload: LoginRequest,
+    response: Response,
+    db: Session = Depends(get_db),
+) -> User:
+    # Reuse the existing credential verification and token generation.
+    result = login(payload=payload, db=db)
+
+    user_id = decode_access_token(result.access_token)
+    user = db.get(User, user_id)
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password.",
+        )
+
+    set_session_cookie(response, result.access_token)
+    return user
+
+
+@router.post(
+    "/logout",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+    dependencies=[Depends(require_trusted_origin)],
+)
+def end_browser_session() -> Response:
+    # Allow logout even when the existing cookie has expired.
+    response = Response(status_code=status.HTTP_204_NO_CONTENT)
+    clear_session_cookie(response)
+    return response
