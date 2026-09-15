@@ -12,4 +12,5 @@ __pycache__/
 .DS_Store
 Thumbs.db
 # Private database backups
-/backend/backups/
+/backups/
+/storage/watermark_checks/

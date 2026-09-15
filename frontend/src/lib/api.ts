@@ -175,6 +175,17 @@ export const api = {
 
     return response.blob();
   },
+  downloadWatermarked: async (
+    assetId: number,
+    signal?: AbortSignal,
+  ): Promise<Blob> => {
+    const response = await send(
+      `/api/v1/assets/${assetId}/download-watermarked`,
+      { signal },
+    );
+
+    return response.blob();
+  },
 
   downloadOriginal: async (
     assetId: number,

@@ -1,8 +1,13 @@
+import base64
+import json
+import os
 import shutil
-from app.crud.asset import get_asset_stats
-from app.schemas.asset import AssetStats
+import warnings
+from dataclasses import asdict
 from pathlib import Path
 
+import imagehash
+from PIL import Image, ImageOps, UnidentifiedImageError
 from fastapi import (
     APIRouter,
     Depends,
@@ -18,9 +23,10 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
 from app.crud.asset import create_asset, get_asset, get_assets
+from app.crud.asset import get_asset_stats
 from app.models.asset import Asset
 from app.models.user import User
-from app.schemas.asset import AssetRead
+from app.schemas.asset import AssetRead, AssetStats
 from app.services.asset_ingestion import (
     DEFAULT_STORAGE_ROOT,
     MAX_UPLOAD_BYTES,
@@ -28,9 +34,12 @@ from app.services.asset_ingestion import (
     UploadValidationError,
     ingest_image,
 )
+from app.services.watermark import WatermarkError, embed_watermark
 
 
 router = APIRouter(prefix="/assets", tags=["assets"])
+
+
 @router.get("/stats", response_model=AssetStats)
 def read_asset_stats(
     user: User = Depends(get_current_user),
@@ -54,8 +63,11 @@ def asset_response(asset: Asset) -> AssetRead:
         title=asset.title,
         original_url=f"{base_url}/download",
         thumbnail_url=f"{base_url}/thumbnail",
-        # Watermark generation is not implemented in this flow yet.
-        watermarked_url=None,
+        watermarked_url=(
+            f"{base_url}/download-watermarked"
+            if asset.watermarked_url
+            else None
+),
         phash_value=asset.phash_value,
         status=asset.status,
         created_at=asset.created_at,
@@ -70,7 +82,6 @@ def require_owned_asset(
     asset = get_asset(db, asset_id, user_id)
 
     if asset is None:
-        # Do not reveal whether another user's asset exists.
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Asset not found.",
@@ -98,6 +109,48 @@ def original_file_path(asset: Asset) -> Path:
         )
 
     return path
+
+
+def load_watermark_secret() -> bytes:
+    hex_value = os.getenv("WATERMARK_SECRET_HEX")
+    b64_value = os.getenv("WATERMARK_SECRET_B64")
+
+    if hex_value:
+        return bytes.fromhex(hex_value.strip())
+
+    if b64_value:
+        return base64.b64decode(b64_value.strip())
+
+    raise RuntimeError(
+        "Missing WATERMARK secret. Set WATERMARK_SECRET_HEX (recommended) "
+        "or WATERMARK_SECRET_B64 in your .env"
+    )
+
+
+@router.get("/{asset_id}/thumbnail")
+def download_thumbnail(
+    asset_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    asset = require_owned_asset(db, asset_id, user.id)
+    original = original_file_path(asset)
+    thumbnail = (original.parent / "thumbnail.png").resolve()
+
+    if (
+        not thumbnail.is_relative_to(DEFAULT_STORAGE_ROOT.resolve())
+        or not thumbnail.is_file()
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Thumbnail not found.",
+        )
+
+    return FileResponse(
+        path=thumbnail,
+        media_type="image/png",
+        headers=PRIVATE_FILE_HEADERS,
+    )
 
 
 @router.get("", response_model=list[AssetRead])
@@ -158,15 +211,45 @@ def upload_asset(
             phash_value=stored.phash_value,
         )
 
-        # Prepare the response before commit so serialization errors
-        # do not leave a committed record with deleted files.
+        secret = load_watermark_secret()
+        watermarked_path = (
+            stored.original_path.parent / "watermarked.png"
+        )
+
+        with Image.open(stored.original_path) as original_img:
+            result = embed_watermark(
+                original_img,
+                asset_id=asset.id,
+                user_id=user.id,
+                secret=secret,
+            )
+
+            try:
+                result.image.save(watermarked_path, format="PNG")
+
+                asset.watermarked_url = (
+                    f"{stored.storage_key}/watermarked.png"
+                )
+                asset.watermark_payload = json.dumps(
+                    asdict(result.payload),
+                    ensure_ascii=False,
+                )
+            finally:
+                result.image.close()
+
         response = asset_response(asset)
         db.commit()
-
         return response
 
-    except UploadValidationError as exc:
+    except (UploadValidationError, WatermarkError) as exc:
         db.rollback()
+
+        if stored is not None:
+            shutil.rmtree(
+                stored.original_path.parent,
+                ignore_errors=True,
+            )
+
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(exc),
@@ -196,7 +279,6 @@ def read_asset(
     asset = require_owned_asset(db, asset_id, user.id)
     return asset_response(asset)
 
-
 @router.get("/{asset_id}/download")
 def download_asset(
     asset_id: int,
@@ -220,27 +302,39 @@ def download_asset(
     )
 
 
-@router.get("/{asset_id}/thumbnail")
-def download_thumbnail(
+@router.get("/{asset_id}/download-watermarked")
+def download_watermarked_asset(
     asset_id: int,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     asset = require_owned_asset(db, asset_id, user.id)
+
+    if not asset.watermarked_url:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Watermarked file not found.",
+        )
+
+    root = DEFAULT_STORAGE_ROOT.resolve()
+    path = (root / asset.watermarked_url).resolve()
+
     original = original_file_path(asset)
-    thumbnail = (original.parent / "thumbnail.png").resolve()
+    expected_path = original.parent / "watermarked.png"
 
     if (
-        not thumbnail.is_relative_to(DEFAULT_STORAGE_ROOT.resolve())
-        or not thumbnail.is_file()
+        not path.is_relative_to(root)
+        or path != expected_path
+        or not path.is_file()
     ):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Thumbnail not found.",
+            detail="Watermarked file not found.",
         )
 
     return FileResponse(
-        path=thumbnail,
+        path=path,
         media_type="image/png",
+        filename=f"asset-{asset.id}-watermarked.png",
         headers=PRIVATE_FILE_HEADERS,
     )

@@ -9,12 +9,16 @@ type AssetRowProps = {
   asset: Asset;
 };
 
+type DownloadKind = "original" | "watermarked";
+
 export function AssetRow({ asset }: AssetRowProps) {
   const { user, logout } = useAuth();
 
   const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [thumbnailError, setThumbnailError] = useState(false);
-  const [downloading, setDownloading] = useState(false);
+  const [downloading, setDownloading] = useState<DownloadKind | null>(
+    null,
+  );
   const [downloadError, setDownloadError] = useState("");
 
   const downloadController = useRef<AbortController | null>(null);
@@ -25,10 +29,12 @@ export function AssetRow({ asset }: AssetRowProps) {
 
     setThumbnail(null);
     setThumbnailError(false);
+    setDownloading(null);
+    setDownloadError("");
 
     async function loadThumbnail() {
       try {
-                const blob = await api.thumbnail(
+        const blob = await api.thumbnail(
           asset.id,
           controller.signal,
         );
@@ -53,7 +59,9 @@ export function AssetRow({ asset }: AssetRowProps) {
 
     return () => {
       controller.abort();
+
       downloadController.current?.abort();
+      downloadController.current = null;
 
       if (objectUrl) {
         URL.revokeObjectURL(objectUrl);
@@ -61,20 +69,30 @@ export function AssetRow({ asset }: AssetRowProps) {
     };
   }, [asset.id, user.id, logout]);
 
-  async function handleDownload() {
+  async function handleDownload(kind: DownloadKind) {
     if (downloadController.current) return;
+
+    if (kind === "watermarked" && !asset.watermarked_url) {
+      return;
+    }
 
     const controller = new AbortController();
     downloadController.current = controller;
 
-    setDownloading(true);
+    setDownloading(kind);
     setDownloadError("");
 
     try {
-      const blob = await api.downloadOriginal(
-        asset.id,
-        controller.signal,
-      );
+      const blob =
+        kind === "watermarked"
+          ? await api.downloadWatermarked(
+              asset.id,
+              controller.signal,
+            )
+          : await api.downloadOriginal(
+              asset.id,
+              controller.signal,
+            );
 
       if (controller.signal.aborted) return;
 
@@ -84,18 +102,30 @@ export function AssetRow({ asset }: AssetRowProps) {
         "image/webp": "webp",
       };
 
-      const mediaType = blob.type.split(";")[0].toLowerCase();
+      const mediaType = blob.type
+        .split(";")[0]
+        .trim()
+        .toLowerCase();
+
       const extension = extensions[mediaType];
 
-      if (!extension) {
-        throw new Error("The server returned an unexpected file format.");
+      if (
+        !extension ||
+        (kind === "watermarked" && mediaType !== "image/png")
+      ) {
+        throw new Error(
+          "The server returned an unexpected file format.",
+        );
       }
 
       const objectUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
 
       link.href = objectUrl;
-      link.download = `asset-${asset.id}.${extension}`;
+      link.download =
+        kind === "watermarked"
+          ? `asset-${asset.id}-watermarked.png`
+          : `asset-${asset.id}.${extension}`;
 
       document.body.appendChild(link);
 
@@ -104,8 +134,11 @@ export function AssetRow({ asset }: AssetRowProps) {
       } finally {
         link.remove();
 
-        // Allow the browser to start the download before releasing the URL.
-        window.setTimeout(() => URL.revokeObjectURL(objectUrl), 30_000);
+        // Give the browser time to start downloading the blob.
+        window.setTimeout(
+          () => URL.revokeObjectURL(objectUrl),
+          30_000,
+        );
       }
     } catch (error) {
       if (controller.signal.aborted) return;
@@ -116,18 +149,23 @@ export function AssetRow({ asset }: AssetRowProps) {
       }
 
       setDownloadError(
-        error instanceof Error ? error.message : "Download failed.",
+        error instanceof Error
+          ? error.message
+          : "Download failed.",
       );
     } finally {
       if (downloadController.current === controller) {
         downloadController.current = null;
-      }
 
-      if (!controller.signal.aborted) {
-        setDownloading(false);
+        if (!controller.signal.aborted) {
+          setDownloading(null);
+        }
       }
     }
   }
+
+  const isDownloading = downloading !== null;
+  const hasWatermark = Boolean(asset.watermarked_url);
 
   return (
     <div className="rounded-2xl border border-white/8 bg-[#1a1f2d] p-4 transition hover:bg-[#252a38]">
@@ -157,8 +195,10 @@ export function AssetRow({ asset }: AssetRowProps) {
             </h4>
 
             <p className="text-[12px] leading-5 text-slate-400">
-              Asset #{asset.id} ·{" "}
-              {new Date(asset.created_at).toLocaleDateString("en-US")}
+              Asset #{asset.id} &middot;{" "}
+              {new Date(asset.created_at).toLocaleDateString(
+                "en-US",
+              )}
             </p>
 
             <div className="mt-2 flex flex-wrap gap-2">
@@ -167,8 +207,16 @@ export function AssetRow({ asset }: AssetRowProps) {
               </span>
 
               <span className="rounded-md bg-white/8 px-2 py-0.5 text-[11px] font-medium text-slate-200">
-                {asset.phash_value ? "pHash available" : "pHash unavailable"}
+                {asset.phash_value
+                  ? "pHash available"
+                  : "pHash unavailable"}
               </span>
+
+              {hasWatermark && (
+                <span className="rounded-md bg-emerald-400/10 px-2 py-0.5 text-[11px] font-medium text-emerald-300">
+                  Watermarked
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -188,14 +236,43 @@ export function AssetRow({ asset }: AssetRowProps) {
             {asset.status === "active" ? "Active" : "Archived"}
           </span>
 
-          <button
-            type="button"
-            disabled={downloading}
-            onClick={handleDownload}
-            className="text-[12px] font-semibold text-sky-300 hover:text-sky-200 disabled:cursor-wait disabled:opacity-50"
-          >
-            {downloading ? "Downloading..." : "Download original"}
-          </button>
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              disabled={isDownloading}
+              onClick={() => void handleDownload("original")}
+              className="text-[12px] font-semibold text-sky-300 hover:text-sky-200 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {downloading === "original"
+                ? "Downloading..."
+                : "Download original"}
+            </button>
+
+            <button
+              type="button"
+              disabled={isDownloading || !hasWatermark}
+              onClick={() => void handleDownload("watermarked")}
+              title={
+                hasWatermark
+                  ? "Download the watermarked PNG"
+                  : "No watermarked file is available"
+              }
+              className="text-[12px] font-semibold text-emerald-300 hover:text-emerald-200 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {downloading === "watermarked"
+                ? "Downloading..."
+                : "Download watermarked"}
+            </button>
+          </div>
+
+          {isDownloading && (
+            <p
+              role="status"
+              className="text-[11px] text-slate-400"
+            >
+              Preparing your download...
+            </p>
+          )}
         </div>
       </div>
 
@@ -207,13 +284,16 @@ export function AssetRow({ asset }: AssetRowProps) {
       </p>
 
       <p className="mt-1 text-[11px] text-slate-400">
-        {asset.watermarked_url
+        {hasWatermark
           ? "Watermarked file available."
           : "No watermark has been applied."}
       </p>
 
       {downloadError && (
-        <p role="alert" className="mt-3 text-xs text-rose-300">
+        <p
+          role="alert"
+          className="mt-3 text-xs text-rose-300"
+        >
           {downloadError}
         </p>
       )}
