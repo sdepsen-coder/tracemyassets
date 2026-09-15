@@ -2,12 +2,9 @@ import base64
 import json
 import os
 import shutil
-import warnings
 from dataclasses import asdict
 from pathlib import Path
 
-import imagehash
-from PIL import Image, ImageOps, UnidentifiedImageError
 from fastapi import (
     APIRouter,
     Depends,
@@ -19,11 +16,16 @@ from fastapi import (
     status,
 )
 from fastapi.responses import FileResponse
+from PIL import Image
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
-from app.crud.asset import create_asset, get_asset, get_assets
-from app.crud.asset import get_asset_stats
+from app.crud.asset import (
+    create_asset,
+    get_asset,
+    get_asset_stats,
+    get_assets,
+)
 from app.models.asset import Asset
 from app.models.user import User
 from app.schemas.asset import AssetRead, AssetStats
@@ -35,17 +37,12 @@ from app.services.asset_ingestion import (
     ingest_image,
 )
 from app.services.watermark import WatermarkError, embed_watermark
+from app.services.watermark_metadata import (
+    save_verified_watermarked_png,
+)
 
 
 router = APIRouter(prefix="/assets", tags=["assets"])
-
-
-@router.get("/stats", response_model=AssetStats)
-def read_asset_stats(
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-) -> dict[str, int]:
-    return get_asset_stats(db, user_id=user.id)
 
 
 PRIVATE_FILE_HEADERS = {
@@ -67,7 +64,7 @@ def asset_response(asset: Asset) -> AssetRead:
             f"{base_url}/download-watermarked"
             if asset.watermarked_url
             else None
-),
+        ),
         phash_value=asset.phash_value,
         status=asset.status,
         created_at=asset.created_at,
@@ -122,35 +119,17 @@ def load_watermark_secret() -> bytes:
         return base64.b64decode(b64_value.strip())
 
     raise RuntimeError(
-        "Missing WATERMARK secret. Set WATERMARK_SECRET_HEX (recommended) "
-        "or WATERMARK_SECRET_B64 in your .env"
+        "Missing WATERMARK secret. Set WATERMARK_SECRET_HEX "
+        "(recommended) or WATERMARK_SECRET_B64 in your .env"
     )
 
 
-@router.get("/{asset_id}/thumbnail")
-def download_thumbnail(
-    asset_id: int,
+@router.get("/stats", response_model=AssetStats)
+def read_asset_stats(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-):
-    asset = require_owned_asset(db, asset_id, user.id)
-    original = original_file_path(asset)
-    thumbnail = (original.parent / "thumbnail.png").resolve()
-
-    if (
-        not thumbnail.is_relative_to(DEFAULT_STORAGE_ROOT.resolve())
-        or not thumbnail.is_file()
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Thumbnail not found.",
-        )
-
-    return FileResponse(
-        path=thumbnail,
-        media_type="image/png",
-        headers=PRIVATE_FILE_HEADERS,
-    )
+) -> dict[str, int]:
+    return get_asset_stats(db, user_id=user.id)
 
 
 @router.get("", response_model=list[AssetRead])
@@ -166,6 +145,7 @@ def list_assets(
         skip=skip,
         limit=limit,
     )
+
     return [asset_response(asset) for asset in assets]
 
 
@@ -184,6 +164,7 @@ def upload_asset(
 
     try:
         clean_title = title.strip()
+
         if not clean_title:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -203,6 +184,7 @@ def upload_asset(
             f"{stored.storage_key}/{stored.original_path.name}"
         )
 
+        # create_asset() flushes to obtain the ID, but does not commit.
         asset = create_asset(
             db,
             user_id=user.id,
@@ -225,11 +207,19 @@ def upload_asset(
             )
 
             try:
-                result.image.save(watermarked_path, format="PNG")
+                # Save metadata and verify the actual saved PNG.
+                save_verified_watermarked_png(
+                    result,
+                    watermarked_path,
+                    secret=secret,
+                    original_phash=stored.phash_value,
+                )
 
+                # Store a private storage reference, not the API URL.
                 asset.watermarked_url = (
                     f"{stored.storage_key}/watermarked.png"
                 )
+
                 asset.watermark_payload = json.dumps(
                     asdict(result.payload),
                     ensure_ascii=False,
@@ -239,6 +229,7 @@ def upload_asset(
 
         response = asset_response(asset)
         db.commit()
+
         return response
 
     except (UploadValidationError, WatermarkError) as exc:
@@ -277,7 +268,9 @@ def read_asset(
     db: Session = Depends(get_db),
 ):
     asset = require_owned_asset(db, asset_id, user.id)
+
     return asset_response(asset)
+
 
 @router.get("/{asset_id}/download")
 def download_asset(
@@ -298,6 +291,32 @@ def download_asset(
         path=path,
         media_type=media_types[path.suffix],
         filename=f"asset-{asset.id}{path.suffix}",
+        headers=PRIVATE_FILE_HEADERS,
+    )
+
+
+@router.get("/{asset_id}/thumbnail")
+def download_thumbnail(
+    asset_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    asset = require_owned_asset(db, asset_id, user.id)
+    original = original_file_path(asset)
+    thumbnail = (original.parent / "thumbnail.png").resolve()
+
+    if (
+        not thumbnail.is_relative_to(DEFAULT_STORAGE_ROOT.resolve())
+        or not thumbnail.is_file()
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Thumbnail not found.",
+        )
+
+    return FileResponse(
+        path=thumbnail,
+        media_type="image/png",
         headers=PRIVATE_FILE_HEADERS,
     )
 
