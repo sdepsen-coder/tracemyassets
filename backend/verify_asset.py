@@ -17,6 +17,44 @@ from check_visual_match import (
 from check_watermark import load_watermark_secret
 
 
+def classify_match(
+    *,
+    watermark_verified: bool,
+    phash_similarity: float,
+    good_matches: int,
+    homography_inliers: int,
+    inlier_ratio_percent: float | None,
+) -> str:
+    """
+    Return a conservative technical review signal.
+
+    This is not a legal, ownership or infringement determination.
+    """
+    if watermark_verified:
+        return "WATERMARK VERIFIED"
+
+    if (
+        phash_similarity >= 90.0
+        and homography_inliers >= 20
+        and inlier_ratio_percent is not None
+        and inlier_ratio_percent >= 60.0
+    ):
+        return "STRONG VISUAL MATCH — manual review required"
+
+    if (
+        phash_similarity >= 75.0
+        and homography_inliers >= 10
+        and inlier_ratio_percent is not None
+        and inlier_ratio_percent >= 35.0
+    ):
+        return "POSSIBLE VISUAL MATCH — manual review required"
+
+    if good_matches >= 15 and homography_inliers >= 5:
+        return "WEAK VISUAL SIGNAL"
+
+    return "NO STRONG VISUAL MATCH SIGNAL"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
@@ -108,6 +146,21 @@ def main() -> int:
             print("  Inlier ratio: unavailable (fewer than 4 matches)")
         else:
             print(f"  Inlier ratio: {inlier_ratio:.2f}%")
+
+        overall_signal = classify_match(
+            watermark_verified=payload is not None,
+            phash_similarity=phash_similarity,
+            good_matches=int(orb_result["good_matches"]),
+            homography_inliers=int(orb_result["homography_inliers"]),
+            inlier_ratio_percent=(
+                float(inlier_ratio)
+                if inlier_ratio is not None
+                else None
+            ),
+        )
+
+        print()
+        print(f"Overall signal: {overall_signal}")
 
         print()
         print(
