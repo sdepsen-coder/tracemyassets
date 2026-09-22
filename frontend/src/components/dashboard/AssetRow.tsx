@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
+import { AssetMonitoringControls } from "./AssetMonitoringControls";
 import { useAuth } from "@/components/AuthGate";
 import { api, ApiError, type Asset } from "@/lib/api";
 import { Icon } from "./Icon";
@@ -269,6 +269,8 @@ export function AssetRow({ asset }: AssetRowProps) {
           {downloadError}
         </p>
       )}
+
+      <AssetMonitoringControls assetId={asset.id} />
     </article>
   );
 }
