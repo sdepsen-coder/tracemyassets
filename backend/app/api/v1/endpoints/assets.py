@@ -28,7 +28,14 @@ from app.crud.asset import (
 )
 from app.models.asset import Asset
 from app.models.user import User
-from app.schemas.asset import AssetRead, AssetStats
+from app.schemas.asset import (
+    AssetRead,
+    AssetStats,
+    CandidateVerificationRead,
+    OrbComparisonRead,
+    PHashComparisonRead,
+    WatermarkPayloadRead,
+)
 from app.services.asset_ingestion import (
     DEFAULT_STORAGE_ROOT,
     MAX_UPLOAD_BYTES,
@@ -37,6 +44,10 @@ from app.services.asset_ingestion import (
     ingest_image,
 )
 from app.services.watermark import WatermarkError, embed_watermark
+from app.services.visual_verification import (
+    read_candidate_bytes,
+    verify_candidate_image,
+)
 from app.services.watermark_metadata import (
     save_verified_watermarked_png,
 )
@@ -123,6 +134,102 @@ def load_watermark_secret() -> bytes:
         "(recommended) or WATERMARK_SECRET_B64 in your .env"
     )
 
+def verification_response(
+    *,
+    asset_id: int,
+    result,
+) -> CandidateVerificationRead:
+    payload = result.watermark_payload
+
+    return CandidateVerificationRead(
+        asset_id=asset_id,
+        watermark_verified=result.watermark_matches_reference,
+        watermark_matches_reference=result.watermark_matches_reference,
+        watermark_payload=(
+            WatermarkPayloadRead(
+                asset_id=payload.asset_id,
+                user_id=payload.user_id,
+                timestamp=payload.timestamp,
+                nonce=payload.nonce,
+            )
+            if payload is not None
+            else None
+        ),
+        phash=PHashComparisonRead(
+            reference_hash=result.reference_phash,
+            candidate_hash=result.candidate_phash,
+            hamming_distance=result.phash_hamming_distance,
+            similarity_percent=result.phash_similarity_percent,
+        ),
+        orb=OrbComparisonRead(
+            reference_keypoints=result.orb.reference_keypoints,
+            candidate_keypoints=result.orb.candidate_keypoints,
+            good_matches=result.orb.good_matches,
+            homography_inliers=result.orb.homography_inliers,
+            inlier_ratio_percent=result.orb.inlier_ratio_percent,
+        ),
+        overall_signal=result.overall_signal,
+        review_recommended=result.review_recommended,
+    )
+
+@router.post(
+    "/{asset_id}/verify-candidate",
+    response_model=CandidateVerificationRead,
+)
+def verify_candidate(
+    asset_id: int,
+    candidate: UploadFile = File(),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Compare a temporary candidate upload with one owned registered artwork.
+
+    The candidate file is processed in memory only and is not added to
+    permanent asset storage.
+    """
+    try:
+        asset = require_owned_asset(
+            db,
+            asset_id=asset_id,
+            user_id=user.id,
+        )
+
+        if candidate.size is not None and candidate.size > MAX_UPLOAD_BYTES:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail="Candidate image size must not exceed 25 MiB.",
+            )
+
+        candidate.file.seek(0)
+        candidate_content = read_candidate_bytes(candidate.file)
+
+        result = verify_candidate_image(
+            reference_path=original_file_path(asset),
+            reference_phash=asset.phash_value,
+            expected_asset_id=asset.id,
+            expected_user_id=user.id,
+            candidate_content=candidate_content,
+            watermark_secret=load_watermark_secret(),
+        )
+
+        return verification_response(
+            asset_id=asset.id,
+            result=result,
+        )
+
+    except UploadValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
+    except WatermarkError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
+    finally:
+        candidate.file.close()
 
 @router.get("/stats", response_model=AssetStats)
 def read_asset_stats(

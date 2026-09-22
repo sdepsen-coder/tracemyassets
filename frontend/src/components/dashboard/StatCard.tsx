@@ -4,69 +4,73 @@ type StatCardProps = {
   label: string;
   value: string;
   sublabel: string;
-  tone: string;
-  chipClass: string;
   icon: string;
-  spark?: string | null;
+  tone?: "primary" | "success" | "warning" | "neutral";
   footer?: string;
+};
+
+const tones = {
+  primary: {
+    icon: "bg-[var(--primary-soft)] text-[var(--primary)]",
+    chip: "bg-[var(--primary-soft)] text-[var(--primary)]",
+  },
+  success: {
+    icon: "bg-[var(--success-soft)] text-[var(--success)]",
+    chip: "bg-[var(--success-soft)] text-[var(--success)]",
+  },
+  warning: {
+    icon: "bg-[var(--warning-soft)] text-[var(--warning)]",
+    chip: "bg-[var(--warning-soft)] text-[var(--warning)]",
+  },
+  neutral: {
+    icon: "bg-[var(--surface-muted)] text-[var(--text-muted)]",
+    chip: "bg-[var(--surface-muted)] text-[var(--text-muted)]",
+  },
 };
 
 export function StatCard({
   label,
   value,
   sublabel,
-  tone,
-  chipClass,
   icon,
-  spark = null,
+  tone = "neutral",
   footer = "",
 }: StatCardProps) {
+  const classes = tones[tone];
+
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-[#161b29] p-5 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset,0_10px_30px_rgba(0,0,0,0.22)]">
+    <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-card">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 space-y-1">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]">
             {label}
           </p>
-          <div className={`text-[32px] font-bold tracking-[-0.02em] ${tone}`}>
+
+          <p className="mt-3 font-heading text-[36px] font-semibold leading-none tracking-[-0.04em] text-[var(--text)]">
             {value}
-          </div>
+          </p>
         </div>
 
-        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white/5 text-sky-300">
+        <div
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${classes.icon}`}
+        >
           <Icon name={icon} />
         </div>
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+      <div className="mt-4 flex min-h-6 flex-wrap items-center gap-2">
         <span
-          className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold ${chipClass}`}
+          className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${classes.chip}`}
         >
-          <Icon name="info" />
           {sublabel}
         </span>
 
-        {spark ? (
-          <svg
-            aria-hidden="true"
-            className="h-6 w-20 text-emerald-300"
-            fill="none"
-            viewBox="0 0 80 24"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path
-              d={spark}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        ) : footer ? (
-          <span className="text-[11px] font-medium text-slate-400">
+        {footer && (
+          <span className="text-[11px] text-[var(--text-muted)]">
             {footer}
           </span>
-        ) : null}
+        )}
       </div>
-    </div>
+    </article>
   );
 }

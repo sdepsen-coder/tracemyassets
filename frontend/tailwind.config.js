@@ -1,16 +1,22 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: "class",
   content: [
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./lib/**/*.{js,ts,jsx,tsx,mdx}"
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-inter)", "Arial", "sans-serif"],
+        heading: ["var(--font-jakarta)", "Arial", "sans-serif"],
+        mono: ["var(--font-mono)", "monospace"],
+      },
       boxShadow: {
-        soft: "0 10px 30px -12px rgba(15, 23, 42, 0.45)"
-      }
-    }
+        card: "0 1px 3px 0 rgba(15, 23, 42, 0.05)",
+        floating:
+          "0 8px 24px -4px rgba(15, 23, 42, 0.10), 0 4px 8px -2px rgba(15, 23, 42, 0.04)",
+      },
+    },
   },
-  plugins: []
+  plugins: [],
 };

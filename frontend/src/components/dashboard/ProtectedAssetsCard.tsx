@@ -10,9 +10,10 @@ import {
 
 import { useAuth } from "@/components/AuthGate";
 import { AssetRow } from "@/components/dashboard/AssetRow";
+import { Icon } from "@/components/dashboard/Icon";
+import { useAssetStats } from "@/components/dashboard/AssetStatsProvider";
 import { Panel } from "@/components/ui/Panel";
 import { api, ApiError, type Asset } from "@/lib/api";
-import { useAssetStats } from "@/components/dashboard/AssetStatsProvider";
 
 const MAX_FILE_BYTES = 25 * 1024 * 1024;
 const LIST_LIMIT = 100;
@@ -21,6 +22,7 @@ const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp"];
 export function ProtectedAssetsCard() {
   const { user, logout } = useAuth();
   const { refresh: refreshStats } = useAssetStats();
+
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState("");
@@ -54,7 +56,9 @@ export function ProtectedAssetsCard() {
           setAssets(result);
         }
       } catch (error) {
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted) {
+          return;
+        }
 
         if (error instanceof ApiError && error.status === 401) {
           logout();
@@ -64,7 +68,7 @@ export function ProtectedAssetsCard() {
         setListError(
           error instanceof ApiError
             ? error.message
-            : "Unable to load assets. Check the API connection and retry.",
+            : "Unable to load artworks. Check the API connection and retry.",
         );
       } finally {
         if (!controller.signal.aborted) {
@@ -76,7 +80,7 @@ export function ProtectedAssetsCard() {
     void loadAssets();
 
     return () => controller.abort();
-    }, [user.id, logout, refreshKey]);
+  }, [user.id, logout, refreshKey]);
 
   useEffect(() => {
     if (!file) {
@@ -98,7 +102,9 @@ export function ProtectedAssetsCard() {
     setUploadError("");
     setSuccess("");
 
-    if (!candidate) return;
+    if (!candidate) {
+      return;
+    }
 
     const validType =
       ALLOWED_TYPES.includes(candidate.type) ||
@@ -129,16 +135,16 @@ export function ProtectedAssetsCard() {
     setFile(candidate);
 
     if (!title.trim()) {
-      setTitle(
-        candidate.name.replace(/\.[^.]+$/, "").slice(0, 255),
-      );
+      setTitle(candidate.name.replace(/\.[^.]+$/, "").slice(0, 255));
     }
   }
 
   function handleDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
 
-    if (uploading || loading) return;
+    if (uploading || loading) {
+      return;
+    }
 
     if (event.dataTransfer.files.length !== 1) {
       setSuccess("");
@@ -152,7 +158,9 @@ export function ProtectedAssetsCard() {
   async function handleUpload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (loading || uploadController.current) return;
+    if (loading || uploadController.current) {
+      return;
+    }
 
     setUploadError("");
     setSuccess("");
@@ -180,13 +188,15 @@ export function ProtectedAssetsCard() {
         controller.signal,
       );
 
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted) {
+        return;
+      }
 
       setAssets((current) =>
-        [
-          created,
-          ...current.filter((asset) => asset.id !== created.id),
-        ].slice(0, LIST_LIMIT),
+        [created, ...current.filter((asset) => asset.id !== created.id)].slice(
+          0,
+          LIST_LIMIT,
+        ),
       );
 
       setTitle("");
@@ -196,10 +206,12 @@ export function ProtectedAssetsCard() {
         fileInput.current.value = "";
       }
 
-      setSuccess(`"${created.title}" was registered successfully.`);
-	        void refreshStats();
+      setSuccess(`"${created.title}" was registered and protected.`);
+      void refreshStats();
     } catch (error) {
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted) {
+        return;
+      }
 
       if (error instanceof ApiError && error.status === 401) {
         logout();
@@ -209,7 +221,7 @@ export function ProtectedAssetsCard() {
       setUploadError(
         error instanceof ApiError
           ? error.message
-          : "Upload could not be confirmed. Refresh the asset list before retrying; the server may have saved the file.",
+          : "Upload could not be confirmed. Refresh the artwork list before retrying.",
       );
     } finally {
       if (uploadController.current === controller) {
@@ -222,163 +234,223 @@ export function ProtectedAssetsCard() {
     }
   }
 
+  function refreshAssets() {
+    setLoading(true);
+    setRefreshKey((value) => value + 1);
+    void refreshStats();
+  }
+
   return (
-    <Panel className="p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <Panel className="p-5 sm:p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="text-[20px] font-semibold tracking-[-0.02em] text-slate-100">
-            Registered Assets
-          </h3>
-          <p className="mt-1 text-[12px] text-slate-400">
-            Registered files and visual fingerprints from your account.
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--primary)]">
+            My artworks
+          </p>
+
+          <h2 className="mt-1 font-heading text-[23px] font-semibold tracking-[-0.025em] text-[var(--text)]">
+            Your registered artwork
+          </h2>
+
+          <p className="mt-2 text-[13px] leading-6 text-[var(--text-muted)]">
+            Upload original images, download protected copies, and keep your
+            work organized in one private place.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="rounded-full bg-sky-400/10 px-3 py-1 text-[11px] font-semibold text-sky-300">
-            Live data
-          </span>
-
-          <button
-            type="button"
-            disabled={loading || uploading}
-                        onClick={() => {
-              setLoading(true);
-              setRefreshKey((value) => value + 1);
-              void refreshStats();
-            }}
-            className="rounded-lg border border-white/10 px-3 py-1 text-xs text-slate-300 hover:bg-white/5 disabled:opacity-50"
-          >
-            Refresh
-          </button>
-        </div>
+        <button
+          type="button"
+          disabled={loading || uploading}
+          onClick={refreshAssets}
+          className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[12px] font-semibold text-[var(--text)] transition hover:bg-[var(--surface-muted)] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Icon name="refresh" />
+          Refresh
+        </button>
       </div>
 
       <form
         id="asset-upload"
         onSubmit={handleUpload}
         aria-busy={uploading}
-        className="mt-5 scroll-mt-28 space-y-4 rounded-2xl border border-white/10 bg-[#090e1b] p-4"
+        className="mt-6 scroll-mt-24 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4 sm:p-5"
       >
-        <div>
-          <h4 className="font-semibold text-slate-100">Upload asset</h4>
-          <p className="mt-1 text-xs text-slate-400">
-            PNG, JPEG, or WEBP. Maximum 25 MiB per file.
-          </p>
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--primary-soft)] text-[var(--primary)]">
+            <Icon name="add_photo_alternate" />
+          </div>
+
+          <div>
+            <h3 className="text-[15px] font-semibold text-[var(--text)]">
+              Upload artwork
+            </h3>
+            <p className="mt-1 text-[12px] leading-5 text-[var(--text-muted)]">
+              PNG, JPEG, and WEBP files are supported up to 25 MiB. A protected
+              PNG copy is created when your image supports watermarking.
+            </p>
+          </div>
         </div>
 
-        <div>
-          <label htmlFor="asset-title" className="text-sm text-slate-300">
-            Title
-          </label>
-          <input
-            id="asset-title"
-            name="title"
-            type="text"
-            required
-            maxLength={255}
-            disabled={uploading || loading}
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            placeholder="Give your asset a name"
-            className="mt-2 w-full rounded-xl border border-white/10 bg-[#161b29] px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-sky-400 disabled:opacity-50"
-          />
-        </div>
+        <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <label
+              htmlFor="asset-title"
+              className="text-[12px] font-semibold text-[var(--text)]"
+            >
+              Artwork title
+            </label>
 
-        <div
-          onDragOver={(event) => event.preventDefault()}
-          onDrop={handleDrop}
-          className="rounded-xl border border-dashed border-sky-400/30 bg-sky-400/5 p-4"
-        >
-          <label
-            htmlFor="asset-file"
-            className="block text-sm text-slate-300"
+            <input
+              id="asset-title"
+              name="title"
+              type="text"
+              required
+              maxLength={255}
+              disabled={uploading || loading}
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="Give your artwork a title"
+              className="mt-2 h-10 w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[13px] text-[var(--text)] placeholder:text-[var(--text-muted)] disabled:cursor-not-allowed disabled:opacity-50"
+            />
+          </div>
+
+          <div
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={handleDrop}
+            className="rounded-lg border border-dashed border-[var(--primary)]/45 bg-[var(--surface)] p-3"
           >
-            Drop an image here or choose a file
-          </label>
+            <label
+              htmlFor="asset-file"
+              className="flex cursor-pointer items-center gap-2 text-[12px] font-semibold text-[var(--text)]"
+            >
+              <span className="material-symbols-outlined text-[18px] text-[var(--primary)]">
+                upload_file
+              </span>
+              Choose image or drop it here
+            </label>
 
-          <input
-            ref={fileInput}
-            id="asset-file"
-            name="file"
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            disabled={uploading || loading}
-            onChange={(event) =>
-              selectFile(event.target.files?.item(0) ?? null)
-            }
-            className="mt-3 block w-full text-xs text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-sky-400/15 file:px-3 file:py-2 file:font-semibold file:text-sky-300 disabled:opacity-50"
-          />
+            <input
+              ref={fileInput}
+              id="asset-file"
+              name="file"
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              disabled={uploading || loading}
+              onChange={(event) =>
+                selectFile(event.target.files?.item(0) ?? null)
+              }
+              className="mt-2 block w-full text-[11px] text-[var(--text-muted)] file:mr-3 file:rounded-md file:border-0 file:bg-[var(--primary-soft)] file:px-3 file:py-1.5 file:text-[11px] file:font-semibold file:text-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-50"
+            />
 
-          {file && (
-            <div className="mt-4 flex min-w-0 items-center gap-3">
-              {preview && (
-                <img
-                  src={preview}
-                  alt="Selected asset preview"
-                  className="h-16 w-16 flex-shrink-0 rounded-lg object-cover"
-                />
-              )}
+            {file && (
+              <div className="mt-3 flex min-w-0 items-center gap-3 border-t border-[var(--border)] pt-3">
+                {preview ? (
+                  <img
+                    src={preview}
+                    alt="Selected artwork preview"
+                    className="h-12 w-12 shrink-0 rounded-md object-cover"
+                  />
+                ) : null}
 
-              <div className="min-w-0">
-                <p className="truncate text-sm text-slate-200">
-                  {file.name}
-                </p>
-                <p className="text-xs text-slate-400">
-                  {(file.size / (1024 * 1024)).toFixed(2)} MiB
-                </p>
+                <div className="min-w-0">
+                  <p className="truncate text-[12px] font-medium text-[var(--text)]">
+                    {file.name}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-[var(--text-muted)]">
+                    {(file.size / (1024 * 1024)).toFixed(2)} MiB
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        <p className="text-xs text-amber-200/80">
-          Uploading registers your file and generates a visual fingerprint.
-          Invisible watermarking is not enabled yet.
+        <p className="mt-4 rounded-lg bg-[var(--surface)] px-3 py-2 text-[11px] leading-5 text-[var(--text-muted)]">
+          Your original image remains private. Watermark availability depends
+          on image dimensions and fully opaque image regions.
         </p>
 
         {uploadError && (
-          <p role="alert" className="text-sm text-rose-300">
+          <p
+            role="alert"
+            className="mt-4 rounded-lg bg-[var(--danger-soft)] px-3 py-2 text-[12px] text-[var(--danger)]"
+          >
             {uploadError}
           </p>
         )}
 
         {success && (
-          <p role="status" className="text-sm text-emerald-300">
+          <p
+            role="status"
+            className="mt-4 rounded-lg bg-[var(--success-soft)] px-3 py-2 text-[12px] text-[var(--success)]"
+          >
             {success}
           </p>
         )}
 
-        {uploading && (
-          <p role="status" className="text-sm text-sky-300">
-            Uploading and processing your image. Please wait...
-          </p>
-        )}
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          <button
+            type="submit"
+            disabled={uploading || loading || !file || !title.trim()}
+            className="inline-flex h-10 items-center gap-2 rounded-lg bg-[var(--primary-strong)] px-4 text-[13px] font-semibold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Icon name="cloud_upload" />
+            {uploading ? "Uploading and protecting..." : "Upload artwork"}
+          </button>
 
-        <button
-          type="submit"
-          disabled={uploading || loading || !file || !title.trim()}
-          className="inline-flex items-center gap-2 rounded-xl bg-[#4cd7f6] px-4 py-2.5 text-sm font-semibold text-[#003640] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {uploading ? "Uploading and processing..." : "Upload asset"}
-        </button>
+          {uploading && (
+            <span role="status" className="text-[12px] text-[var(--text-muted)]">
+              Processing your image. Please wait...
+            </span>
+          )}
+        </div>
       </form>
 
       {listError && (
-        <p role="alert" className="mt-5 text-sm text-rose-300">
+        <p
+          role="alert"
+          className="mt-5 rounded-lg bg-[var(--danger-soft)] px-3 py-2 text-[12px] text-[var(--danger)]"
+        >
           {listError}
         </p>
       )}
 
+      <div className="mt-6 flex items-center justify-between gap-3">
+        <div>
+          <h3 className="text-[16px] font-semibold text-[var(--text)]">
+            Recent artworks
+          </h3>
+          <p className="mt-1 text-[12px] text-[var(--text-muted)]">
+            Your newest registered images appear first.
+          </p>
+        </div>
+
+        {!loading && (
+          <span className="rounded-full bg-[var(--surface-muted)] px-2.5 py-1 text-[11px] font-semibold text-[var(--text-muted)]">
+            {assets.length} shown
+          </span>
+        )}
+      </div>
+
       {loading ? (
-        <p role="status" className="mt-5 text-sm text-slate-400">
-          Loading your assets...
-        </p>
+        <div className="mt-5 rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] p-6 text-center">
+          <p role="status" className="text-[13px] text-[var(--text-muted)]">
+            Loading your artworks...
+          </p>
+        </div>
       ) : assets.length === 0 && !listError ? (
-        <div className="mt-5 rounded-xl border border-white/10 p-6 text-center">
-          <p className="font-semibold text-slate-200">No assets yet</p>
-          <p className="mt-2 text-sm text-slate-400">
-            Upload your first image using the form above.
+        <div className="mt-5 rounded-lg border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-8 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--primary-soft)] text-[var(--primary)]">
+            <Icon name="add_photo_alternate" />
+          </div>
+
+          <h3 className="mt-4 text-[15px] font-semibold text-[var(--text)]">
+            Upload your first artwork
+          </h3>
+
+          <p className="mx-auto mt-2 max-w-md text-[13px] leading-6 text-[var(--text-muted)]">
+            Add an image above to create your first private asset record and
+            protected copy.
           </p>
         </div>
       ) : (
@@ -388,12 +460,6 @@ export function ProtectedAssetsCard() {
           ))}
         </div>
       )}
-
-      <p className="mt-4 text-xs text-slate-400">
-        {loading
-          ? "Fetching account assets..."
-          : `${assets.length} assets displayed. This MVP view shows up to ${LIST_LIMIT} assets.`}
-      </p>
     </Panel>
   );
 }

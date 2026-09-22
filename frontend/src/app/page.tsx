@@ -1,34 +1,30 @@
-import type { ReactNode } from "react";
-
+import Link from "next/link";
 import { AuthGate } from "@/components/AuthGate";
 import { AssetStatsProvider } from "@/components/dashboard/AssetStatsProvider";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
-import { Sidebar } from "@/components/dashboard/Sidebar";
-import { Topbar } from "@/components/dashboard/Topbar";
 import { HeroBanner } from "@/components/dashboard/HeroBanner";
 import { ProtectedAssetsCard } from "@/components/dashboard/ProtectedAssetsCard";
-import { MonitoringActivityCard } from "@/components/dashboard/MonitoringActivityCard";
-import { EvidenceInspectionCard } from "@/components/dashboard/EvidenceInspectionCard";
-import { PipelineCard } from "@/components/dashboard/PipelineCard";
-import { RecentEventsCard } from "@/components/dashboard/RecentEventsCard";
+import { Topbar } from "@/components/dashboard/Topbar";
 
-function DemoPreview({ children }: { children: ReactNode }) {
+function Footer() {
   return (
-    <section
-      aria-label="Demo preview"
-      className="overflow-hidden rounded-2xl border border-amber-300/20"
-    >
-      <div className="flex flex-wrap items-center justify-between gap-2 bg-amber-300/5 px-4 py-2">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-amber-200">
-          Demo preview
-        </span>
-        <span className="text-[11px] text-slate-400">
-          Sample content · Not connected
-        </span>
-      </div>
+    <footer className="mt-10 border-t border-[var(--border)] bg-[var(--surface-muted)]">
+      <div className="mx-auto flex max-w-[1440px] flex-col items-center justify-between gap-3 px-4 py-6 text-[12px] text-[var(--text-muted)] sm:flex-row sm:px-6 xl:px-8">
+        <span>© 2026 TraceMyAssets</span>
 
-      {children}
-    </section>
+        <div className="flex items-center gap-4">
+          <a href="#privacy" className="transition hover:text-[var(--text)]">
+            Privacy
+          </a>
+          <a href="#terms" className="transition hover:text-[var(--text)]">
+            Terms
+          </a>
+          <a href="#support" className="transition hover:text-[var(--text)]">
+            Support
+          </a>
+        </div>
+      </div>
+    </footer>
   );
 }
 
@@ -36,44 +32,55 @@ export default function HomePage() {
   return (
     <AuthGate>
       <AssetStatsProvider>
-        <div className="min-h-screen bg-[#0e1320] text-[#dee2f5]">
-          <Sidebar />
+        <div className="min-h-screen bg-[var(--background)] text-[var(--text)]">
+          <Topbar />
 
-          <div className="xl:pl-72">
-            <Topbar />
+          <main className="px-4 py-6 sm:px-6 sm:py-8 xl:px-8">
+            <div className="mx-auto flex max-w-[1440px] flex-col gap-6">
+              <HeroBanner />
 
-            <main className="px-4 py-6 sm:px-6 xl:px-8">
-              <div className="mx-auto flex max-w-[1440px] flex-col gap-6">
-                <HeroBanner />
+              <DashboardStats />
 
-                <DashboardStats />
+              <section id="my-artworks">
+                <ProtectedAssetsCard />
+              </section>
 
-                <section className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-                  <div className="flex flex-col gap-6 xl:col-span-7">
-                    <ProtectedAssetsCard />
+              <section
+                id="check-image"
+                className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-card"
+              >
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--primary)]">
+                      Image verification
+                    </p>
 
-                    <DemoPreview>
-                      <MonitoringActivityCard />
-                    </DemoPreview>
+                    <h2 className="mt-1 font-heading text-[22px] font-semibold tracking-[-0.02em] text-[var(--text)]">
+                      Check a suspicious image
+                    </h2>
+
+                    <p className="mt-2 max-w-2xl text-[14px] leading-6 text-[var(--text-muted)]">
+                      Select one of your registered artworks, then upload a
+                      candidate image to review watermark verification and
+                      visual similarity signals.
+                    </p>
                   </div>
 
-                  <div className="flex flex-col gap-6 xl:col-span-5">
-                    <DemoPreview>
-                      <EvidenceInspectionCard />
-                    </DemoPreview>
+<Link
+  href="/check"
+  className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-[var(--primary-strong)] px-4 text-[13px] font-semibold text-white shadow-sm transition hover:brightness-110"
+>
+  Check an image
+  <span className="material-symbols-outlined text-[18px]">
+    arrow_forward
+  </span>
+</Link>
+                </div>
+              </section>
+            </div>
+          </main>
 
-                    <DemoPreview>
-                      <PipelineCard />
-                    </DemoPreview>
-
-                    <DemoPreview>
-                      <RecentEventsCard />
-                    </DemoPreview>
-                  </div>
-                </section>
-              </div>
-            </main>
-          </div>
+          <Footer />
         </div>
       </AssetStatsProvider>
     </AuthGate>

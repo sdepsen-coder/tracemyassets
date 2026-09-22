@@ -27,6 +27,44 @@ export type AssetStats = {
   archived: number;
 };
 
+export type WatermarkPayload = {
+  asset_id: number;
+  user_id: number;
+  timestamp: number;
+  nonce: string;
+};
+
+export type PHashComparison = {
+  reference_hash: string;
+  candidate_hash: string;
+  hamming_distance: number;
+  similarity_percent: number;
+};
+
+export type OrbComparison = {
+  reference_keypoints: number;
+  candidate_keypoints: number;
+  good_matches: number;
+  homography_inliers: number;
+  inlier_ratio_percent: number | null;
+};
+
+export type CandidateVerification = {
+  asset_id: number;
+  watermark_verified: boolean;
+  watermark_matches_reference: boolean;
+  watermark_payload: WatermarkPayload | null;
+  phash: PHashComparison;
+  orb: OrbComparison;
+  overall_signal:
+    | "WATERMARK_VERIFIED"
+    | "STRONG_VISUAL_MATCH"
+    | "POSSIBLE_VISUAL_MATCH"
+    | "WEAK_VISUAL_SIGNAL"
+    | "NO_STRONG_VISUAL_MATCH";
+  review_recommended: boolean;
+};
+
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -187,7 +225,7 @@ export const api = {
     return response.blob();
   },
 
-  downloadOriginal: async (
+downloadOriginal: async (
     assetId: number,
     signal?: AbortSignal,
   ): Promise<Blob> => {
@@ -197,5 +235,23 @@ export const api = {
     );
 
     return response.blob();
+  },
+
+  verifyCandidate: (
+    assetId: number,
+    candidate: File,
+    signal?: AbortSignal,
+  ) => {
+    const body = new FormData();
+    body.append("candidate", candidate);
+
+    return request<CandidateVerification>(
+      `/api/v1/assets/${assetId}/verify-candidate`,
+      {
+        method: "POST",
+        body,
+        signal,
+      },
+    );
   },
 };

@@ -3,24 +3,6 @@
 import { useAssetStats } from "./AssetStatsProvider";
 import { StatCard } from "./StatCard";
 
-const unavailableMetrics = [
-  {
-    label: "Active Infringements",
-    sublabel: "Scanner not connected",
-    icon: "radar",
-  },
-  {
-    label: "Match Accuracy",
-    sublabel: "Matching not connected",
-    icon: "fingerprint",
-  },
-  {
-    label: "Resolved Cases",
-    sublabel: "Takedowns not connected",
-    icon: "task_alt",
-  },
-];
-
 export function DashboardStats() {
   const { stats, loading, error, refresh } = useAssetStats();
 
@@ -30,49 +12,72 @@ export function DashboardStats() {
       ? stats.total.toLocaleString("en-US")
       : "—";
 
-  const assetSummary = loading
-    ? "Loading account totals..."
+  const protectedCount = loading
+    ? "..."
     : stats
-      ? `${stats.active.toLocaleString("en-US")} active · ${stats.archived.toLocaleString("en-US")} archived`
-      : "Totals unavailable";
+      ? stats.active.toLocaleString("en-US")
+      : "—";
+
+  const archivedCount = loading
+    ? "..."
+    : stats
+      ? stats.archived.toLocaleString("en-US")
+      : "—";
+
+  const protectionRate =
+    stats && stats.total > 0
+      ? `${Math.round((stats.active / stats.total) * 100)}% protected`
+      : "No assets yet";
 
   return (
-    <section aria-label="Dashboard statistics" className="space-y-3">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <section aria-label="Artwork summary" className="space-y-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="Registered Assets"
+          label="Total artworks"
           value={total}
-          sublabel={assetSummary}
-          tone="text-emerald-300"
-          chipClass="bg-emerald-400/10 text-emerald-300"
-          icon="verified_user"
-          footer="Live account data"
+          sublabel={loading ? "Loading account data" : "Registered to your account"}
+          icon="collections"
+          tone="primary"
         />
 
-        {unavailableMetrics.map((metric) => (
-          <StatCard
-            key={metric.label}
-            {...metric}
-            value="—"
-            tone="text-slate-400"
-            chipClass="bg-white/5 text-slate-400"
-            footer="Not available"
-          />
-        ))}
+        <StatCard
+          label="Protected artworks"
+          value={protectedCount}
+          sublabel={loading ? "Loading protection status" : protectionRate}
+          icon="verified_user"
+          tone="success"
+        />
+
+        <StatCard
+          label="Archived artworks"
+          value={archivedCount}
+          sublabel="Stored in your account"
+          icon="inventory_2"
+          tone="neutral"
+        />
+
+        <StatCard
+          label="Image checks"
+          value="—"
+          sublabel="Coming next"
+          icon="manage_search"
+          tone="warning"
+          footer="Manual verification tools are ready"
+        />
       </div>
 
       {error && (
         <div
           role="alert"
-          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rose-400/20 bg-rose-400/5 p-3"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--danger)]/30 bg-[var(--danger-soft)] p-4"
         >
-          <p className="text-sm text-rose-300">{error}</p>
+          <p className="text-sm text-[var(--danger)]">{error}</p>
 
           <button
             type="button"
             disabled={loading}
             onClick={() => void refresh()}
-            className="text-sm font-semibold text-sky-300 disabled:opacity-50"
+            className="rounded-md px-3 py-1.5 text-sm font-semibold text-[var(--primary)] transition hover:bg-[var(--surface)] disabled:opacity-50"
           >
             Retry
           </button>

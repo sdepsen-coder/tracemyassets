@@ -1,17 +1,21 @@
-import type { ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 
-type PanelProps = {
+type PanelProps = HTMLAttributes<HTMLElement> & {
   children: ReactNode;
-  className?: string;
 };
 
-export function Panel({ children, className = "" }: PanelProps) {
+export function Panel({
+  children,
+  className = "",
+  ...props
+}: PanelProps) {
   return (
     <section
       className={[
-        "rounded-2xl border border-white/8 bg-[#161b29] shadow-[0_1px_0_rgba(255,255,255,0.03)_inset,0_14px_40px_rgba(0,0,0,0.22)]",
+        "rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-card",
         className,
       ].join(" ")}
+      {...props}
     >
       {children}
     </section>
