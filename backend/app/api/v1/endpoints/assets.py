@@ -26,12 +26,18 @@ from app.crud.asset import (
     get_asset_stats,
     get_assets,
 )
+from app.crud.monitoring import (
+    get_or_create_monitoring_preference,
+    update_monitoring_preference,
+)
 from app.models.asset import Asset
 from app.models.user import User
 from app.schemas.asset import (
     AssetRead,
     AssetStats,
     CandidateVerificationRead,
+    MonitoringPreferenceRead,
+    MonitoringPreferenceUpdate,
     OrbComparisonRead,
     PHashComparisonRead,
     WatermarkPayloadRead,
@@ -43,11 +49,11 @@ from app.services.asset_ingestion import (
     UploadValidationError,
     ingest_image,
 )
-from app.services.watermark import WatermarkError, embed_watermark
 from app.services.visual_verification import (
     read_candidate_bytes,
     verify_candidate_image,
 )
+from app.services.watermark import WatermarkError, embed_watermark
 from app.services.watermark_metadata import (
     save_verified_watermarked_png,
 )
@@ -134,6 +140,7 @@ def load_watermark_secret() -> bytes:
         "(recommended) or WATERMARK_SECRET_B64 in your .env"
     )
 
+
 def verification_response(
     *,
     asset_id: int,
@@ -172,64 +179,18 @@ def verification_response(
         review_recommended=result.review_recommended,
     )
 
-@router.post(
-    "/{asset_id}/verify-candidate",
-    response_model=CandidateVerificationRead,
-)
-def verify_candidate(
-    asset_id: int,
-    candidate: UploadFile = File(),
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Compare a temporary candidate upload with one owned registered artwork.
 
-    The candidate file is processed in memory only and is not added to
-    permanent asset storage.
-    """
-    try:
-        asset = require_owned_asset(
-            db,
-            asset_id=asset_id,
-            user_id=user.id,
-        )
+def monitoring_response(preference) -> MonitoringPreferenceRead:
+    return MonitoringPreferenceRead(
+        id=preference.id,
+        asset_id=preference.asset_id,
+        enabled=preference.enabled,
+        alert_threshold_percent=preference.alert_threshold_percent,
+        scan_frequency=preference.scan_frequency,
+        created_at=preference.created_at,
+        updated_at=preference.updated_at,
+    )
 
-        if candidate.size is not None and candidate.size > MAX_UPLOAD_BYTES:
-            raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail="Candidate image size must not exceed 25 MiB.",
-            )
-
-        candidate.file.seek(0)
-        candidate_content = read_candidate_bytes(candidate.file)
-
-        result = verify_candidate_image(
-            reference_path=original_file_path(asset),
-            reference_phash=asset.phash_value,
-            expected_asset_id=asset.id,
-            expected_user_id=user.id,
-            candidate_content=candidate_content,
-            watermark_secret=load_watermark_secret(),
-        )
-
-        return verification_response(
-            asset_id=asset.id,
-            result=result,
-        )
-
-    except UploadValidationError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=str(exc),
-        ) from exc
-    except WatermarkError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=str(exc),
-        ) from exc
-    finally:
-        candidate.file.close()
 
 @router.get("/stats", response_model=AssetStats)
 def read_asset_stats(
@@ -366,6 +327,120 @@ def upload_asset(
 
     finally:
         file.file.close()
+
+
+@router.post(
+    "/{asset_id}/verify-candidate",
+    response_model=CandidateVerificationRead,
+)
+def verify_candidate(
+    asset_id: int,
+    candidate: UploadFile = File(),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Compare a temporary candidate upload with one owned registered artwork.
+
+    The candidate file is processed in memory only and is not added to
+    permanent asset storage.
+    """
+    try:
+        asset = require_owned_asset(
+            db,
+            asset_id=asset_id,
+            user_id=user.id,
+        )
+
+        if candidate.size is not None and candidate.size > MAX_UPLOAD_BYTES:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail="Candidate image size must not exceed 25 MiB.",
+            )
+
+        candidate.file.seek(0)
+        candidate_content = read_candidate_bytes(candidate.file)
+
+        result = verify_candidate_image(
+            reference_path=original_file_path(asset),
+            reference_phash=asset.phash_value,
+            expected_asset_id=asset.id,
+            expected_user_id=user.id,
+            candidate_content=candidate_content,
+            watermark_secret=load_watermark_secret(),
+        )
+
+        return verification_response(
+            asset_id=asset.id,
+            result=result,
+        )
+
+    except UploadValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
+    except WatermarkError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
+    finally:
+        candidate.file.close()
+
+
+@router.get(
+    "/{asset_id}/monitoring",
+    response_model=MonitoringPreferenceRead,
+)
+def read_asset_monitoring(
+    asset_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    asset = require_owned_asset(
+        db,
+        asset_id=asset_id,
+        user_id=user.id,
+    )
+
+    preference = get_or_create_monitoring_preference(
+        db,
+        asset_id=asset.id,
+    )
+
+    db.commit()
+
+    return monitoring_response(preference)
+
+
+@router.put(
+    "/{asset_id}/monitoring",
+    response_model=MonitoringPreferenceRead,
+)
+def update_asset_monitoring(
+    asset_id: int,
+    request: MonitoringPreferenceUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    asset = require_owned_asset(
+        db,
+        asset_id=asset_id,
+        user_id=user.id,
+    )
+
+    preference = update_monitoring_preference(
+        db,
+        asset_id=asset.id,
+        enabled=request.enabled,
+        alert_threshold_percent=request.alert_threshold_percent,
+        scan_frequency=request.scan_frequency,
+    )
+
+    db.commit()
+
+    return monitoring_response(preference)
 
 
 @router.get("/{asset_id}", response_model=AssetRead)

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AssetRead(BaseModel):
@@ -59,3 +59,19 @@ class CandidateVerificationRead(BaseModel):
         "NO_STRONG_VISUAL_MATCH",
     ]
     review_recommended: bool
+
+class MonitoringPreferenceRead(BaseModel):
+    id: int
+    asset_id: int
+    enabled: bool
+    alert_threshold_percent: float
+    scan_frequency: Literal["daily", "weekly", "monthly"]
+    created_at: datetime
+    updated_at: datetime
+
+
+class MonitoringPreferenceUpdate(BaseModel):
+    enabled: bool
+    alert_threshold_percent: float = Field(ge=1.0, le=100.0)
+    scan_frequency: Literal["daily", "weekly", "monthly"]
+
