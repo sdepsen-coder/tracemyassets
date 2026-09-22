@@ -3,6 +3,13 @@ from app.models.base import Base
 
 
 def initialize_database() -> None:
-    from app.models import asset, match, monitoring, takedown, user  # noqa: F401
+    from app.models import (  # noqa: F401
+        asset,
+        match,
+        monitoring,
+        scan_job,
+        takedown,
+        user,
+    )
 
     Base.metadata.create_all(bind=engine)
