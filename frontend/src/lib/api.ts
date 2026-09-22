@@ -21,6 +21,7 @@ export type Asset = {
   status: "active" | "archived";
   created_at: string;
 };
+
 export type AssetStats = {
   total: number;
   active: number;
@@ -63,6 +64,71 @@ export type CandidateVerification = {
     | "WEAK_VISUAL_SIGNAL"
     | "NO_STRONG_VISUAL_MATCH";
   review_recommended: boolean;
+};
+
+export type MonitoringPreference = {
+  id: number;
+  asset_id: number;
+  enabled: boolean;
+  alert_threshold_percent: number;
+  scan_frequency: "daily" | "weekly" | "monthly";
+  created_at: string;
+  updated_at: string;
+};
+
+export type MonitoringPreferenceUpdate = {
+  enabled: boolean;
+  alert_threshold_percent: number;
+  scan_frequency: "daily" | "weekly" | "monthly";
+};
+
+export type ScanJob = {
+  id: number;
+  asset_id: number;
+  provider: string;
+  status: "queued" | "running" | "completed" | "failed" | "cancelled";
+  started_at: string | null;
+  completed_at: string | null;
+  candidate_count: number;
+  match_count: number;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MatchRecord = {
+  id: number;
+  asset_id: number;
+  scan_job_id: number | null;
+  source_name: string;
+  source_url: string | null;
+  candidate_image_url: string | null;
+  candidate_page_url: string | null;
+  candidate_image_hash: string | null;
+  similarity_percent: number;
+  watermark_verified: boolean;
+  watermark_matches_reference: boolean;
+  overall_signal:
+    | "WATERMARK_VERIFIED"
+    | "STRONG_VISUAL_MATCH"
+    | "POSSIBLE_VISUAL_MATCH"
+    | "WEAK_VISUAL_SIGNAL"
+    | "NO_STRONG_VISUAL_MATCH";
+  review_status: "new" | "reviewing" | "confirmed" | "dismissed" | "archived";
+  found_at: string;
+  reviewed_at: string | null;
+  dismissed_at: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AssetScan = {
+  asset_id: number;
+  provider: string;
+  threshold_percent: number;
+  scan_job: ScanJob;
+  matches: MatchRecord[];
 };
 
 export class ApiError extends Error {
@@ -154,8 +220,9 @@ async function request<T>(
 }
 
 export const api = {
-	  assetStats: (signal?: AbortSignal) =>
+  assetStats: (signal?: AbortSignal) =>
     request<AssetStats>("/api/v1/assets/stats", { signal }),
+
   register: (credentials: Credentials) =>
     request<User>("/api/v1/auth/register", {
       method: "POST",
@@ -213,6 +280,7 @@ export const api = {
 
     return response.blob();
   },
+
   downloadWatermarked: async (
     assetId: number,
     signal?: AbortSignal,
@@ -225,7 +293,7 @@ export const api = {
     return response.blob();
   },
 
-downloadOriginal: async (
+  downloadOriginal: async (
     assetId: number,
     signal?: AbortSignal,
   ): Promise<Blob> => {
@@ -254,4 +322,39 @@ downloadOriginal: async (
       },
     );
   },
+
+  getMonitoring: (
+    assetId: number,
+    signal?: AbortSignal,
+  ) =>
+    request<MonitoringPreference>(
+      `/api/v1/assets/${assetId}/monitoring`,
+      { signal },
+    ),
+
+  updateMonitoring: (
+    assetId: number,
+    preference: MonitoringPreferenceUpdate,
+    signal?: AbortSignal,
+  ) =>
+    request<MonitoringPreference>(
+      `/api/v1/assets/${assetId}/monitoring`,
+      {
+        method: "PUT",
+        body: JSON.stringify(preference),
+        signal,
+      },
+    ),
+
+  runScan: (
+    assetId: number,
+    signal?: AbortSignal,
+  ) =>
+    request<AssetScan>(
+      `/api/v1/assets/${assetId}/scan`,
+      {
+        method: "POST",
+        signal,
+      },
+    ),
 };
