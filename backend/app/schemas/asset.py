@@ -75,3 +75,64 @@ class MonitoringPreferenceUpdate(BaseModel):
     alert_threshold_percent: float = Field(ge=1.0, le=100.0)
     scan_frequency: Literal["daily", "weekly", "monthly"]
 
+class ScanJobRead(BaseModel):
+    id: int
+    asset_id: int
+    provider: str
+    status: Literal[
+        "queued",
+        "running",
+        "completed",
+        "failed",
+        "cancelled",
+    ]
+    started_at: datetime | None
+    completed_at: datetime | None
+    candidate_count: int
+    match_count: int
+    error_message: str | None
+    created_at: datetime
+    updated_at: datetime
+
+
+class MatchRecordRead(BaseModel):
+    id: int
+    asset_id: int
+    scan_job_id: int | None
+    source_name: str
+    source_url: str | None
+    candidate_image_url: str | None
+    candidate_page_url: str | None
+    candidate_image_hash: str | None
+    similarity_percent: float
+    watermark_verified: bool
+    watermark_matches_reference: bool
+    overall_signal: Literal[
+        "WATERMARK_VERIFIED",
+        "STRONG_VISUAL_MATCH",
+        "POSSIBLE_VISUAL_MATCH",
+        "WEAK_VISUAL_SIGNAL",
+        "NO_STRONG_VISUAL_MATCH",
+    ]
+    review_status: Literal[
+        "new",
+        "reviewing",
+        "confirmed",
+        "dismissed",
+        "archived",
+    ]
+    found_at: datetime
+    reviewed_at: datetime | None
+    dismissed_at: datetime | None
+    notes: str | None
+    created_at: datetime
+    updated_at: datetime
+
+
+class AssetScanRead(BaseModel):
+    asset_id: int
+    provider: str
+    threshold_percent: float
+    scan_job: ScanJobRead
+    matches: list[MatchRecordRead]
+

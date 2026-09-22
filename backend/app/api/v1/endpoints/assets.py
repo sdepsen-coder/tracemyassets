@@ -30,6 +30,13 @@ from app.crud.monitoring import (
     get_or_create_monitoring_preference,
     update_monitoring_preference,
 )
+from app.crud.match_record import create_match_record
+from app.crud.scan_job import (
+    create_scan_job,
+    mark_scan_job_completed,
+    mark_scan_job_failed,
+    mark_scan_job_running,
+)
 from app.models.asset import Asset
 from app.models.user import User
 from app.schemas.asset import (
@@ -41,7 +48,11 @@ from app.schemas.asset import (
     OrbComparisonRead,
     PHashComparisonRead,
     WatermarkPayloadRead,
+AssetScanRead,
+MatchRecordRead,
+ScanJobRead,
 )
+from app.services.fake_visual_search import FakeVisualSearchProvider
 from app.services.asset_ingestion import (
     DEFAULT_STORAGE_ROOT,
     MAX_UPLOAD_BYTES,
@@ -190,7 +201,44 @@ def monitoring_response(preference) -> MonitoringPreferenceRead:
         created_at=preference.created_at,
         updated_at=preference.updated_at,
     )
+def scan_job_response(scan_job) -> ScanJobRead:
+    return ScanJobRead(
+        id=scan_job.id,
+        asset_id=scan_job.asset_id,
+        provider=scan_job.provider,
+        status=scan_job.status,
+        started_at=scan_job.started_at,
+        completed_at=scan_job.completed_at,
+        candidate_count=scan_job.candidate_count,
+        match_count=scan_job.match_count,
+        error_message=scan_job.error_message,
+        created_at=scan_job.created_at,
+        updated_at=scan_job.updated_at,
+    )
 
+
+def match_record_response(match_record) -> MatchRecordRead:
+    return MatchRecordRead(
+        id=match_record.id,
+        asset_id=match_record.asset_id,
+        scan_job_id=match_record.scan_job_id,
+        source_name=match_record.source_name,
+        source_url=match_record.source_url,
+        candidate_image_url=match_record.candidate_image_url,
+        candidate_page_url=match_record.candidate_page_url,
+        candidate_image_hash=match_record.candidate_image_hash,
+        similarity_percent=match_record.similarity_percent,
+        watermark_verified=match_record.watermark_verified,
+        watermark_matches_reference=match_record.watermark_matches_reference,
+        overall_signal=match_record.overall_signal,
+        review_status=match_record.review_status,
+        found_at=match_record.found_at,
+        reviewed_at=match_record.reviewed_at,
+        dismissed_at=match_record.dismissed_at,
+        notes=match_record.notes,
+        created_at=match_record.created_at,
+        updated_at=match_record.updated_at,
+    )
 
 @router.get("/stats", response_model=AssetStats)
 def read_asset_stats(
@@ -387,7 +435,121 @@ def verify_candidate(
         ) from exc
     finally:
         candidate.file.close()
+@router.post(
+    "/{asset_id}/scan",
+    response_model=AssetScanRead,
+)
+def scan_asset(
+    asset_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Run a test monitoring scan for one owned artwork.
 
+    This MVP endpoint uses a fake provider. It does not claim to scan the
+    public web. It exists to validate the monitoring flow before integrating
+    a real, policy-compliant visual search provider.
+    """
+    asset = require_owned_asset(
+        db,
+        asset_id=asset_id,
+        user_id=user.id,
+    )
+
+    preference = get_or_create_monitoring_preference(
+        db,
+        asset_id=asset.id,
+    )
+
+    provider = FakeVisualSearchProvider()
+    scan_job = create_scan_job(
+        db,
+        asset_id=asset.id,
+        provider=provider.name,
+    )
+
+    matches = []
+
+    try:
+        scan_job = mark_scan_job_running(db, scan_job)
+
+        candidates = provider.find_candidates(
+            asset_id=asset.id,
+            asset_title=asset.title,
+        )
+
+        for candidate in candidates:
+            should_alert = (
+                candidate.watermark_matches_reference
+                or candidate.similarity_percent
+                >= preference.alert_threshold_percent
+            )
+
+            if not should_alert:
+                continue
+
+            match_record = create_match_record(
+                db,
+                asset_id=asset.id,
+                scan_job_id=scan_job.id,
+                source_name=candidate.source_name,
+                source_url=candidate.source_url,
+                candidate_image_url=candidate.candidate_image_url,
+                candidate_page_url=candidate.candidate_page_url,
+                candidate_image_hash=candidate.candidate_image_hash,
+                similarity_percent=candidate.similarity_percent,
+                watermark_verified=candidate.watermark_verified,
+                watermark_matches_reference=(
+                    candidate.watermark_matches_reference
+                ),
+                overall_signal=candidate.overall_signal,
+                review_status="new",
+            )
+
+            matches.append(match_record)
+
+        scan_job = mark_scan_job_completed(
+            db,
+            scan_job,
+            candidate_count=len(candidates),
+            match_count=len(matches),
+        )
+
+        response = AssetScanRead(
+            asset_id=asset.id,
+            provider=provider.name,
+            threshold_percent=preference.alert_threshold_percent,
+            scan_job=scan_job_response(scan_job),
+            matches=[
+                match_record_response(match_record)
+                for match_record in matches
+            ],
+        )
+
+        db.commit()
+
+        return response
+
+    except Exception as exc:
+        db.rollback()
+
+        # Recreate a short-lived transaction to persist the failed status.
+        try:
+            failed_job = db.merge(scan_job)
+            mark_scan_job_failed(
+                db,
+                failed_job,
+                error_message=str(exc),
+            )
+            db.commit()
+        except Exception:
+            db.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="The scan could not be completed.",
+        ) from exc
 
 @router.get(
     "/{asset_id}/monitoring",
