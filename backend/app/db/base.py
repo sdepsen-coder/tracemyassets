@@ -6,6 +6,7 @@ def initialize_database() -> None:
     from app.models import (  # noqa: F401
         asset,
         match,
+        match_record,
         monitoring,
         scan_job,
         takedown,

@@ -1,6 +1,7 @@
 from app.models.asset import Asset
 from app.models.base import Base
 from app.models.match import Match
+from app.models.match_record import MatchRecord
 from app.models.monitoring import MonitoringPreference
 from app.models.scan_job import ScanJob
 from app.models.takedown import Takedown
@@ -11,6 +12,7 @@ __all__ = [
     "User",
     "Asset",
     "Match",
+    "MatchRecord",
     "MonitoringPreference",
     "ScanJob",
     "Takedown",
