@@ -52,7 +52,10 @@ AssetScanRead,
 MatchRecordRead,
 ScanJobRead,
 )
-from app.services.fake_visual_search import FakeVisualSearchProvider
+from app.services.visual_search_provider import (
+    fetch_candidate_bytes,
+    get_configured_provider,
+)
 from app.services.asset_ingestion import (
     DEFAULT_STORAGE_ROOT,
     MAX_UPLOAD_BYTES,
@@ -445,11 +448,14 @@ def scan_asset(
     db: Session = Depends(get_db),
 ):
     """
-    Run a test monitoring scan for one owned artwork.
+    Run a monitoring scan for one owned artwork.
 
-    This MVP endpoint uses a fake provider. It does not claim to scan the
-    public web. It exists to validate the monitoring flow before integrating
-    a real, policy-compliant visual search provider.
+    The discovery provider is selected by VISUAL_SEARCH_PROVIDER (see
+    app.core.config); it defaults to a fake/demo provider that does
+    not scan the public web. Whichever provider is configured, every
+    discovered candidate is still re-verified through our own
+    pHash/watermark/ORB pipeline before becoming a match record --
+    see get_configured_provider() and verify_candidate_image().
     """
     asset = require_owned_asset(
         db,
@@ -462,7 +468,14 @@ def scan_asset(
         asset_id=asset.id,
     )
 
-    provider = FakeVisualSearchProvider()
+    try:
+        provider = get_configured_provider()
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        ) from exc
+
     scan_job = create_scan_job(
         db,
         asset_id=asset.id,
@@ -474,15 +487,54 @@ def scan_asset(
     try:
         scan_job = mark_scan_job_running(db, scan_job)
 
+        reference_path = original_file_path(asset)
+        watermarked_path = (
+            reference_path.parent / "watermarked.png"
+            if asset.watermarked_url
+            else None
+        )
+
         candidates = provider.find_candidates(
             asset_id=asset.id,
             asset_title=asset.title,
+            reference_original_path=reference_path,
+            reference_watermarked_path=watermarked_path,
         )
 
+        secret = load_watermark_secret()
+
         for candidate in candidates:
+            candidate_bytes = candidate.candidate_image_bytes
+
+            if candidate_bytes is None and candidate.candidate_image_url:
+                # Real-provider path: the candidate only carries a URL,
+                # so fetch the bytes ourselves before analysis.
+                candidate_bytes = fetch_candidate_bytes(
+                    candidate.candidate_image_url
+                )
+
+            if candidate_bytes is None:
+                # Could not retrieve this one candidate -- skip it
+                # rather than failing the whole scan job.
+                continue
+
+            try:
+                result = verify_candidate_image(
+                    reference_path=reference_path,
+                    reference_phash=asset.phash_value,
+                    expected_asset_id=asset.id,
+                    expected_user_id=user.id,
+                    candidate_content=candidate_bytes,
+                    watermark_secret=secret,
+                )
+            except (UploadValidationError, WatermarkError):
+                # Not a decodable/comparable image -- skip, don't fail
+                # the scan job over one bad candidate.
+                continue
+
             should_alert = (
-                candidate.watermark_matches_reference
-                or candidate.similarity_percent
+                result.watermark_matches_reference
+                or result.phash_similarity_percent
                 >= preference.alert_threshold_percent
             )
 
@@ -497,13 +549,13 @@ def scan_asset(
                 source_url=candidate.source_url,
                 candidate_image_url=candidate.candidate_image_url,
                 candidate_page_url=candidate.candidate_page_url,
-                candidate_image_hash=candidate.candidate_image_hash,
-                similarity_percent=candidate.similarity_percent,
-                watermark_verified=candidate.watermark_verified,
+                candidate_image_hash=result.candidate_phash,
+                similarity_percent=result.phash_similarity_percent,
+                watermark_verified=result.watermark_payload is not None,
                 watermark_matches_reference=(
-                    candidate.watermark_matches_reference
+                    result.watermark_matches_reference
                 ),
-                overall_signal=candidate.overall_signal,
+                overall_signal=result.overall_signal,
                 review_status="new",
             )
 

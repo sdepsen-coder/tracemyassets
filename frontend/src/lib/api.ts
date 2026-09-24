@@ -122,7 +122,10 @@ export type MatchRecord = {
   created_at: string;
   updated_at: string;
 };
-
+export type MatchRecordUpdate = {
+  review_status: "reviewing" | "confirmed" | "dismissed" | "archived";
+  notes?: string | null;
+};
 export type AssetScan = {
   asset_id: number;
   provider: string;
@@ -377,4 +380,15 @@ export const api = {
       { signal },
     );
   },
+
+  updateMatch: (
+    matchId: number,
+    update: MatchRecordUpdate,
+    signal?: AbortSignal,
+  ) =>
+    request<MatchRecord>(`/api/v1/matches/${matchId}`, {
+      method: "PATCH",
+      body: JSON.stringify(update),
+      signal,
+    }),
 };

@@ -1,19 +1,14 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from io import BytesIO
+from pathlib import Path
 
+from PIL import Image
 
-@dataclass(frozen=True)
-class CandidateDiscoveryResult:
-    source_name: str
-    source_url: str | None
-    candidate_image_url: str | None
-    candidate_page_url: str | None
-    candidate_image_hash: str | None
-    similarity_percent: float
-    watermark_verified: bool
-    watermark_matches_reference: bool
-    overall_signal: str
+from app.services.visual_search_provider import DiscoveredCandidate
+
+TRANSFORMED_RESIZE_RATIO = 0.8
+TRANSFORMED_JPEG_QUALITY = 75
 
 
 class FakeVisualSearchProvider:
@@ -21,8 +16,15 @@ class FakeVisualSearchProvider:
     Test provider for the monitoring flow.
 
     This does not scan the public web. It returns deterministic demo
-    candidates so the product flow can be developed end-to-end before
-    connecting a real, policy-compliant visual search provider.
+    candidates so the product flow -- including our own verification
+    pipeline -- can be exercised end-to-end before connecting a real,
+    policy-compliant visual search provider.
+
+    Unlike the earlier version of this provider, it does not invent a
+    similarity score or watermark verdict. It supplies real
+    candidate_image_bytes derived from the asset's own files, so the
+    scan endpoint runs the exact same pHash/watermark/ORB comparison it
+    would run against a real discovered image.
     """
 
     name = "fake"
@@ -32,38 +34,69 @@ class FakeVisualSearchProvider:
         *,
         asset_id: int,
         asset_title: str,
-    ) -> list[CandidateDiscoveryResult]:
+        reference_original_path: Path,
+        reference_watermarked_path: Path | None,
+    ) -> list[DiscoveredCandidate]:
         safe_title = asset_title.strip() or f"Asset {asset_id}"
+        candidates: list[DiscoveredCandidate] = []
 
-        return [
-            CandidateDiscoveryResult(
-                source_name="Demo Visual Search",
-                source_url=f"https://example.com/demo/source/{asset_id}",
-                candidate_image_url=(
-                    f"https://example.com/demo/images/{asset_id}-strong.jpg"
-                ),
+        if reference_watermarked_path is not None and (
+            reference_watermarked_path.is_file()
+        ):
+            # A verbatim re-hosted copy of the protected file -- the
+            # watermark should survive intact, exercising the
+            # WATERMARK_VERIFIED path with a real extraction.
+            candidates.append(
+                DiscoveredCandidate(
+                    source_name="Demo source (verbatim re-upload)",
+                    source_url=(
+                        f"https://example.com/demo/source/{asset_id}-a"
+                    ),
+                    candidate_image_url=None,
+                    candidate_page_url=(
+                        f"https://example.com/demo/pages/{asset_id}-a"
+                    ),
+                    candidate_image_bytes=(
+                        reference_watermarked_path.read_bytes()
+                    ),
+                )
+            )
+
+        # A resized, recompressed reuse of the original -- simulates a
+        # copy that predates watermarking (or was re-encoded by a third
+        # party), so pHash should still flag it while the watermark
+        # will typically not survive. This is deliberately honest: we
+        # do not claim watermark robustness we have not verified.
+        with Image.open(reference_original_path) as original:
+            rgb = original.convert("RGB")
+            resized = rgb.resize(
+                (
+                    max(1, int(rgb.width * TRANSFORMED_RESIZE_RATIO)),
+                    max(1, int(rgb.height * TRANSFORMED_RESIZE_RATIO)),
+                )
+            )
+
+            with BytesIO() as buffer:
+                resized.save(
+                    buffer,
+                    format="JPEG",
+                    quality=TRANSFORMED_JPEG_QUALITY,
+                )
+                transformed_bytes = buffer.getvalue()
+
+            resized.close()
+            rgb.close()
+
+        candidates.append(
+            DiscoveredCandidate(
+                source_name="Demo source (resized reupload)",
+                source_url=f"https://example.com/demo/source/{asset_id}-b",
+                candidate_image_url=None,
                 candidate_page_url=(
-                    f"https://example.com/demo/pages/{asset_id}-strong"
+                    f"https://example.com/demo/pages/{asset_id}-b"
                 ),
-                candidate_image_hash=f"fake:{asset_id}:strong",
-                similarity_percent=92.0,
-                watermark_verified=False,
-                watermark_matches_reference=False,
-                overall_signal="STRONG_VISUAL_MATCH",
-            ),
-            CandidateDiscoveryResult(
-                source_name="Demo Visual Search",
-                source_url=f"https://example.com/demo/source/{asset_id}",
-                candidate_image_url=(
-                    f"https://example.com/demo/images/{asset_id}-possible.jpg"
-                ),
-                candidate_page_url=(
-                    f"https://example.com/demo/pages/{asset_id}-possible"
-                ),
-                candidate_image_hash=f"fake:{asset_id}:possible",
-                similarity_percent=78.0,
-                watermark_verified=False,
-                watermark_matches_reference=False,
-                overall_signal="POSSIBLE_VISUAL_MATCH",
-            ),
-        ]
+                candidate_image_bytes=transformed_bytes,
+            )
+        )
+
+        return candidates

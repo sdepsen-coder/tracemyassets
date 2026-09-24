@@ -34,6 +34,9 @@ class Settings:
         self.database_url = os.getenv("DATABASE_URL", "sqlite:///./tracemyassets.db")
         self.openai_api_key = os.getenv("OPENAI_API_KEY", "")
         self.allowed_origins = parse_origins(os.getenv("ALLOWED_ORIGINS"))
+        self.visual_search_provider = os.getenv(
+            "VISUAL_SEARCH_PROVIDER", "fake"
+        )
 
 
 settings = Settings()

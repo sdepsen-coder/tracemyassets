@@ -1,0 +1,138 @@
+"""
+Example real-provider implementation -- NOT wired into the scan endpoint.
+
+Uses a Google Cloud service account rather than a plain API key. This
+matches the path the Cloud Console guides you toward for a server-side
+script accessing its own application's data: when the "Create
+credentials" wizard asks "What data will you be accessing?", choose
+"Application data" (not "User data" -- that's for accessing another
+Google user's personal data via OAuth consent, which does not apply
+here).
+
+Setup (do this yourself -- Claude does not create accounts, service
+accounts, or keys on your behalf):
+    1. Google Cloud Console -> APIs & Services -> Credentials ->
+       Create credentials -> choose "Application data". This creates
+       a service account.
+    2. Give it a name/description -> "Create and continue" -> grant
+       it the "Project > Owner" role (fine for getting started; a
+       narrower role can be set later for production) -> "Continue"
+       -> "Done".
+    3. Click the service account's email -> "Keys" tab -> "Add key"
+       -> "Create new key" -> JSON. A .json file downloads.
+    4. Point GOOGLE_APPLICATION_CREDENTIALS at that file, e.g. in
+       PowerShell:
+       $env:GOOGLE_APPLICATION_CREDENTIALS = "C:\\path\\to\\key.json"
+
+Requires: pip install google-auth
+(Deliberately not the full google-cloud-vision client library -- that
+pulls in grpc and other heavy dependencies for a single REST call.)
+"""
+
+from __future__ import annotations
+
+import base64
+
+import google.auth
+from google.auth.transport.requests import AuthorizedSession
+from google.oauth2 import service_account
+
+from app.services.visual_search_provider import DiscoveredCandidate
+
+VISION_API_URL = "https://vision.googleapis.com/v1/images:annotate"
+REQUEST_TIMEOUT_SECONDS = 15.0
+CLOUD_PLATFORM_SCOPE = "https://www.googleapis.com/auth/cloud-platform"
+
+
+class GoogleVisionWebDetectionProvider:
+    """
+    Discovery provider backed by Google Cloud Vision's Web Detection.
+
+    Returns pages where a visually similar (or identical) image was
+    found on the web. Like every provider, it never computes its own
+    similarity score or watermark verdict -- the scan pipeline always
+    re-verifies each candidate through verify_candidate_image().
+    """
+
+    name = "google-vision"
+
+    def __init__(
+        self,
+        credentials_path: str | None = None,
+        max_results: int = 10,
+    ) -> None:
+        if credentials_path:
+            credentials = (
+                service_account.Credentials.from_service_account_file(
+                    credentials_path,
+                    scopes=[CLOUD_PLATFORM_SCOPE],
+                )
+            )
+        else:
+            # Falls back to the GOOGLE_APPLICATION_CREDENTIALS env var.
+            credentials, _ = google.auth.default(
+                scopes=[CLOUD_PLATFORM_SCOPE]
+            )
+
+        self._session = AuthorizedSession(credentials)
+        self.max_results = max_results
+
+    def find_candidates(
+        self,
+        *,
+        asset_id: int,
+        asset_title: str,
+        reference_original_path,
+        reference_watermarked_path,
+    ) -> list[DiscoveredCandidate]:
+        with open(reference_original_path, "rb") as handle:
+            encoded_image = base64.b64encode(handle.read()).decode("ascii")
+
+        body = {
+            "requests": [
+                {
+                    "image": {"content": encoded_image},
+                    "features": [
+                        {
+                            "type": "WEB_DETECTION",
+                            "maxResults": self.max_results,
+                        }
+                    ],
+                }
+            ]
+        }
+
+        response = self._session.post(
+            VISION_API_URL,
+            json=body,
+            timeout=REQUEST_TIMEOUT_SECONDS,
+        )
+        response.raise_for_status()
+
+        payload = response.json()
+        web_detection = payload["responses"][0].get("webDetection", {})
+
+        candidates: list[DiscoveredCandidate] = []
+
+        for page in web_detection.get("pagesWithMatchingImages", []):
+            page_url = page.get("url")
+            page_title = page.get("pageTitle") or "Google Web Detection"
+
+            matching_images = page.get(
+                "fullMatchingImages", []
+            ) or page.get("partialMatchingImages", [])
+            image_url = (
+                matching_images[0]["url"] if matching_images else None
+            )
+
+            candidates.append(
+                DiscoveredCandidate(
+                    source_name=page_title,
+                    source_url=page_url,
+                    candidate_image_url=image_url,
+                    candidate_page_url=page_url,
+                    candidate_image_bytes=None,  # scan pipeline fetches it
+                )
+            )
+
+        return candidates

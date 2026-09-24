@@ -25,10 +25,15 @@ const filters: Array<{
 }> = [
   { value: "all", label: "All matches" },
   { value: "needs_review", label: "Needs review" },
-  { value: "confirmed", label: "Confirmed" },
+  { value: "confirmed", label: "Reviewed" },
   { value: "dismissed", label: "Ignored" },
   { value: "archived", label: "Archived" },
 ];
+
+type EditableReviewStatus = Extract<
+  MatchRecord["review_status"],
+  "reviewing" | "confirmed" | "dismissed" | "archived"
+>;
 
 function formatDate(value: string): string {
   const date = new Date(value);
@@ -51,7 +56,7 @@ function formatStatus(value: MatchRecord["review_status"]): string {
     case "reviewing":
       return "Reviewing";
     case "confirmed":
-      return "Confirmed";
+      return "Reviewed";
     case "dismissed":
       return "Ignored";
     case "archived":
@@ -76,9 +81,7 @@ function formatSignal(value: MatchRecord["overall_signal"]): string {
   }
 }
 
-function statusClasses(
-  status: MatchRecord["review_status"],
-): string {
+function statusClasses(status: MatchRecord["review_status"]): string {
   switch (status) {
     case "new":
     case "reviewing":
@@ -93,9 +96,7 @@ function statusClasses(
   }
 }
 
-function signalClasses(
-  signal: MatchRecord["overall_signal"],
-): string {
+function signalClasses(signal: MatchRecord["overall_signal"]): string {
   switch (signal) {
     case "WATERMARK_VERIFIED":
       return "bg-[var(--success-soft)] text-[var(--success)]";
@@ -116,6 +117,8 @@ function MatchesContent() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [updatingMatchId, setUpdatingMatchId] = useState<number | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -162,6 +165,43 @@ function MatchesContent() {
 
     return () => controller.abort();
   }, [logout]);
+
+  async function updateMatchStatus(
+    matchId: number,
+    reviewStatus: EditableReviewStatus,
+  ) {
+    if (updatingMatchId !== null) {
+      return;
+    }
+
+    setUpdatingMatchId(matchId);
+    setActionError("");
+
+    try {
+      const updatedMatch = await api.updateMatch(matchId, {
+        review_status: reviewStatus,
+      });
+
+      setMatches((current) =>
+        current.map((match) =>
+          match.id === updatedMatch.id ? updatedMatch : match,
+        ),
+      );
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        await logout();
+        return;
+      }
+
+      setActionError(
+        err instanceof ApiError
+          ? err.message
+          : "The match status could not be updated.",
+      );
+    } finally {
+      setUpdatingMatchId(null);
+    }
+  }
 
   const assetsById = useMemo(
     () => new Map(assets.map((asset) => [asset.id, asset])),
@@ -242,6 +282,15 @@ function MatchesContent() {
           </p>
         </header>
 
+        {actionError && (
+          <p
+            role="alert"
+            className="mb-4 rounded-lg bg-[var(--danger-soft)] px-3 py-2 text-[13px] text-[var(--danger)]"
+          >
+            {actionError}
+          </p>
+        )}
+
         <section className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex gap-1 overflow-x-auto rounded-xl bg-[var(--surface-muted)] p-1">
             {filters.map((item) => {
@@ -253,6 +302,7 @@ function MatchesContent() {
                   key={item.value}
                   type="button"
                   onClick={() => setFilter(item.value)}
+                  aria-pressed={selected}
                   className={[
                     "whitespace-nowrap rounded-lg px-3 py-2 text-[12px] font-semibold transition",
                     selected
@@ -261,9 +311,7 @@ function MatchesContent() {
                   ].join(" ")}
                 >
                   {item.label}
-                  <span className="ml-1 opacity-70">
-                    {count}
-                  </span>
+                  <span className="ml-1 opacity-70">{count}</span>
                 </button>
               );
             })}
@@ -300,9 +348,7 @@ function MatchesContent() {
         ) : visibleMatches.length === 0 ? (
           <section className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface)] px-6 py-14 text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--primary-soft)] text-[var(--primary)]">
-              <span className="material-symbols-outlined">
-                search_off
-              </span>
+              <span className="material-symbols-outlined">search_off</span>
             </div>
 
             <h2 className="mt-4 text-[17px] font-semibold">
@@ -325,6 +371,8 @@ function MatchesContent() {
           <section className="space-y-4">
             {visibleMatches.map((match) => {
               const asset = assetsById.get(match.asset_id);
+              const isUpdating = updatingMatchId === match.id;
+              const actionsDisabled = updatingMatchId !== null;
 
               return (
                 <article
@@ -365,23 +413,8 @@ function MatchesContent() {
                             Found online
                           </span>
 
-                          <div className="h-20 w-20 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-muted)]">
-                            {match.candidate_image_url ? (
-                              <img
-                                src={match.candidate_image_url}
-                                alt="Candidate found online"
-                                className="h-full w-full object-cover"
-                                onError={(event) => {
-                                  event.currentTarget.style.display = "none";
-                                }}
-                              />
-                            ) : (
-                              <div className="flex h-full items-center justify-center text-[var(--text-muted)]">
-                                <span className="material-symbols-outlined">
-                                  language
-                                </span>
-                              </div>
-                            )}
+                          <div className="flex h-20 w-20 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] text-center text-[10px] text-[var(--text-muted)]">
+                            Preview unavailable
                           </div>
                         </div>
                       </div>
@@ -419,9 +452,7 @@ function MatchesContent() {
                             {match.source_name}
                           </span>
 
-                          <span>
-                            Found {formatDate(match.found_at)}
-                          </span>
+                          <span>Found {formatDate(match.found_at)}</span>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3 text-[12px]">
@@ -450,8 +481,8 @@ function MatchesContent() {
                       </div>
                     </div>
 
-                    <div className="flex shrink-0 flex-wrap items-center gap-2 lg:flex-col lg:items-end">
-                      {match.source_url ? (
+                    <div className="flex shrink-0 flex-wrap items-center gap-2 lg:max-w-56 lg:justify-end">
+                      {match.source_url && (
                         <a
                           href={match.source_url}
                           target="_blank"
@@ -463,9 +494,77 @@ function MatchesContent() {
                             open_in_new
                           </span>
                         </a>
-                      ) : null}
+                      )}
 
-                      <span className="text-[11px] text-[var(--text-muted)]">
+                      {match.review_status === "new" && (
+                        <button
+                          type="button"
+                          disabled={actionsDisabled}
+                          onClick={() =>
+                            void updateMatchStatus(match.id, "reviewing")
+                          }
+                          className="inline-flex h-9 items-center rounded-lg border border-[var(--border)] px-3 text-[12px] font-semibold disabled:opacity-50"
+                        >
+                          {isUpdating ? "Updating..." : "Review"}
+                        </button>
+                      )}
+
+                      {match.review_status === "reviewing" && (
+                        <button
+                          type="button"
+                          disabled={actionsDisabled}
+                          onClick={() =>
+                            void updateMatchStatus(match.id, "confirmed")
+                          }
+                          className="inline-flex h-9 items-center rounded-lg border border-[var(--border)] px-3 text-[12px] font-semibold disabled:opacity-50"
+                        >
+                          {isUpdating ? "Updating..." : "Mark reviewed"}
+                        </button>
+                      )}
+
+                      {(match.review_status === "dismissed" ||
+                        match.review_status === "archived") && (
+                        <button
+                          type="button"
+                          disabled={actionsDisabled}
+                          onClick={() =>
+                            void updateMatchStatus(match.id, "reviewing")
+                          }
+                          className="inline-flex h-9 items-center rounded-lg border border-[var(--border)] px-3 text-[12px] font-semibold disabled:opacity-50"
+                        >
+                          {isUpdating ? "Updating..." : "Reopen"}
+                        </button>
+                      )}
+
+                      {!["dismissed", "archived"].includes(
+                        match.review_status,
+                      ) && (
+                        <button
+                          type="button"
+                          disabled={actionsDisabled}
+                          onClick={() =>
+                            void updateMatchStatus(match.id, "dismissed")
+                          }
+                          className="inline-flex h-9 items-center rounded-lg px-3 text-[12px] font-medium text-[var(--text-muted)] hover:bg-[var(--surface-muted)] disabled:opacity-50"
+                        >
+                          {isUpdating ? "Updating..." : "Ignore"}
+                        </button>
+                      )}
+
+                      {match.review_status !== "archived" && (
+                        <button
+                          type="button"
+                          disabled={actionsDisabled}
+                          onClick={() =>
+                            void updateMatchStatus(match.id, "archived")
+                          }
+                          className="inline-flex h-9 items-center rounded-lg px-3 text-[12px] font-medium text-[var(--text-muted)] hover:bg-[var(--surface-muted)] disabled:opacity-50"
+                        >
+                          {isUpdating ? "Updating..." : "Archive"}
+                        </button>
+                      )}
+
+                      <span className="w-full text-right text-[11px] text-[var(--text-muted)]">
                         Match ID #{match.id}
                       </span>
                     </div>

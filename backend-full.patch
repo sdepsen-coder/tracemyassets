@@ -1,0 +1,900 @@
+diff --git a/backend/app/api/v1/endpoints/assets.py b/backend/app/api/v1/endpoints/assets.py
+index 1ec5485..126fca8 100644
+--- a/backend/app/api/v1/endpoints/assets.py
++++ b/backend/app/api/v1/endpoints/assets.py
+@@ -53,6 +53,7 @@ MatchRecordRead,
+ ScanJobRead,
+ )
+ from app.services.fake_visual_search import FakeVisualSearchProvider
++from app.services.visual_search_provider import fetch_candidate_bytes
+ from app.services.asset_ingestion import (
+     DEFAULT_STORAGE_ROOT,
+     MAX_UPLOAD_BYTES,
+@@ -474,15 +475,54 @@ def scan_asset(
+     try:
+         scan_job = mark_scan_job_running(db, scan_job)
+ 
++        reference_path = original_file_path(asset)
++        watermarked_path = (
++            reference_path.parent / "watermarked.png"
++            if asset.watermarked_url
++            else None
++        )
++
+         candidates = provider.find_candidates(
+             asset_id=asset.id,
+             asset_title=asset.title,
++            reference_original_path=reference_path,
++            reference_watermarked_path=watermarked_path,
+         )
+ 
++        secret = load_watermark_secret()
++
+         for candidate in candidates:
++            candidate_bytes = candidate.candidate_image_bytes
++
++            if candidate_bytes is None and candidate.candidate_image_url:
++                # Real-provider path: the candidate only carries a URL,
++                # so fetch the bytes ourselves before analysis.
++                candidate_bytes = fetch_candidate_bytes(
++                    candidate.candidate_image_url
++                )
++
++            if candidate_bytes is None:
++                # Could not retrieve this one candidate -- skip it
++                # rather than failing the whole scan job.
++                continue
++
++            try:
++                result = verify_candidate_image(
++                    reference_path=reference_path,
++                    reference_phash=asset.phash_value,
++                    expected_asset_id=asset.id,
++                    expected_user_id=user.id,
++                    candidate_content=candidate_bytes,
++                    watermark_secret=secret,
++                )
++            except (UploadValidationError, WatermarkError):
++                # Not a decodable/comparable image -- skip, don't fail
++                # the scan job over one bad candidate.
++                continue
++
+             should_alert = (
+-                candidate.watermark_matches_reference
+-                or candidate.similarity_percent
++                result.watermark_matches_reference
++                or result.phash_similarity_percent
+                 >= preference.alert_threshold_percent
+             )
+ 
+@@ -497,13 +537,13 @@ def scan_asset(
+                 source_url=candidate.source_url,
+                 candidate_image_url=candidate.candidate_image_url,
+                 candidate_page_url=candidate.candidate_page_url,
+-                candidate_image_hash=candidate.candidate_image_hash,
+-                similarity_percent=candidate.similarity_percent,
+-                watermark_verified=candidate.watermark_verified,
++                candidate_image_hash=result.candidate_phash,
++                similarity_percent=result.phash_similarity_percent,
++                watermark_verified=result.watermark_payload is not None,
+                 watermark_matches_reference=(
+-                    candidate.watermark_matches_reference
++                    result.watermark_matches_reference
+                 ),
+-                overall_signal=candidate.overall_signal,
++                overall_signal=result.overall_signal,
+                 review_status="new",
+             )
+ 
+diff --git a/backend/app/services/fake_visual_search.py b/backend/app/services/fake_visual_search.py
+index a1951ba..699ef8d 100644
+--- a/backend/app/services/fake_visual_search.py
++++ b/backend/app/services/fake_visual_search.py
+@@ -1,19 +1,14 @@
+ from __future__ import annotations
+ 
+-from dataclasses import dataclass
++from io import BytesIO
++from pathlib import Path
+ 
++from PIL import Image
+ 
+-@dataclass(frozen=True)
+-class CandidateDiscoveryResult:
+-    source_name: str
+-    source_url: str | None
+-    candidate_image_url: str | None
+-    candidate_page_url: str | None
+-    candidate_image_hash: str | None
+-    similarity_percent: float
+-    watermark_verified: bool
+-    watermark_matches_reference: bool
+-    overall_signal: str
++from app.services.visual_search_provider import DiscoveredCandidate
++
++TRANSFORMED_RESIZE_RATIO = 0.8
++TRANSFORMED_JPEG_QUALITY = 75
+ 
+ 
+ class FakeVisualSearchProvider:
+@@ -21,8 +16,15 @@ class FakeVisualSearchProvider:
+     Test provider for the monitoring flow.
+ 
+     This does not scan the public web. It returns deterministic demo
+-    candidates so the product flow can be developed end-to-end before
+-    connecting a real, policy-compliant visual search provider.
++    candidates so the product flow -- including our own verification
++    pipeline -- can be exercised end-to-end before connecting a real,
++    policy-compliant visual search provider.
++
++    Unlike the earlier version of this provider, it does not invent a
++    similarity score or watermark verdict. It supplies real
++    candidate_image_bytes derived from the asset's own files, so the
++    scan endpoint runs the exact same pHash/watermark/ORB comparison it
++    would run against a real discovered image.
+     """
+ 
+     name = "fake"
+@@ -32,38 +34,69 @@ class FakeVisualSearchProvider:
+         *,
+         asset_id: int,
+         asset_title: str,
+-    ) -> list[CandidateDiscoveryResult]:
++        reference_original_path: Path,
++        reference_watermarked_path: Path | None,
++    ) -> list[DiscoveredCandidate]:
+         safe_title = asset_title.strip() or f"Asset {asset_id}"
++        candidates: list[DiscoveredCandidate] = []
+ 
+-        return [
+-            CandidateDiscoveryResult(
+-                source_name="Demo Visual Search",
+-                source_url=f"https://example.com/demo/source/{asset_id}",
+-                candidate_image_url=(
+-                    f"https://example.com/demo/images/{asset_id}-strong.jpg"
+-                ),
+-                candidate_page_url=(
+-                    f"https://example.com/demo/pages/{asset_id}-strong"
+-                ),
+-                candidate_image_hash=f"fake:{asset_id}:strong",
+-                similarity_percent=92.0,
+-                watermark_verified=False,
+-                watermark_matches_reference=False,
+-                overall_signal="STRONG_VISUAL_MATCH",
+-            ),
+-            CandidateDiscoveryResult(
+-                source_name="Demo Visual Search",
+-                source_url=f"https://example.com/demo/source/{asset_id}",
+-                candidate_image_url=(
+-                    f"https://example.com/demo/images/{asset_id}-possible.jpg"
+-                ),
++        if reference_watermarked_path is not None and (
++            reference_watermarked_path.is_file()
++        ):
++            # A verbatim re-hosted copy of the protected file -- the
++            # watermark should survive intact, exercising the
++            # WATERMARK_VERIFIED path with a real extraction.
++            candidates.append(
++                DiscoveredCandidate(
++                    source_name="Demo source (verbatim re-upload)",
++                    source_url=(
++                        f"https://example.com/demo/source/{asset_id}-a"
++                    ),
++                    candidate_image_url=None,
++                    candidate_page_url=(
++                        f"https://example.com/demo/pages/{asset_id}-a"
++                    ),
++                    candidate_image_bytes=(
++                        reference_watermarked_path.read_bytes()
++                    ),
++                )
++            )
++
++        # A resized, recompressed reuse of the original -- simulates a
++        # copy that predates watermarking (or was re-encoded by a third
++        # party), so pHash should still flag it while the watermark
++        # will typically not survive. This is deliberately honest: we
++        # do not claim watermark robustness we have not verified.
++        with Image.open(reference_original_path) as original:
++            rgb = original.convert("RGB")
++            resized = rgb.resize(
++                (
++                    max(1, int(rgb.width * TRANSFORMED_RESIZE_RATIO)),
++                    max(1, int(rgb.height * TRANSFORMED_RESIZE_RATIO)),
++                )
++            )
++
++            with BytesIO() as buffer:
++                resized.save(
++                    buffer,
++                    format="JPEG",
++                    quality=TRANSFORMED_JPEG_QUALITY,
++                )
++                transformed_bytes = buffer.getvalue()
++
++            resized.close()
++            rgb.close()
++
++        candidates.append(
++            DiscoveredCandidate(
++                source_name="Demo source (resized reupload)",
++                source_url=f"https://example.com/demo/source/{asset_id}-b",
++                candidate_image_url=None,
+                 candidate_page_url=(
+-                    f"https://example.com/demo/pages/{asset_id}-possible"
++                    f"https://example.com/demo/pages/{asset_id}-b"
+                 ),
+-                candidate_image_hash=f"fake:{asset_id}:possible",
+-                similarity_percent=78.0,
+-                watermark_verified=False,
+-                watermark_matches_reference=False,
+-                overall_signal="POSSIBLE_VISUAL_MATCH",
+-            ),
+-        ]
+\ No newline at end of file
++                candidate_image_bytes=transformed_bytes,
++            )
++        )
++
++        return candidates
+diff --git a/backend/app/services/google_vision_visual_search.py b/backend/app/services/google_vision_visual_search.py
+new file mode 100644
+index 0000000..b06100f
+--- /dev/null
++++ b/backend/app/services/google_vision_visual_search.py
+@@ -0,0 +1,138 @@
++"""
++Example real-provider implementation -- NOT wired into the scan endpoint.
++
++Uses a Google Cloud service account rather than a plain API key. This
++matches the path the Cloud Console guides you toward for a server-side
++script accessing its own application's data: when the "Create
++credentials" wizard asks "What data will you be accessing?", choose
++"Application data" (not "User data" -- that's for accessing another
++Google user's personal data via OAuth consent, which does not apply
++here).
++
++Setup (do this yourself -- Claude does not create accounts, service
++accounts, or keys on your behalf):
++    1. Google Cloud Console -> APIs & Services -> Credentials ->
++       Create credentials -> choose "Application data". This creates
++       a service account.
++    2. Give it a name/description -> "Create and continue" -> grant
++       it the "Project > Owner" role (fine for getting started; a
++       narrower role can be set later for production) -> "Continue"
++       -> "Done".
++    3. Click the service account's email -> "Keys" tab -> "Add key"
++       -> "Create new key" -> JSON. A .json file downloads.
++    4. Point GOOGLE_APPLICATION_CREDENTIALS at that file, e.g. in
++       PowerShell:
++       $env:GOOGLE_APPLICATION_CREDENTIALS = "C:\\path\\to\\key.json"
++
++Requires: pip install google-auth
++(Deliberately not the full google-cloud-vision client library -- that
++pulls in grpc and other heavy dependencies for a single REST call.)
++"""
++
++from __future__ import annotations
++
++import base64
++
++import google.auth
++from google.auth.transport.requests import AuthorizedSession
++from google.oauth2 import service_account
++
++from app.services.visual_search_provider import DiscoveredCandidate
++
++VISION_API_URL = "https://vision.googleapis.com/v1/images:annotate"
++REQUEST_TIMEOUT_SECONDS = 15.0
++CLOUD_PLATFORM_SCOPE = "https://www.googleapis.com/auth/cloud-platform"
++
++
++class GoogleVisionWebDetectionProvider:
++    """
++    Discovery provider backed by Google Cloud Vision's Web Detection.
++
++    Returns pages where a visually similar (or identical) image was
++    found on the web. Like every provider, it never computes its own
++    similarity score or watermark verdict -- the scan pipeline always
++    re-verifies each candidate through verify_candidate_image().
++    """
++
++    name = "google-vision"
++
++    def __init__(
++        self,
++        credentials_path: str | None = None,
++        max_results: int = 10,
++    ) -> None:
++        if credentials_path:
++            credentials = (
++                service_account.Credentials.from_service_account_file(
++                    credentials_path,
++                    scopes=[CLOUD_PLATFORM_SCOPE],
++                )
++            )
++        else:
++            # Falls back to the GOOGLE_APPLICATION_CREDENTIALS env var.
++            credentials, _ = google.auth.default(
++                scopes=[CLOUD_PLATFORM_SCOPE]
++            )
++
++        self._session = AuthorizedSession(credentials)
++        self.max_results = max_results
++
++    def find_candidates(
++        self,
++        *,
++        asset_id: int,
++        asset_title: str,
++        reference_original_path,
++        reference_watermarked_path,
++    ) -> list[DiscoveredCandidate]:
++        with open(reference_original_path, "rb") as handle:
++            encoded_image = base64.b64encode(handle.read()).decode("ascii")
++
++        body = {
++            "requests": [
++                {
++                    "image": {"content": encoded_image},
++                    "features": [
++                        {
++                            "type": "WEB_DETECTION",
++                            "maxResults": self.max_results,
++                        }
++                    ],
++                }
++            ]
++        }
++
++        response = self._session.post(
++            VISION_API_URL,
++            json=body,
++            timeout=REQUEST_TIMEOUT_SECONDS,
++        )
++        response.raise_for_status()
++
++        payload = response.json()
++        web_detection = payload["responses"][0].get("webDetection", {})
++
++        candidates: list[DiscoveredCandidate] = []
++
++        for page in web_detection.get("pagesWithMatchingImages", []):
++            page_url = page.get("url")
++            page_title = page.get("pageTitle") or "Google Web Detection"
++
++            matching_images = page.get(
++                "fullMatchingImages", []
++            ) or page.get("partialMatchingImages", [])
++            image_url = (
++                matching_images[0]["url"] if matching_images else None
++            )
++
++            candidates.append(
++                DiscoveredCandidate(
++                    source_name=page_title,
++                    source_url=page_url,
++                    candidate_image_url=image_url,
++                    candidate_page_url=page_url,
++                    candidate_image_bytes=None,  # scan pipeline fetches it
++                )
++            )
++
++        return candidates
+diff --git a/backend/app/services/tineye_visual_search.py b/backend/app/services/tineye_visual_search.py
+new file mode 100644
+index 0000000..b955b66
+--- /dev/null
++++ b/backend/app/services/tineye_visual_search.py
+@@ -0,0 +1,80 @@
++"""
++Example real-provider implementation -- NOT wired into the scan endpoint.
++
++This shows how a real discovery provider plugs into the
++VisualSearchProvider interface (see app.services.visual_search_provider)
++without changing anything else in the scan pipeline: it only returns
++candidate locations, never a similarity score or watermark verdict --
++that still comes from our own verify_candidate_image() pipeline.
++
++Requires the official TinEye client:
++    pip install pytineye
++
++Not added to requirements.txt because it is provider-specific and
++optional -- only install it once a real TinEye account (or another
++provider) has been chosen. See the module docstring in
++tests/manual_tineye_sandbox_check.py for a zero-cost way to confirm
++this integration talks to TinEye correctly before spending anything.
++"""
++
++from __future__ import annotations
++
++from app.services.visual_search_provider import DiscoveredCandidate
++
++# TinEye's own public sandbox key. It always returns results for a
++# fixed sample image ("melon cat"), regardless of what you search for.
++# Useful only to prove the integration code works -- never for real
++# match quality. See: https://help.tineye.com/article/182
++TINEYE_SANDBOX_API_KEY = "6mm60lsCNIB,FwOWjJqA80QZHh9BMwc-ber4u=t^"
++
++
++class TineyeVisualSearchProvider:
++    """
++    Discovery provider backed by the TinEye API.
++
++    Pass a real, paid api_key to get real results. Passing
++    TINEYE_SANDBOX_API_KEY (the default) always returns TinEye's fixed
++    sandbox sample -- safe to leave wired up while testing, but it will
++    never find anything about the user's actual artwork.
++    """
++
++    name = "tineye"
++
++    def __init__(self, api_key: str = TINEYE_SANDBOX_API_KEY) -> None:
++        self.api_key = api_key
++
++    def find_candidates(
++        self,
++        *,
++        asset_id: int,
++        asset_title: str,
++        reference_original_path,
++        reference_watermarked_path,
++    ) -> list[DiscoveredCandidate]:
++        # Imported lazily so importing this module doesn't require
++        # pytineye to be installed unless this provider is actually
++        # selected.
++        from pytineye import TinEyeAPIRequest
++
++        api = TinEyeAPIRequest(
++            api_url="https://api.tineye.com/rest/",
++            api_key=self.api_key,
++        )
++
++        with open(reference_original_path, "rb") as handle:
++            response = api.search_data(data=handle.read())
++
++        return [
++            DiscoveredCandidate(
++                source_name=match.domain or "TinEye",
++                source_url=match.backlinks[0].backlink
++                if match.backlinks
++                else None,
++                candidate_image_url=match.image_url,
++                candidate_page_url=match.backlinks[0].url
++                if match.backlinks
++                else None,
++                candidate_image_bytes=None,  # scan pipeline fetches it
++            )
++            for match in response.matches
++        ]
+diff --git a/backend/app/services/visual_search_provider.py b/backend/app/services/visual_search_provider.py
+new file mode 100644
+index 0000000..a811aed
+--- /dev/null
++++ b/backend/app/services/visual_search_provider.py
+@@ -0,0 +1,93 @@
++from __future__ import annotations
++
++from dataclasses import dataclass
++from typing import Protocol
++
++import httpx
++
++MAX_CANDIDATE_FETCH_BYTES = 25 * 1024 * 1024
++CANDIDATE_FETCH_TIMEOUT_SECONDS = 10.0
++
++
++@dataclass(frozen=True)
++class DiscoveredCandidate:
++    """
++    A candidate image location returned by a discovery provider.
++
++    Discovery only identifies *where* a possibly similar image might be.
++    It never carries similarity, watermark, or review-signal data -- that
++    verdict always comes from our own verification pipeline (see
++    app.services.visual_verification.verify_candidate_image), never from
++    the provider itself. This keeps every match record backed by the
++    same analysis we already trust for manual candidate checks.
++    """
++
++    source_name: str
++    source_url: str | None
++    candidate_image_url: str | None
++    candidate_page_url: str | None
++    candidate_image_bytes: bytes | None = None
++    """
++    Optional in-memory image bytes for this candidate.
++
++    Real providers normally leave this as None; the scan pipeline then
++    fetches candidate_image_url itself via fetch_candidate_bytes(). Test
++    or demo providers may supply bytes directly (for example a
++    synthetic image) so the full verification pipeline can be exercised
++    without any network access.
++    """
++
++
++class VisualSearchProvider(Protocol):
++    """
++    Adapter interface for a discovery source.
++
++    A real implementation (e.g. backed by a paid reverse-image-search
++    API) only needs to return candidate locations. It must never invent
++    its own similarity score or watermark verdict -- see
++    DiscoveredCandidate for why.
++    """
++
++    name: str
++
++    def find_candidates(
++        self,
++        *,
++        asset_id: int,
++        asset_title: str,
++    ) -> list[DiscoveredCandidate]: ...
++
++
++def fetch_candidate_bytes(url: str) -> bytes | None:
++    """
++    Download a candidate image for a real provider's URL.
++
++    Returns None (rather than raising) on any failure -- an
++    unreachable, oversized, or non-image candidate should be skipped by
++    the scan pipeline, not abort the whole scan job. Enforces the same
++    size ceiling as direct uploads (MAX_CANDIDATE_FETCH_BYTES) so a
++    hostile or misbehaving source cannot be used to exhaust memory.
++    """
++    try:
++        with httpx.stream(
++            "GET",
++            url,
++            timeout=CANDIDATE_FETCH_TIMEOUT_SECONDS,
++            follow_redirects=True,
++        ) as response:
++            response.raise_for_status()
++
++            chunks: list[bytes] = []
++            total = 0
++
++            for chunk in response.iter_bytes():
++                total += len(chunk)
++
++                if total > MAX_CANDIDATE_FETCH_BYTES:
++                    return None
++
++                chunks.append(chunk)
++
++            return b"".join(chunks)
++    except httpx.HTTPError:
++        return None
+diff --git a/backend/requirements.txt b/backend/requirements.txt
+index d4b11b8..8598574 100644
+--- a/backend/requirements.txt
++++ b/backend/requirements.txt
+@@ -12,3 +12,6 @@ python-dotenv>=1.0,<2.0
+ numpy>=2.3.4,<3.0
+ scipy>=1.16.3,<2.0
+ opencv-python-headless>=4.10,<5.0
++httpx>=0.27,<1.0
++google-auth>=2.35,<3.0
++requests>=2.32,<3.0
+diff --git a/backend/tests/manual_google_vision_check.py b/backend/tests/manual_google_vision_check.py
+new file mode 100644
+index 0000000..9c04bec
+--- /dev/null
++++ b/backend/tests/manual_google_vision_check.py
+@@ -0,0 +1,70 @@
++"""
++Manual check that the Google Vision service-account setup works --
++NOT part of the automated test suite (needs real internet access and
++real credentials, neither of which belong in CI).
++
++Unlike the TinEye sandbox script, this calls the real Vision API with
++your real service account -- it counts against your free 1,000/month
++quota (one query), so it will not cost anything by itself, but it is
++a real call, not a fixed demo response.
++
++Run it yourself (this needs real internet access this container does
++not have):
++
++    $env:GOOGLE_APPLICATION_CREDENTIALS = "C:\\path\\to\\key.json"
++    python tests/manual_google_vision_check.py path\\to\\any\\image.jpg
++"""
++
++from __future__ import annotations
++
++import sys
++
++from app.services.google_vision_visual_search import (
++    GoogleVisionWebDetectionProvider,
++)
++
++
++def main() -> None:
++    if len(sys.argv) != 2:
++        print(f"Usage: python {sys.argv[0]} <path-to-image>")
++        raise SystemExit(1)
++
++    image_path = sys.argv[1]
++
++    try:
++        provider = GoogleVisionWebDetectionProvider()
++    except Exception as exc:  # noqa: BLE001 -- surface any setup error
++        print("Could not initialize the provider.")
++        print(
++            "Check that GOOGLE_APPLICATION_CREDENTIALS points at your "
++            "downloaded service account JSON file."
++        )
++        print(f"Details: {exc}")
++        raise SystemExit(1) from exc
++
++    candidates = provider.find_candidates(
++        asset_id=0,
++        asset_title="sandbox check",
++        reference_original_path=image_path,
++        reference_watermarked_path=None,
++    )
++
++    print(f"Google Vision Web Detection returned {len(candidates)} page(s):\n")
++
++    for candidate in candidates:
++        print(f"- source: {candidate.source_name}")
++        print(f"  image:  {candidate.candidate_image_url}")
++        print(f"  page:   {candidate.candidate_page_url}")
++        print()
++
++    if not candidates:
++        print(
++            "No pages found for this image -- that's expected for an "
++            "image that has never appeared online before. Try a well-"
++            "known photo (e.g. a famous painting or logo) to confirm "
++            "the pipeline itself is working."
++        )
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/backend/tests/manual_tineye_sandbox_check.py b/backend/tests/manual_tineye_sandbox_check.py
+new file mode 100644
+index 0000000..78f0d3c
+--- /dev/null
++++ b/backend/tests/manual_tineye_sandbox_check.py
+@@ -0,0 +1,65 @@
++"""
++Manual, zero-cost check that the TinEye integration talks to their API
++correctly -- NOT part of the automated test suite (not named test_*.py
++on purpose: it needs real internet access and the optional pytineye
++package, neither of which belong in CI).
++
++What this proves: the request/response wiring in
++app.services.tineye_visual_search works end-to-end.
++
++What this does NOT prove: whether TinEye would actually find real
++copies of your own artwork, or what that would cost at real volume.
++The public sandbox key always returns TinEye's fixed "melon cat" demo
++match, regardless of which image you submit -- see
++https://help.tineye.com/article/182
++
++Run it yourself (this needs real internet access this container does
++not have):
++
++    pip install pytineye
++    python tests/manual_tineye_sandbox_check.py path/to/any/image.jpg
++
++Next real step, when you're ready to spend money on this (see Bolum 1
++of the master prompt -- this is a "stop and ask" decision, not one
++Claude makes for you): sign up at https://api.tineye.com/ and buy the
++smallest bundle to test against your own artwork with real results.
++"""
++
++from __future__ import annotations
++
++import sys
++
++from app.services.tineye_visual_search import TineyeVisualSearchProvider
++
++
++def main() -> None:
++    if len(sys.argv) != 2:
++        print(f"Usage: python {sys.argv[0]} <path-to-image>")
++        raise SystemExit(1)
++
++    image_path = sys.argv[1]
++    provider = TineyeVisualSearchProvider()  # uses the public sandbox key
++
++    candidates = provider.find_candidates(
++        asset_id=0,
++        asset_title="sandbox check",
++        reference_original_path=image_path,
++        reference_watermarked_path=None,
++    )
++
++    print(f"TinEye sandbox returned {len(candidates)} candidate(s):\n")
++
++    for candidate in candidates:
++        print(f"- source: {candidate.source_name}")
++        print(f"  image:  {candidate.candidate_image_url}")
++        print(f"  page:   {candidate.candidate_page_url}")
++        print()
++
++    print(
++        "Reminder: this is always TinEye's fixed sandbox sample, "
++        "not a real search of your image."
++    )
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/backend/tests/test_visual_search_provider.py b/backend/tests/test_visual_search_provider.py
+new file mode 100644
+index 0000000..863a9c8
+--- /dev/null
++++ b/backend/tests/test_visual_search_provider.py
+@@ -0,0 +1,168 @@
++import tempfile
++import unittest
++from pathlib import Path
++
++import numpy as np
++from PIL import Image
++
++from app.services.fake_visual_search import FakeVisualSearchProvider
++from app.services.watermark import embed_watermark, extract_watermark
++from app.services.watermark_metadata import save_verified_watermarked_png
++from app.services.visual_verification import verify_candidate_image
++
++
++class FakeVisualSearchProviderTests(unittest.TestCase):
++    def setUp(self) -> None:
++        self.secret = bytes(range(32))
++        self.tempdir = tempfile.TemporaryDirectory()
++        self.addCleanup(self.tempdir.cleanup)
++
++        storage = Path(self.tempdir.name)
++        self.original_path = storage / "original.png"
++        self.watermarked_path = storage / "watermarked.png"
++
++        y, x = np.indices((512, 512), dtype=np.uint16)
++        gradient = np.stack(
++            (
++                48 + x // 4,
++                64 + y // 4,
++                80 + (x + y) // 8,
++            ),
++            axis=-1,
++        ).astype(np.uint16)
++
++        # A pure smooth gradient is a degenerate case for pHash: many of
++        # its DCT coefficients sit near zero, so their relative rank
++        # flips under tiny resize/JPEG perturbations and the hash
++        # changes far more than a real photo's would. Blending in a
++        # deterministic texture keeps the fixture reproducible while
++        # behaving like real artwork under resize + recompression.
++        texture = np.random.default_rng(0).integers(
++            0, 255, size=(512, 512, 3), dtype=np.uint16
++        )
++        pixels = (
++            0.6 * gradient + 0.4 * texture
++        ).astype(np.uint8)
++
++        with Image.fromarray(pixels) as reference:
++            reference.save(self.original_path, format="PNG")
++
++            result = embed_watermark(
++                reference,
++                asset_id=101,
++                user_id=7,
++                secret=self.secret,
++            )
++
++        self.addCleanup(result.image.close)
++
++        save_verified_watermarked_png(
++            result,
++            self.watermarked_path,
++            secret=self.secret,
++            original_phash=None,
++        )
++
++        self.provider = FakeVisualSearchProvider()
++
++    def test_returns_two_candidates_with_real_bytes(self) -> None:
++        candidates = self.provider.find_candidates(
++            asset_id=101,
++            asset_title="Botanical Dreams",
++            reference_original_path=self.original_path,
++            reference_watermarked_path=self.watermarked_path,
++        )
++
++        self.assertEqual(len(candidates), 2)
++
++        for candidate in candidates:
++            self.assertIsNotNone(candidate.candidate_image_bytes)
++            self.assertIsNone(candidate.candidate_image_url)
++
++    def test_verbatim_candidate_carries_the_real_watermark(self) -> None:
++        candidates = self.provider.find_candidates(
++            asset_id=101,
++            asset_title="Botanical Dreams",
++            reference_original_path=self.original_path,
++            reference_watermarked_path=self.watermarked_path,
++        )
++
++        verbatim = candidates[0]
++
++        # Decode the candidate bytes back to an image and confirm the
++        # embedded payload extracts cleanly -- this is what a real scan
++        # would rely on to set watermark_matches_reference=True.
++        from io import BytesIO
++
++        with Image.open(BytesIO(verbatim.candidate_image_bytes)) as decoded:
++            payload = extract_watermark(decoded, secret=self.secret)
++
++        self.assertIsNotNone(payload)
++        self.assertEqual(payload.asset_id, 101)
++        self.assertEqual(payload.user_id, 7)
++
++    def test_verbatim_candidate_verifies_through_the_real_pipeline(
++        self,
++    ) -> None:
++        candidates = self.provider.find_candidates(
++            asset_id=101,
++            asset_title="Botanical Dreams",
++            reference_original_path=self.original_path,
++            reference_watermarked_path=self.watermarked_path,
++        )
++
++        result = verify_candidate_image(
++            reference_path=self.original_path,
++            reference_phash=None,
++            expected_asset_id=101,
++            expected_user_id=7,
++            candidate_content=candidates[0].candidate_image_bytes,
++            watermark_secret=self.secret,
++        )
++
++        self.assertTrue(result.watermark_matches_reference)
++        self.assertEqual(result.overall_signal, "WATERMARK_VERIFIED")
++
++    def test_transformed_candidate_still_flags_high_similarity(
++        self,
++    ) -> None:
++        candidates = self.provider.find_candidates(
++            asset_id=101,
++            asset_title="Botanical Dreams",
++            reference_original_path=self.original_path,
++            reference_watermarked_path=self.watermarked_path,
++        )
++
++        transformed = candidates[1]
++
++        result = verify_candidate_image(
++            reference_path=self.original_path,
++            reference_phash=None,
++            expected_asset_id=101,
++            expected_user_id=7,
++            candidate_content=transformed.candidate_image_bytes,
++            watermark_secret=self.secret,
++        )
++
++        # A resized, JPEG-recompressed copy of the *original* (never
++        # watermarked) should still register a strong pHash similarity,
++        # but must not falsely claim a watermark match.
++        self.assertGreaterEqual(result.phash_similarity_percent, 80.0)
++        self.assertFalse(result.watermark_matches_reference)
++
++    def test_missing_watermarked_copy_still_returns_one_candidate(
++        self,
++    ) -> None:
++        candidates = self.provider.find_candidates(
++            asset_id=202,
++            asset_title="No watermark yet",
++            reference_original_path=self.original_path,
++            reference_watermarked_path=None,
++        )
++
++        self.assertEqual(len(candidates), 1)
++        self.assertIsNotNone(candidates[0].candidate_image_bytes)
++
++
++if __name__ == "__main__":
++    unittest.main()
