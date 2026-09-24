@@ -1,5 +1,7 @@
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.models.asset import Asset
 from app.models.match_record import MatchRecord
 
 
@@ -39,3 +41,31 @@ def create_match_record(
     db.refresh(match_record)
 
     return match_record
+
+
+def list_match_records(
+    db: Session,
+    *,
+    user_id: int,
+    review_status: str | None = None,
+    skip: int = 0,
+    limit: int = 100,
+) -> list[MatchRecord]:
+    statement = (
+        select(MatchRecord)
+        .join(Asset, Asset.id == MatchRecord.asset_id)
+        .where(Asset.user_id == user_id)
+        .order_by(
+            MatchRecord.found_at.desc(),
+            MatchRecord.id.desc(),
+        )
+        .offset(skip)
+        .limit(limit)
+    )
+
+    if review_status is not None:
+        statement = statement.where(
+            MatchRecord.review_status == review_status,
+        )
+
+    return list(db.scalars(statement).all())
