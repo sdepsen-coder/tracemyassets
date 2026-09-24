@@ -357,4 +357,24 @@ export const api = {
         signal,
       },
     ),
+  listMatches: (
+    reviewStatus?: MatchRecord["review_status"],
+    skip = 0,
+    limit = 100,
+    signal?: AbortSignal,
+  ) => {
+    const params = new URLSearchParams();
+
+    if (reviewStatus) {
+      params.set("review_status", reviewStatus);
+    }
+
+    params.set("skip", String(skip));
+    params.set("limit", String(limit));
+
+    return request<MatchRecord[]>(
+      `/api/v1/matches?${params.toString()}`,
+      { signal },
+    );
+  },
 };
