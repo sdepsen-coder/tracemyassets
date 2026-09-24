@@ -1,13 +1,17 @@
 from typing import Literal
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
-from app.crud.match_record import list_match_records
+from app.crud.match_record import (
+    get_match_record_for_user,
+    list_match_records,
+    update_match_record,
+)
 from app.models.match_record import MatchRecord
 from app.models.user import User
-from app.schemas.asset import MatchRecordRead
+from app.schemas.asset import MatchRecordRead, MatchRecordUpdate
 
 
 router = APIRouter(prefix="/matches", tags=["matches"])
@@ -66,7 +70,35 @@ def read_matches(
         limit=limit,
     )
 
-    return [
-        match_record_response(record)
-        for record in records
-    ]
+    return [match_record_response(record) for record in records]
+@router.patch("/{match_id}", response_model=MatchRecordRead)
+def update_match(
+    match_id: int,
+    request: MatchRecordUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> MatchRecordRead:
+    match_record = get_match_record_for_user(
+        db,
+        match_id=match_id,
+        user_id=user.id,
+    )
+
+    if match_record is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Match not found.",
+        )
+
+    updated = update_match_record(
+        db,
+        match_record=match_record,
+        review_status=request.review_status,
+        notes=request.notes,
+        update_notes="notes" in request.model_fields_set,
+    )
+
+    db.commit()
+    db.refresh(updated)
+
+    return match_record_response(updated)

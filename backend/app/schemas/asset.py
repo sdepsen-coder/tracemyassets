@@ -136,3 +136,11 @@ class AssetScanRead(BaseModel):
     scan_job: ScanJobRead
     matches: list[MatchRecordRead]
 
+class MatchRecordUpdate(BaseModel):
+    review_status: Literal[
+        "reviewing",
+        "confirmed",
+        "dismissed",
+        "archived",
+    ]
+    notes: str | None = Field(default=None, max_length=5000)

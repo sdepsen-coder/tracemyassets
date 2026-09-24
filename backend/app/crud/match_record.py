@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -69,3 +71,52 @@ def list_match_records(
         )
 
     return list(db.scalars(statement).all())
+
+
+def get_match_record_for_user(
+    db: Session,
+    *,
+    match_id: int,
+    user_id: int,
+) -> MatchRecord | None:
+    statement = (
+        select(MatchRecord)
+        .join(Asset, Asset.id == MatchRecord.asset_id)
+        .where(
+            MatchRecord.id == match_id,
+            Asset.user_id == user_id,
+        )
+    )
+
+    return db.scalar(statement)
+
+
+def update_match_record(
+    db: Session,
+    *,
+    match_record: MatchRecord,
+    review_status: str,
+    notes: str | None,
+    update_notes: bool,
+) -> MatchRecord:
+    now = datetime.now(timezone.utc)
+    match_record.review_status = review_status
+
+    if review_status == "dismissed":
+        match_record.reviewed_at = now
+        match_record.dismissed_at = now
+    else:
+        if review_status in {"reviewing", "confirmed", "archived"}:
+            if match_record.reviewed_at is None or review_status == "confirmed":
+                match_record.reviewed_at = now
+        match_record.dismissed_at = None
+
+    if update_notes:
+        clean_notes = notes.strip() if notes else ""
+        match_record.notes = clean_notes or None
+
+    db.add(match_record)
+    db.flush()
+    db.refresh(match_record)
+
+    return match_record
