@@ -31,6 +31,7 @@ export function ProtectedAssetsCard() {
   const [title, setTitle] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [enableMonitoring, setEnableMonitoring] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [success, setSuccess] = useState("");
@@ -206,7 +207,29 @@ export function ProtectedAssetsCard() {
         fileInput.current.value = "";
       }
 
-      setSuccess(`"${created.title}" was registered and protected.`);
+      if (enableMonitoring) {
+        try {
+          await api.updateMonitoring(created.id, {
+            enabled: true,
+            alert_threshold_percent: 80,
+            scan_frequency: "weekly",
+          });
+
+          setSuccess(
+            `"${created.title}" was registered, protected, and is now being monitored.`,
+          );
+        } catch (monitoringError) {
+          setSuccess(`"${created.title}" was registered and protected.`);
+          setUploadError(
+            monitoringError instanceof ApiError
+              ? `Monitoring could not be turned on automatically: ${monitoringError.message}`
+              : "Monitoring could not be turned on automatically. You can enable it from the artwork's card below.",
+          );
+        }
+      } else {
+        setSuccess(`"${created.title}" was registered and protected.`);
+      }
+
       void refreshStats();
     } catch (error) {
       if (controller.signal.aborted) {
@@ -369,6 +392,26 @@ export function ProtectedAssetsCard() {
           Your original image remains private. Watermark availability depends
           on image dimensions and fully opaque image regions.
         </p>
+
+        <label className="mt-4 flex items-start gap-2.5 rounded-lg bg-[var(--surface)] px-3 py-3 text-[12px] text-[var(--text)]">
+          <input
+            type="checkbox"
+            checked={enableMonitoring}
+            disabled={uploading || loading}
+            onChange={(event) => setEnableMonitoring(event.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-[var(--border)] disabled:cursor-not-allowed disabled:opacity-50"
+          />
+          <span>
+            <span className="font-semibold">
+              Start monitoring this artwork
+            </span>
+            <span className="mt-0.5 block text-[11px] leading-5 text-[var(--text-muted)]">
+              Scans weekly for possible copies and alerts you above an 80%
+              similarity match. You can change this anytime from the
+              artwork&rsquo;s card below.
+            </span>
+          </span>
+        </label>
 
         {uploadError && (
           <p

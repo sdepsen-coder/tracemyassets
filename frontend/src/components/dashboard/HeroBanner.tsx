@@ -18,8 +18,9 @@ export function HeroBanner() {
           </h1>
 
           <p className="mt-3 max-w-2xl text-[15px] leading-7 text-[var(--text-muted)] sm:text-[17px]">
-            Register your artwork, create a protected copy with an invisible
-            watermark, and compare suspicious images against your saved work.
+            Register your artwork, protect it with an invisible watermark,
+            and let monitoring alert you when a possible copy turns up
+            online.
           </p>
         </div>
 
@@ -35,13 +36,13 @@ export function HeroBanner() {
           </a>
 
 <Link
-  href="/check"
+  href="/matches"
   className="inline-flex h-10 items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 text-[13px] font-semibold text-[var(--text)] shadow-sm transition hover:bg-[var(--surface-raised)]"
 >
   <span className="material-symbols-outlined text-[18px] text-[var(--primary)]">
-    search
+    fact_check
   </span>
-  Check an image
+  View matches
 </Link>
         </div>
       </div>
@@ -64,10 +65,10 @@ export function HeroBanner() {
             02
           </span>
           <h2 className="mt-2 text-[14px] font-semibold text-[var(--text)]">
-            Download protected copy
+            Enable monitoring
           </h2>
           <p className="mt-1 text-[12px] leading-5 text-[var(--text-muted)]">
-            Your protected PNG includes an invisible, authenticated watermark.
+            We watch supported sources and flag likely copies for you.
           </p>
         </div>
 
@@ -76,10 +77,11 @@ export function HeroBanner() {
             03
           </span>
           <h2 className="mt-2 text-[14px] font-semibold text-[var(--text)]">
-            Check possible copies
+            Review matches
           </h2>
           <p className="mt-1 text-[12px] leading-5 text-[var(--text-muted)]">
-            Compare a candidate image using watermark and visual signals.
+            Each alert shows the technical signal so you can decide what to
+            do next.
           </p>
         </div>
       </div>

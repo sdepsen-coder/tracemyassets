@@ -29,6 +29,17 @@ export function DashboardStats() {
       ? `${Math.round((stats.active / stats.total) * 100)}% protected`
       : "No assets yet";
 
+  const monitoredCount = loading
+    ? "..."
+    : stats
+      ? stats.monitored.toLocaleString("en-US")
+      : "—";
+
+  const monitoringRate =
+    stats && stats.active > 0
+      ? `${Math.round((stats.monitored / stats.active) * 100)}% of protected artworks`
+      : "No assets yet";
+
   return (
     <section aria-label="Artwork summary" className="space-y-3">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -57,12 +68,11 @@ export function DashboardStats() {
         />
 
         <StatCard
-          label="Image checks"
-          value="—"
-          sublabel="Coming next"
-          icon="manage_search"
+          label="Monitored artworks"
+          value={monitoredCount}
+          sublabel={loading ? "Loading monitoring status" : monitoringRate}
+          icon="visibility"
           tone="warning"
-          footer="Manual verification tools are ready"
         />
       </div>
 

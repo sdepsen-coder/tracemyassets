@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models.asset import Asset
@@ -135,6 +135,26 @@ def record_or_touch_match(
         overall_signal=overall_signal,
         review_status="new",
     )
+
+
+def count_match_records_by_status(
+    db: Session,
+    *,
+    user_id: int,
+) -> dict[str, int]:
+    """
+    How many of this user's matches sit in each review_status --
+    powers a lightweight dashboard summary (e.g. "3 new matches to
+    review") without fetching full match rows.
+    """
+    statement = (
+        select(MatchRecord.review_status, func.count())
+        .join(Asset, Asset.id == MatchRecord.asset_id)
+        .where(Asset.user_id == user_id)
+        .group_by(MatchRecord.review_status)
+    )
+
+    return {status: count for status, count in db.execute(statement)}
 
 
 def list_match_records(

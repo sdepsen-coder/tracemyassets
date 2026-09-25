@@ -26,6 +26,7 @@ export type AssetStats = {
   total: number;
   active: number;
   archived: number;
+  monitored: number;
 };
 
 export type WatermarkPayload = {
@@ -72,6 +73,7 @@ export type MonitoringPreference = {
   enabled: boolean;
   alert_threshold_percent: number;
   scan_frequency: "daily" | "weekly" | "monthly";
+  last_scan_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -122,10 +124,20 @@ export type MatchRecord = {
   created_at: string;
   updated_at: string;
 };
+
 export type MatchRecordUpdate = {
   review_status: "reviewing" | "confirmed" | "dismissed" | "archived";
-  notes?: string | null;
+  notes?: string;
 };
+
+export type MatchSummary = {
+  new: number;
+  reviewing: number;
+  confirmed: number;
+  dismissed: number;
+  archived: number;
+};
+
 export type AssetScan = {
   asset_id: number;
   provider: string;
@@ -360,6 +372,9 @@ export const api = {
         signal,
       },
     ),
+  getMatchSummary: (signal?: AbortSignal) =>
+    request<MatchSummary>("/api/v1/matches/summary", { signal }),
+
   listMatches: (
     reviewStatus?: MatchRecord["review_status"],
     skip = 0,

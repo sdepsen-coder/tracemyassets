@@ -1,13 +1,39 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import { useAuth } from "@/components/AuthGate";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { api, type MatchSummary } from "@/lib/api";
 import { Icon } from "./Icon";
 
 export function Topbar() {
   const { user, logout } = useAuth();
+
+  const [newMatchCount, setNewMatchCount] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadSummary() {
+      try {
+        const summary: MatchSummary = await api.getMatchSummary(
+          controller.signal,
+        );
+
+        if (!controller.signal.aborted) {
+          setNewMatchCount(summary.new);
+        }
+      } catch {
+        // Non-critical: the bell simply shows no count if this fails.
+      }
+    }
+
+    void loadSummary();
+
+    return () => controller.abort();
+  }, [user.id]);
 
   const email = user.email ?? "";
   const initial = email.trim().charAt(0).toUpperCase() || "U";
@@ -67,16 +93,27 @@ export function Topbar() {
 
           <ThemeToggle />
 
-          <button
-            type="button"
-            disabled
-            aria-label="Notifications are not available yet"
-            title="Notifications coming soon"
+          <Link
+            href="/matches"
+            aria-label={
+              newMatchCount > 0
+                ? `${newMatchCount} new match${newMatchCount === 1 ? "" : "es"} to review`
+                : "No new matches"
+            }
+            title={
+              newMatchCount > 0
+                ? `${newMatchCount} new match${newMatchCount === 1 ? "" : "es"} to review`
+                : "No new matches"
+            }
             className="relative hidden h-10 w-10 items-center justify-center rounded-lg text-[var(--text-muted)] transition hover:bg-[var(--surface-muted)] hover:text-[var(--text)] sm:flex"
           >
             <Icon name="notifications" />
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[var(--primary-strong)] ring-2 ring-[var(--background)]" />
-          </button>
+            {newMatchCount > 0 && (
+              <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--primary-strong)] px-1 text-[10px] font-bold text-white ring-2 ring-[var(--background)]">
+                {newMatchCount > 9 ? "9+" : newMatchCount}
+              </span>
+            )}
+          </Link>
 
           <button
             type="button"

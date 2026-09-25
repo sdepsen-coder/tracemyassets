@@ -1,6 +1,7 @@
 from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
 
+from app.crud.monitoring import count_enabled_monitoring_for_user
 from app.models.asset import Asset
 
 
@@ -76,4 +77,5 @@ def get_asset_stats(
         "total": int(total),
         "active": int(active),
         "archived": int(archived),
+        "monitored": count_enabled_monitoring_for_user(db, user_id=user_id),
     }

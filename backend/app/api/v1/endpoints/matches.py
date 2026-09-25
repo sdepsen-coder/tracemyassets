@@ -5,13 +5,14 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
 from app.crud.match_record import (
+    count_match_records_by_status,
     get_match_record_for_user,
     list_match_records,
     update_match_record,
 )
 from app.models.match_record import MatchRecord
 from app.models.user import User
-from app.schemas.asset import MatchRecordRead, MatchRecordUpdate
+from app.schemas.asset import MatchRecordRead, MatchRecordUpdate, MatchSummary
 
 
 router = APIRouter(prefix="/matches", tags=["matches"])
@@ -71,6 +72,16 @@ def read_matches(
     )
 
     return [match_record_response(record) for record in records]
+@router.get("/summary", response_model=MatchSummary)
+def read_match_summary(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> MatchSummary:
+    counts = count_match_records_by_status(db, user_id=user.id)
+
+    return MatchSummary(**counts)
+
+
 @router.patch("/{match_id}", response_model=MatchRecordRead)
 def update_match(
     match_id: int,

@@ -20,6 +20,7 @@ class AssetStats(BaseModel):
     total: int
     active: int
     archived: int
+    monitored: int
 
 
 class WatermarkPayloadRead(BaseModel):
@@ -66,6 +67,7 @@ class MonitoringPreferenceRead(BaseModel):
     enabled: bool
     alert_threshold_percent: float
     scan_frequency: Literal["daily", "weekly", "monthly"]
+    last_scan_at: datetime | None
     created_at: datetime
     updated_at: datetime
 
@@ -127,6 +129,14 @@ class MatchRecordRead(BaseModel):
     notes: str | None
     created_at: datetime
     updated_at: datetime
+
+
+class MatchSummary(BaseModel):
+    new: int = 0
+    reviewing: int = 0
+    confirmed: int = 0
+    dismissed: int = 0
+    archived: int = 0
 
 
 class AssetScanRead(BaseModel):

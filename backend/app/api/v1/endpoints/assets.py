@@ -46,6 +46,7 @@ MatchRecordRead,
 ScanJobRead,
 )
 from app.services.scan_runner import run_scan_for_asset
+from app.services.scheduler import last_completed_scan_at
 from app.services.asset_paths import load_watermark_secret, original_file_path
 from app.services.visual_search_provider import get_configured_provider
 from app.services.asset_ingestion import (
@@ -149,13 +150,14 @@ def verification_response(
     )
 
 
-def monitoring_response(preference) -> MonitoringPreferenceRead:
+def monitoring_response(db: Session, preference) -> MonitoringPreferenceRead:
     return MonitoringPreferenceRead(
         id=preference.id,
         asset_id=preference.asset_id,
         enabled=preference.enabled,
         alert_threshold_percent=preference.alert_threshold_percent,
         scan_frequency=preference.scan_frequency,
+        last_scan_at=last_completed_scan_at(db, preference.asset_id),
         created_at=preference.created_at,
         updated_at=preference.updated_at,
     )
@@ -512,7 +514,7 @@ def read_asset_monitoring(
 
     db.commit()
 
-    return monitoring_response(preference)
+    return monitoring_response(db, preference)
 
 
 @router.put(
@@ -577,7 +579,7 @@ def update_asset_monitoring(
 
     db.commit()
 
-    return monitoring_response(preference)
+    return monitoring_response(db, preference)
 
 
 @router.get("/{asset_id}", response_model=AssetRead)
