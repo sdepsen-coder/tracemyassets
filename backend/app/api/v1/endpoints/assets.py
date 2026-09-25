@@ -17,6 +17,7 @@ from PIL import Image
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
+from app.core.plan_limits import get_plan_limits
 from app.crud.asset import (
     create_asset,
     get_asset,
@@ -24,6 +25,7 @@ from app.crud.asset import (
     get_assets,
 )
 from app.crud.monitoring import (
+    count_enabled_monitoring_for_user,
     get_or_create_monitoring_preference,
     update_monitoring_preference,
 )
@@ -528,6 +530,42 @@ def update_asset_monitoring(
         asset_id=asset_id,
         user_id=user.id,
     )
+
+    limits = get_plan_limits(user.plan_type)
+
+    if request.scan_frequency not in limits.allowed_scan_frequencies:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                f"The {user.plan_type} plan does not include "
+                f"{request.scan_frequency} scans. Allowed: "
+                f"{', '.join(sorted(limits.allowed_scan_frequencies))}."
+            ),
+        )
+
+    if request.enabled:
+        existing_preference = get_or_create_monitoring_preference(
+            db,
+            asset_id=asset.id,
+        )
+
+        if not existing_preference.enabled:
+            enabled_count = count_enabled_monitoring_for_user(
+                db,
+                user_id=user.id,
+                exclude_asset_id=asset.id,
+            )
+
+            if enabled_count >= limits.max_monitored_assets:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=(
+                        f"The {user.plan_type} plan allows monitoring "
+                        f"up to {limits.max_monitored_assets} asset(s). "
+                        "Disable monitoring on another asset first, or "
+                        "upgrade your plan."
+                    ),
+                )
 
     preference = update_monitoring_preference(
         db,

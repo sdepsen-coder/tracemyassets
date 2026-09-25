@@ -1,11 +1,40 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.models.asset import Asset
 from app.models.monitoring import MonitoringPreference
 
 
 DEFAULT_ALERT_THRESHOLD_PERCENT = 80.0
 DEFAULT_SCAN_FREQUENCY = "weekly"
+
+
+def count_enabled_monitoring_for_user(
+    db: Session,
+    *,
+    user_id: int,
+    exclude_asset_id: int | None = None,
+) -> int:
+    """
+    How many of this user's assets currently have monitoring enabled --
+    used to enforce PLAN_LIMITS.max_monitored_assets. Excludes one
+    asset_id on request so re-saving an already-enabled asset's other
+    settings (threshold, frequency) doesn't count it against itself.
+    """
+    statement = (
+        select(func.count())
+        .select_from(MonitoringPreference)
+        .join(Asset, Asset.id == MonitoringPreference.asset_id)
+        .where(
+            Asset.user_id == user_id,
+            MonitoringPreference.enabled.is_(True),
+        )
+    )
+
+    if exclude_asset_id is not None:
+        statement = statement.where(Asset.id != exclude_asset_id)
+
+    return db.scalar(statement) or 0
 
 
 def get_monitoring_preference(
