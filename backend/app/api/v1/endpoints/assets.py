@@ -1,9 +1,6 @@
-import base64
 import json
-import os
 import shutil
 from dataclasses import asdict
-from pathlib import Path
 
 from fastapi import (
     APIRouter,
@@ -30,13 +27,7 @@ from app.crud.monitoring import (
     get_or_create_monitoring_preference,
     update_monitoring_preference,
 )
-from app.crud.match_record import create_match_record
-from app.crud.scan_job import (
-    create_scan_job,
-    mark_scan_job_completed,
-    mark_scan_job_failed,
-    mark_scan_job_running,
-)
+from app.crud.scan_job import mark_scan_job_failed
 from app.models.asset import Asset
 from app.models.user import User
 from app.schemas.asset import (
@@ -52,10 +43,9 @@ AssetScanRead,
 MatchRecordRead,
 ScanJobRead,
 )
-from app.services.visual_search_provider import (
-    fetch_candidate_bytes,
-    get_configured_provider,
-)
+from app.services.scan_runner import run_scan_for_asset
+from app.services.asset_paths import load_watermark_secret, original_file_path
+from app.services.visual_search_provider import get_configured_provider
 from app.services.asset_ingestion import (
     DEFAULT_STORAGE_ROOT,
     MAX_UPLOAD_BYTES,
@@ -116,43 +106,6 @@ def require_owned_asset(
         )
 
     return asset
-
-
-def original_file_path(asset: Asset) -> Path:
-    root = DEFAULT_STORAGE_ROOT.resolve()
-    path = (root / asset.original_url).resolve()
-
-    if (
-        not path.is_relative_to(root)
-        or path.name not in {
-            "original.png",
-            "original.jpg",
-            "original.webp",
-        }
-        or not path.is_file()
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Asset file not found.",
-        )
-
-    return path
-
-
-def load_watermark_secret() -> bytes:
-    hex_value = os.getenv("WATERMARK_SECRET_HEX")
-    b64_value = os.getenv("WATERMARK_SECRET_B64")
-
-    if hex_value:
-        return bytes.fromhex(hex_value.strip())
-
-    if b64_value:
-        return base64.b64decode(b64_value.strip())
-
-    raise RuntimeError(
-        "Missing WATERMARK secret. Set WATERMARK_SECRET_HEX "
-        "(recommended) or WATERMARK_SECRET_B64 in your .env"
-    )
 
 
 def verification_response(
@@ -476,106 +429,36 @@ def scan_asset(
             detail=str(exc),
         ) from exc
 
-    scan_job = create_scan_job(
-        db,
-        asset_id=asset.id,
-        provider=provider.name,
+    reference_path = original_file_path(asset)
+    watermarked_path = (
+        reference_path.parent / "watermarked.png"
+        if asset.watermarked_url
+        else None
     )
 
-    matches = []
+    scan_job = None
 
     try:
-        scan_job = mark_scan_job_running(db, scan_job)
-
-        reference_path = original_file_path(asset)
-        watermarked_path = (
-            reference_path.parent / "watermarked.png"
-            if asset.watermarked_url
-            else None
-        )
-
-        candidates = provider.find_candidates(
-            asset_id=asset.id,
-            asset_title=asset.title,
-            reference_original_path=reference_path,
-            reference_watermarked_path=watermarked_path,
-        )
-
-        secret = load_watermark_secret()
-
-        for candidate in candidates:
-            candidate_bytes = candidate.candidate_image_bytes
-
-            if candidate_bytes is None and candidate.candidate_image_url:
-                # Real-provider path: the candidate only carries a URL,
-                # so fetch the bytes ourselves before analysis.
-                candidate_bytes = fetch_candidate_bytes(
-                    candidate.candidate_image_url
-                )
-
-            if candidate_bytes is None:
-                # Could not retrieve this one candidate -- skip it
-                # rather than failing the whole scan job.
-                continue
-
-            try:
-                result = verify_candidate_image(
-                    reference_path=reference_path,
-                    reference_phash=asset.phash_value,
-                    expected_asset_id=asset.id,
-                    expected_user_id=user.id,
-                    candidate_content=candidate_bytes,
-                    watermark_secret=secret,
-                )
-            except (UploadValidationError, WatermarkError):
-                # Not a decodable/comparable image -- skip, don't fail
-                # the scan job over one bad candidate.
-                continue
-
-            should_alert = (
-                result.watermark_matches_reference
-                or result.phash_similarity_percent
-                >= preference.alert_threshold_percent
-            )
-
-            if not should_alert:
-                continue
-
-            match_record = create_match_record(
-                db,
-                asset_id=asset.id,
-                scan_job_id=scan_job.id,
-                source_name=candidate.source_name,
-                source_url=candidate.source_url,
-                candidate_image_url=candidate.candidate_image_url,
-                candidate_page_url=candidate.candidate_page_url,
-                candidate_image_hash=result.candidate_phash,
-                similarity_percent=result.phash_similarity_percent,
-                watermark_verified=result.watermark_payload is not None,
-                watermark_matches_reference=(
-                    result.watermark_matches_reference
-                ),
-                overall_signal=result.overall_signal,
-                review_status="new",
-            )
-
-            matches.append(match_record)
-
-        scan_job = mark_scan_job_completed(
+        outcome = run_scan_for_asset(
             db,
-            scan_job,
-            candidate_count=len(candidates),
-            match_count=len(matches),
+            asset=asset,
+            user_id=user.id,
+            preference=preference,
+            reference_path=reference_path,
+            watermarked_path=watermarked_path,
+            watermark_secret=load_watermark_secret(),
+            provider=provider,
         )
+        scan_job = outcome.scan_job
 
         response = AssetScanRead(
             asset_id=asset.id,
-            provider=provider.name,
+            provider=outcome.provider_name,
             threshold_percent=preference.alert_threshold_percent,
-            scan_job=scan_job_response(scan_job),
+            scan_job=scan_job_response(outcome.scan_job),
             matches=[
                 match_record_response(match_record)
-                for match_record in matches
+                for match_record in outcome.matches
             ],
         )
 
@@ -586,17 +469,19 @@ def scan_asset(
     except Exception as exc:
         db.rollback()
 
-        # Recreate a short-lived transaction to persist the failed status.
-        try:
-            failed_job = db.merge(scan_job)
-            mark_scan_job_failed(
-                db,
-                failed_job,
-                error_message=str(exc),
-            )
-            db.commit()
-        except Exception:
-            db.rollback()
+        if scan_job is not None:
+            # Recreate a short-lived transaction to persist the failed
+            # status.
+            try:
+                failed_job = db.merge(scan_job)
+                mark_scan_job_failed(
+                    db,
+                    failed_job,
+                    error_message=str(exc),
+                )
+                db.commit()
+            except Exception:
+                db.rollback()
 
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

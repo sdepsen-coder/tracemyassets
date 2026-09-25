@@ -37,6 +37,12 @@ class Settings:
         self.visual_search_provider = os.getenv(
             "VISUAL_SEARCH_PROVIDER", "fake"
         )
+        self.scan_scheduler_enabled = os.getenv(
+            "SCAN_SCHEDULER_ENABLED", "true"
+        ).strip().lower() not in {"false", "0", "no"}
+        self.scan_scheduler_interval_minutes = int(
+            os.getenv("SCAN_SCHEDULER_INTERVAL_MINUTES", "15")
+        )
 
 
 settings = Settings()
