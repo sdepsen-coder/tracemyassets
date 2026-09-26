@@ -1,6 +1,7 @@
 import json
 import shutil
 from dataclasses import asdict
+from typing import Literal
 
 from fastapi import (
     APIRouter,
@@ -23,6 +24,7 @@ from app.crud.asset import (
     get_asset,
     get_asset_stats,
     get_assets,
+    set_asset_archived,
 )
 from app.crud.monitoring import (
     count_enabled_monitoring_for_user,
@@ -33,6 +35,7 @@ from app.crud.scan_job import mark_scan_job_failed
 from app.models.asset import Asset
 from app.models.user import User
 from app.schemas.asset import (
+    AssetArchiveUpdate,
     AssetRead,
     AssetStats,
     CandidateVerificationRead,
@@ -212,6 +215,9 @@ def read_asset_stats(
 def list_assets(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=100),
+    status_filter: Literal["active", "archived", "all"] = Query(
+        default="active", alias="status"
+    ),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -220,9 +226,30 @@ def list_assets(
         user_id=user.id,
         skip=skip,
         limit=limit,
+        status=None if status_filter == "all" else status_filter,
     )
 
     return [asset_response(asset) for asset in assets]
+
+
+@router.patch("/{asset_id}/archive", response_model=AssetRead)
+def update_asset_archived(
+    asset_id: int,
+    request: AssetArchiveUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    asset = require_owned_asset(
+        db,
+        asset_id=asset_id,
+        user_id=user.id,
+    )
+
+    asset = set_asset_archived(db, asset=asset, archived=request.archived)
+
+    db.commit()
+
+    return asset_response(asset)
 
 
 @router.post(

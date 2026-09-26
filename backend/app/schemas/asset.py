@@ -16,6 +16,10 @@ class AssetRead(BaseModel):
     created_at: datetime
 
 
+class AssetArchiveUpdate(BaseModel):
+    archived: bool
+
+
 class AssetStats(BaseModel):
     total: int
     active: int

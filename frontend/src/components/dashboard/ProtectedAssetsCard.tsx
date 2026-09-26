@@ -24,6 +24,7 @@ export function ProtectedAssetsCard() {
   const { refresh: refreshStats } = useAssetStats();
 
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [view, setView] = useState<"active" | "archived">("active");
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
@@ -50,6 +51,7 @@ export function ProtectedAssetsCard() {
         const result = await api.listAssets(
           0,
           LIST_LIMIT,
+          view,
           controller.signal,
         );
 
@@ -81,7 +83,7 @@ export function ProtectedAssetsCard() {
     void loadAssets();
 
     return () => controller.abort();
-  }, [user.id, logout, refreshKey]);
+  }, [user.id, logout, refreshKey, view]);
 
   useEffect(() => {
     if (!file) {
@@ -458,21 +460,53 @@ export function ProtectedAssetsCard() {
         </p>
       )}
 
-      <div className="mt-6 flex items-center justify-between gap-3">
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-[16px] font-semibold text-[var(--text)]">
-            Recent artworks
+            {view === "active" ? "Recent artworks" : "Archived artworks"}
           </h3>
           <p className="mt-1 text-[12px] text-[var(--text-muted)]">
-            Your newest registered images appear first.
+            {view === "active"
+              ? "Your newest registered images appear first."
+              : "Archived artworks are no longer monitored. Restore one to resume protection."}
           </p>
         </div>
 
-        {!loading && (
-          <span className="rounded-full bg-[var(--surface-muted)] px-2.5 py-1 text-[11px] font-semibold text-[var(--text-muted)]">
-            {assets.length} shown
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 rounded-lg bg-[var(--surface-muted)] p-1">
+            <button
+              type="button"
+              onClick={() => setView("active")}
+              className={[
+                "rounded-md px-3 py-1.5 text-[12px] font-semibold transition",
+                view === "active"
+                  ? "bg-[var(--surface)] text-[var(--primary)] shadow-sm"
+                  : "text-[var(--text-muted)] hover:text-[var(--text)]",
+              ].join(" ")}
+            >
+              Active
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setView("archived")}
+              className={[
+                "rounded-md px-3 py-1.5 text-[12px] font-semibold transition",
+                view === "archived"
+                  ? "bg-[var(--surface)] text-[var(--primary)] shadow-sm"
+                  : "text-[var(--text-muted)] hover:text-[var(--text)]",
+              ].join(" ")}
+            >
+              Archived
+            </button>
+          </div>
+
+          {!loading && (
+            <span className="rounded-full bg-[var(--surface-muted)] px-2.5 py-1 text-[11px] font-semibold text-[var(--text-muted)]">
+              {assets.length} shown
+            </span>
+          )}
+        </div>
       </div>
 
       {loading ? (
@@ -484,22 +518,36 @@ export function ProtectedAssetsCard() {
       ) : assets.length === 0 && !listError ? (
         <div className="mt-5 rounded-lg border border-dashed border-[var(--border)] bg-[var(--surface-muted)] p-8 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--primary-soft)] text-[var(--primary)]">
-            <Icon name="add_photo_alternate" />
+            <Icon
+              name={view === "active" ? "add_photo_alternate" : "inventory_2"}
+            />
           </div>
 
           <h3 className="mt-4 text-[15px] font-semibold text-[var(--text)]">
-            Upload your first artwork
+            {view === "active"
+              ? "Upload your first artwork"
+              : "No archived artworks"}
           </h3>
 
           <p className="mx-auto mt-2 max-w-md text-[13px] leading-6 text-[var(--text-muted)]">
-            Add an image above to create your first private asset record and
-            protected copy.
+            {view === "active"
+              ? "Add an image above to create your first private asset record and protected copy."
+              : "Artworks you archive will show up here."}
           </p>
         </div>
       ) : (
         <div className="mt-5 space-y-3">
           {assets.map((asset) => (
-            <AssetRow key={asset.id} asset={asset} />
+            <AssetRow
+              key={asset.id}
+              asset={asset}
+              onArchiveChange={() => {
+                setAssets((current) =>
+                  current.filter((item) => item.id !== asset.id),
+                );
+                void refreshStats();
+              }}
+            />
           ))}
         </div>
       )}

@@ -128,7 +128,7 @@ function CheckImageContent() {
       setAssetsError("");
 
       try {
-        const response = await api.listAssets(0, 100, controller.signal);
+        const response = await api.listAssets(0, 100, "all", controller.signal);
 
         if (controller.signal.aborted) return;
 

@@ -261,12 +261,24 @@ export const api = {
   listAssets: (
     skip = 0,
     limit = 100,
+    status: "active" | "archived" | "all" = "active",
     signal?: AbortSignal,
   ) =>
     request<Asset[]>(
-      `/api/v1/assets?skip=${skip}&limit=${limit}`,
+      `/api/v1/assets?skip=${skip}&limit=${limit}&status=${status}`,
       { signal },
     ),
+
+  archiveAsset: (
+    assetId: number,
+    archived: boolean,
+    signal?: AbortSignal,
+  ) =>
+    request<Asset>(`/api/v1/assets/${assetId}/archive`, {
+      method: "PATCH",
+      body: JSON.stringify({ archived }),
+      signal,
+    }),
 
   uploadAsset: (
     title: string,

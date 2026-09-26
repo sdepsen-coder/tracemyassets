@@ -18,11 +18,45 @@ def get_asset(
     return db.scalar(statement)
 
 
+def set_asset_archived(
+    db: Session,
+    *,
+    asset: Asset,
+    archived: bool,
+) -> Asset:
+    """
+    Archive or restore an asset.
+
+    Archiving also turns off monitoring for it -- there is no reason
+    to keep spending scan/provider budget on something the user set
+    aside. Restoring does NOT automatically turn monitoring back on;
+    that is a deliberate choice the user makes again, same as for a
+    brand new asset.
+    """
+    from app.crud.monitoring import get_monitoring_preference
+
+    asset.status = "archived" if archived else "active"
+    db.add(asset)
+
+    if archived:
+        preference = get_monitoring_preference(db, asset_id=asset.id)
+
+        if preference is not None and preference.enabled:
+            preference.enabled = False
+            db.add(preference)
+
+    db.flush()
+    db.refresh(asset)
+
+    return asset
+
+
 def get_assets(
     db: Session,
     user_id: int,
     skip: int = 0,
     limit: int = 100,
+    status: str | None = "active",
 ) -> list[Asset]:
     statement = (
         select(Asset)
@@ -31,6 +65,9 @@ def get_assets(
         .offset(skip)
         .limit(limit)
     )
+
+    if status is not None:
+        statement = statement.where(Asset.status == status)
 
     return list(db.scalars(statement).all())
 
@@ -58,6 +95,21 @@ def create_asset(
     db.refresh(asset)
 
     # The endpoint commits after preparing its response.
+    return asset
+
+
+def set_asset_status(
+    db: Session,
+    *,
+    asset: Asset,
+    status: str,
+) -> Asset:
+    asset.status = status
+
+    db.add(asset)
+    db.flush()
+    db.refresh(asset)
+
     return asset
 
 

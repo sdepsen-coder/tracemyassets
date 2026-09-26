@@ -8,6 +8,7 @@ import { Icon } from "./Icon";
 
 type AssetRowProps = {
   asset: Asset;
+  onArchiveChange?: () => void;
 };
 
 type DownloadKind = "original" | "watermarked";
@@ -26,13 +27,15 @@ function formatDate(value: string): string {
   });
 }
 
-export function AssetRow({ asset }: AssetRowProps) {
+export function AssetRow({ asset, onArchiveChange }: AssetRowProps) {
   const { user, logout } = useAuth();
 
   const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [thumbnailError, setThumbnailError] = useState(false);
   const [downloading, setDownloading] = useState<DownloadKind | null>(null);
   const [downloadError, setDownloadError] = useState("");
+  const [archiving, setArchiving] = useState(false);
+  const [archiveError, setArchiveError] = useState("");
 
   const downloadController = useRef<AbortController | null>(null);
 
@@ -168,6 +171,34 @@ export function AssetRow({ asset }: AssetRowProps) {
     }
   }
 
+  async function handleArchiveToggle() {
+    if (archiving) return;
+
+    const nextArchived = asset.status !== "archived";
+
+    setArchiving(true);
+    setArchiveError("");
+
+    try {
+      await api.archiveAsset(asset.id, nextArchived);
+
+      onArchiveChange?.();
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        logout();
+        return;
+      }
+
+      setArchiveError(
+        error instanceof ApiError
+          ? error.message
+          : "This artwork could not be updated.",
+      );
+    } finally {
+      setArchiving(false);
+    }
+  }
+
   const isDownloading = downloading !== null;
   const hasWatermark = Boolean(asset.watermarked_url);
   const isArchived = asset.status === "archived";
@@ -258,8 +289,35 @@ export function AssetRow({ asset }: AssetRowProps) {
               ? "Preparing..."
               : "Protected copy"}
           </button>
+          <button
+            type="button"
+            disabled={isDownloading || archiving}
+            onClick={() => void handleArchiveToggle()}
+            title={
+              isArchived
+                ? "Restore this artwork to your active list"
+                : "Archive this artwork and turn off its monitoring"
+            }
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[12px] font-semibold text-[var(--text)] transition hover:bg-[var(--surface-raised)] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Icon name={isArchived ? "unarchive" : "archive"} />
+            {archiving
+              ? "Updating..."
+              : isArchived
+                ? "Restore"
+                : "Archive"}
+          </button>
         </div>
       </div>
+
+      {archiveError && (
+        <p
+          role="alert"
+          className="mt-3 rounded-md bg-[var(--danger-soft)] px-3 py-2 text-[12px] text-[var(--danger)]"
+        >
+          {archiveError}
+        </p>
+      )}
 
       {downloadError && (
         <p
@@ -270,7 +328,7 @@ export function AssetRow({ asset }: AssetRowProps) {
         </p>
       )}
 
-      <AssetMonitoringControls assetId={asset.id} />
+      {!isArchived && <AssetMonitoringControls assetId={asset.id} />}
     </article>
   );
 }
