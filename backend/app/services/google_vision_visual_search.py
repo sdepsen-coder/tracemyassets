@@ -1,5 +1,9 @@
 """
-Example real-provider implementation -- NOT wired into the scan endpoint.
+Google Cloud Vision Web Detection provider.
+
+Selected via VISUAL_SEARCH_PROVIDER=google-vision (see
+app.services.visual_search_provider.get_configured_provider) --
+this class itself has no FastAPI/endpoint wiring of its own.
 
 Uses a Google Cloud service account rather than a plain API key. This
 matches the path the Cloud Console guides you toward for a server-side
@@ -20,8 +24,15 @@ accounts, or keys on your behalf):
        -> "Done".
     3. Click the service account's email -> "Keys" tab -> "Add key"
        -> "Create new key" -> JSON. A .json file downloads.
-    4. Point GOOGLE_APPLICATION_CREDENTIALS at that file, e.g. in
-       PowerShell:
+
+Two ways to supply that key, tried in this order:
+    1. GOOGLE_APPLICATION_CREDENTIALS_JSON -- the *contents* of the
+       downloaded JSON file, pasted directly into an env var. Use
+       this on platforms like Railway/Render where uploading an
+       arbitrary file isn't practical -- paste the whole JSON blob
+       as the variable's value in the dashboard.
+    2. GOOGLE_APPLICATION_CREDENTIALS -- a file *path* (local dev),
+       e.g. in PowerShell:
        $env:GOOGLE_APPLICATION_CREDENTIALS = "C:\\path\\to\\key.json"
 
 Requires: pip install google-auth
@@ -31,7 +42,8 @@ pulls in grpc and other heavy dependencies for a single REST call.)
 
 from __future__ import annotations
 
-import base64
+import json
+import os
 
 import google.auth
 from google.auth.transport.requests import AuthorizedSession
@@ -61,7 +73,18 @@ class GoogleVisionWebDetectionProvider:
         credentials_path: str | None = None,
         max_results: int = 10,
     ) -> None:
-        if credentials_path:
+        credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+
+        if credentials_json:
+            # Production (e.g. Railway): the service account key lives
+            # in an env var, not a file on disk -- build credentials
+            # directly from the parsed JSON, no temp file needed.
+            info = json.loads(credentials_json)
+            credentials = service_account.Credentials.from_service_account_info(
+                info,
+                scopes=[CLOUD_PLATFORM_SCOPE],
+            )
+        elif credentials_path:
             credentials = (
                 service_account.Credentials.from_service_account_file(
                     credentials_path,
@@ -69,7 +92,8 @@ class GoogleVisionWebDetectionProvider:
                 )
             )
         else:
-            # Falls back to the GOOGLE_APPLICATION_CREDENTIALS env var.
+            # Local dev fallback: reads GOOGLE_APPLICATION_CREDENTIALS
+            # (a file path) via the standard google-auth mechanism.
             credentials, _ = google.auth.default(
                 scopes=[CLOUD_PLATFORM_SCOPE]
             )
@@ -107,7 +131,12 @@ class GoogleVisionWebDetectionProvider:
             json=body,
             timeout=REQUEST_TIMEOUT_SECONDS,
         )
-        response.raise_for_status()
+
+        if not response.ok:
+            raise RuntimeError(
+                f"Vision API request failed ({response.status_code}): "
+                f"{response.text}"
+            )
 
         payload = response.json()
         web_detection = payload["responses"][0].get("webDetection", {})
