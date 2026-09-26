@@ -102,7 +102,7 @@ export type MatchRecord = {
   id: number;
   asset_id: number;
   scan_job_id: number | null;
-  source_name: string;
+  source_name: string | null;
   source_url: string | null;
   candidate_image_url: string | null;
   candidate_page_url: string | null;
@@ -121,6 +121,7 @@ export type MatchRecord = {
   reviewed_at: string | null;
   dismissed_at: string | null;
   notes: string | null;
+  source_locked: boolean;
   created_at: string;
   updated_at: string;
 };

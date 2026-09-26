@@ -15,6 +15,13 @@ a locked business decision:
   on all 25 (~750 queries/month), that's still inside the free Vision
   tier per paying user -- so cost is not the constraint on this
   number, it is whatever asset volume feels right to sell as "Pro".
+- reveals_match_source: Free users see that a match was found and how
+  strong it is (similarity, watermark/signal fields all stay visible
+  -- see Bolum 3, we never hide the honest technical signal), but not
+  *which* site it's on (source_name, source_url, candidate_page_url,
+  candidate_image_url are redacted in the API response for any plan
+  where this is False). This is a deliberate, honest upgrade prompt,
+  not a fake claim -- see app.services.match_presentation.
 
 Change PLAN_LIMITS freely; nothing else in the codebase hardcodes
 these numbers.
@@ -29,6 +36,7 @@ from dataclasses import dataclass
 class PlanLimits:
     max_monitored_assets: int
     allowed_scan_frequencies: frozenset[str]
+    reveals_match_source: bool
 
 
 DEFAULT_PLAN = "Free"
@@ -37,12 +45,14 @@ PLAN_LIMITS: dict[str, PlanLimits] = {
     "Free": PlanLimits(
         max_monitored_assets=3,
         allowed_scan_frequencies=frozenset({"weekly", "monthly"}),
+        reveals_match_source=False,
     ),
     "Pro": PlanLimits(
         max_monitored_assets=25,
         allowed_scan_frequencies=frozenset(
             {"daily", "weekly", "monthly"}
         ),
+        reveals_match_source=True,
     ),
 }
 

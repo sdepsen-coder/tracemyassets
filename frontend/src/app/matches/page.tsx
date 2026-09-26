@@ -457,9 +457,11 @@ function MatchesContent() {
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-[var(--text-muted)]">
                           <span className="inline-flex items-center gap-1.5">
                             <span className="material-symbols-outlined text-[16px]">
-                              public
+                              {match.source_locked ? "lock" : "public"}
                             </span>
-                            {match.source_name}
+                            {match.source_locked
+                              ? "Source hidden on your plan"
+                              : match.source_name}
                           </span>
 
                           <span>
@@ -494,7 +496,17 @@ function MatchesContent() {
                     </div>
 
                     <div className="flex shrink-0 flex-wrap items-center gap-2 lg:flex-col lg:items-end">
-                      {match.source_url ? (
+                      {match.source_locked ? (
+                        <span
+                          title="Upgrade to Pro to see exactly where this was found"
+                          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-dashed border-[var(--border)] bg-[var(--surface-muted)] px-3 text-[12px] font-semibold text-[var(--text-muted)]"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">
+                            lock
+                          </span>
+                          Upgrade to view source
+                        </span>
+                      ) : match.source_url ? (
                         <a
                           href={match.source_url}
                           target="_blank"

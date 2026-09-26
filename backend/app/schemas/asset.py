@@ -105,7 +105,7 @@ class MatchRecordRead(BaseModel):
     id: int
     asset_id: int
     scan_job_id: int | None
-    source_name: str
+    source_name: str | None
     source_url: str | None
     candidate_image_url: str | None
     candidate_page_url: str | None
@@ -131,6 +131,7 @@ class MatchRecordRead(BaseModel):
     reviewed_at: datetime | None
     dismissed_at: datetime | None
     notes: str | None
+    source_locked: bool
     created_at: datetime
     updated_at: datetime
 

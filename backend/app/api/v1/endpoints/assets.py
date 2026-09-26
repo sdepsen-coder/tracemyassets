@@ -49,6 +49,7 @@ MatchRecordRead,
 ScanJobRead,
 )
 from app.services.scan_runner import run_scan_for_asset
+from app.services.match_presentation import build_match_record_response
 from app.services.scheduler import last_completed_scan_at
 from app.services.asset_paths import load_watermark_secret, original_file_path
 from app.services.visual_search_provider import get_configured_provider
@@ -179,29 +180,6 @@ def scan_job_response(scan_job) -> ScanJobRead:
         updated_at=scan_job.updated_at,
     )
 
-
-def match_record_response(match_record) -> MatchRecordRead:
-    return MatchRecordRead(
-        id=match_record.id,
-        asset_id=match_record.asset_id,
-        scan_job_id=match_record.scan_job_id,
-        source_name=match_record.source_name,
-        source_url=match_record.source_url,
-        candidate_image_url=match_record.candidate_image_url,
-        candidate_page_url=match_record.candidate_page_url,
-        candidate_image_hash=match_record.candidate_image_hash,
-        similarity_percent=match_record.similarity_percent,
-        watermark_verified=match_record.watermark_verified,
-        watermark_matches_reference=match_record.watermark_matches_reference,
-        overall_signal=match_record.overall_signal,
-        review_status=match_record.review_status,
-        found_at=match_record.found_at,
-        reviewed_at=match_record.reviewed_at,
-        dismissed_at=match_record.dismissed_at,
-        notes=match_record.notes,
-        created_at=match_record.created_at,
-        updated_at=match_record.updated_at,
-    )
 
 @router.get("/stats", response_model=AssetStats)
 def read_asset_stats(
@@ -488,7 +466,9 @@ def scan_asset(
             threshold_percent=preference.alert_threshold_percent,
             scan_job=scan_job_response(outcome.scan_job),
             matches=[
-                match_record_response(match_record)
+                build_match_record_response(
+                    match_record, plan_type=user.plan_type
+                )
                 for match_record in outcome.matches
             ],
         )
