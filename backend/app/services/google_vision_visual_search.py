@@ -72,7 +72,7 @@ class GoogleVisionWebDetectionProvider:
     def __init__(
         self,
         credentials_path: str | None = None,
-        max_results: int = 10,
+        max_results: int = 20,
     ) -> None:
         credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
 
