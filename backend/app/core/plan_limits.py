@@ -22,6 +22,11 @@ a locked business decision:
   candidate_image_url are redacted in the API response for any plan
   where this is False). This is a deliberate, honest upgrade prompt,
   not a fake claim -- see app.services.match_presentation.
+- Internal: not a customer-facing plan -- there is no signup path
+  that assigns it. It exists only so the founder's own account(s)
+  can be tested against without tripping the Free plan's asset limit
+  during development. Assign it by hand with
+  scripts/set_user_plan.py (never surfaced in pricing/UI copy).
 
 Change PLAN_LIMITS freely; nothing else in the codebase hardcodes
 these numbers.
@@ -49,6 +54,13 @@ PLAN_LIMITS: dict[str, PlanLimits] = {
     ),
     "Pro": PlanLimits(
         max_monitored_assets=25,
+        allowed_scan_frequencies=frozenset(
+            {"daily", "weekly", "monthly"}
+        ),
+        reveals_match_source=True,
+    ),
+    "Internal": PlanLimits(
+        max_monitored_assets=9999,
         allowed_scan_frequencies=frozenset(
             {"daily", "weekly", "monthly"}
         ),
