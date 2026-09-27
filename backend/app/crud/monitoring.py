@@ -1,4 +1,5 @@
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models.asset import Asset
@@ -66,8 +67,29 @@ def get_or_create_monitoring_preference(
         scan_frequency=DEFAULT_SCAN_FREQUENCY,
     )
 
-    db.add(preference)
-    db.flush()
+    try:
+        # A SAVEPOINT (not the whole transaction) around just this
+        # insert -- so a collision here only undoes this row, not any
+        # other work already pending in the caller's session.
+        with db.begin_nested():
+            db.add(preference)
+            db.flush()
+    except IntegrityError:
+        # Lost a race: the GET that loads an asset's monitoring state
+        # and the PUT that toggles it often land within milliseconds
+        # of each other. Both can see "no row yet" and both try to
+        # create one -- the loser hits this unique violation instead
+        # of a real error. Use the winner's row rather than failing.
+        preference = get_monitoring_preference(db, asset_id=asset_id)
+
+        if preference is None:
+            # A unique violation means a row exists; refusing to
+            # silently return None from a function typed to always
+            # produce a MonitoringPreference.
+            raise
+
+        return preference
+
     db.refresh(preference)
 
     return preference
