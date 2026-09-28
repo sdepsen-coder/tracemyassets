@@ -1,0 +1,569 @@
+diff --git a/backend/app/api/v1/endpoints/assets.py b/backend/app/api/v1/endpoints/assets.py
+index 880a706..5dd16be 100644
+--- a/backend/app/api/v1/endpoints/assets.py
++++ b/backend/app/api/v1/endpoints/assets.py
+@@ -21,6 +21,7 @@ from app.api.deps import get_current_user, get_db
+ from app.core.plan_limits import get_plan_limits
+ from app.crud.asset import (
+     create_asset,
++    delete_asset,
+     get_asset,
+     get_asset_stats,
+     get_assets,
+@@ -51,7 +52,11 @@ ScanJobRead,
+ from app.services.scan_runner import run_scan_for_asset
+ from app.services.match_presentation import build_match_record_response
+ from app.services.scheduler import last_completed_scan_at
+-from app.services.asset_paths import load_watermark_secret, original_file_path
++from app.services.asset_paths import (
++    asset_storage_directory,
++    load_watermark_secret,
++    original_file_path,
++)
+ from app.services.visual_search_provider import get_configured_provider
+ from app.services.asset_ingestion import (
+     DEFAULT_STORAGE_ROOT,
+@@ -230,6 +235,50 @@ def update_asset_archived(
+     return asset_response(asset)
+ 
+ 
++@router.delete(
++    "/{asset_id}",
++    status_code=status.HTTP_204_NO_CONTENT,
++)
++def delete_asset_permanently(
++    asset_id: int,
++    user: User = Depends(get_current_user),
++    db: Session = Depends(get_db),
++):
++    """
++    Permanently delete an archived artwork: its match records, scan
++    jobs, monitoring preference, database row, and on-disk files.
++
++    Only archived assets can be deleted. Archiving first is the
++    safety net against an accidental one-click permanent delete of
++    something still actively protected -- restore it if it was a
++    mistake, archive it, then delete.
++    """
++    asset = require_owned_asset(
++        db,
++        asset_id=asset_id,
++        user_id=user.id,
++    )
++
++    if asset.status != "archived":
++        raise HTTPException(
++            status_code=status.HTTP_400_BAD_REQUEST,
++            detail="Archive this artwork before deleting it.",
++        )
++
++    # Resolved before the row is deleted, since it is derived from
++    # asset.original_url.
++    storage_directory = asset_storage_directory(asset)
++
++    delete_asset(db, asset=asset)
++    db.commit()
++
++    # Best-effort: the database is already the source of truth once
++    # committed, so a filesystem cleanup failure should not surface
++    # as an error to the user (the files may already be gone, e.g.
++    # lost to a redeploy before the persistent volume was mounted).
++    shutil.rmtree(storage_directory, ignore_errors=True)
++
++
+ @router.post(
+     "",
+     response_model=AssetRead,
+diff --git a/backend/app/crud/asset.py b/backend/app/crud/asset.py
+index 415a31a..3ce860e 100644
+--- a/backend/app/crud/asset.py
++++ b/backend/app/crud/asset.py
+@@ -1,7 +1,12 @@
+ from sqlalchemy import case, func, select
+ from sqlalchemy.orm import Session
+ 
+-from app.crud.monitoring import count_enabled_monitoring_for_user
++from app.crud.match_record import delete_match_records_for_asset
++from app.crud.monitoring import (
++    count_enabled_monitoring_for_user,
++    delete_monitoring_preference_for_asset,
++)
++from app.crud.scan_job import delete_scan_jobs_for_asset
+ from app.models.asset import Asset
+ 
+ 
+@@ -51,6 +56,37 @@ def set_asset_archived(
+     return asset
+ 
+ 
++def delete_asset(
++    db: Session,
++    *,
++    asset: Asset,
++) -> None:
++    """
++    Permanently remove an asset and every row that references it.
++
++    Schema here is created via Base.metadata.create_all() (see
++    app/db/base.py), not migrations, so there is no ON DELETE CASCADE
++    on the assets.id foreign keys in MatchRecord, ScanJob, or
++    MonitoringPreference -- create_all() only creates missing tables,
++    it never retrofits a constraint onto ones that already exist in
++    production. Child rows are therefore deleted explicitly here, in
++    FK-safe order: match records (which may reference a scan job)
++    before scan jobs, then the monitoring preference, then the asset
++    row itself.
++
++    Does not touch on-disk files and does not commit -- the caller
++    does both, committing the database change first and only then
++    removing files, so a filesystem cleanup failure never leaves an
++    orphaned database row.
++    """
++    delete_match_records_for_asset(db, asset_id=asset.id)
++    delete_scan_jobs_for_asset(db, asset_id=asset.id)
++    delete_monitoring_preference_for_asset(db, asset_id=asset.id)
++
++    db.delete(asset)
++    db.flush()
++
++
+ def get_assets(
+     db: Session,
+     user_id: int,
+diff --git a/backend/app/crud/match_record.py b/backend/app/crud/match_record.py
+index e0bc4b1..22218a9 100644
+--- a/backend/app/crud/match_record.py
++++ b/backend/app/crud/match_record.py
+@@ -1,6 +1,6 @@
+ from datetime import datetime, timezone
+ 
+-from sqlalchemy import func, select
++from sqlalchemy import delete, func, select
+ from sqlalchemy.orm import Session
+ 
+ from app.models.asset import Asset
+@@ -231,4 +231,17 @@ def update_match_record(
+     db.flush()
+     db.refresh(match_record)
+ 
+-    return match_record
+\ No newline at end of file
++    return match_record
++
++
++def delete_match_records_for_asset(
++    db: Session,
++    *,
++    asset_id: int,
++) -> None:
++    """
++    Bulk-delete every match record for one asset, ahead of deleting the
++    asset itself. Must run before delete_scan_jobs_for_asset(), since
++    each match record may reference a scan job via scan_job_id.
++    """
++    db.execute(delete(MatchRecord).where(MatchRecord.asset_id == asset_id))
+\ No newline at end of file
+diff --git a/backend/app/crud/monitoring.py b/backend/app/crud/monitoring.py
+index 730f66f..2e0e701 100644
+--- a/backend/app/crud/monitoring.py
++++ b/backend/app/crud/monitoring.py
+@@ -1,4 +1,4 @@
+-from sqlalchemy import func, select
++from sqlalchemy import delete, func, select
+ from sqlalchemy.exc import IntegrityError
+ from sqlalchemy.orm import Session
+ 
+@@ -116,4 +116,22 @@ def update_monitoring_preference(
+     db.flush()
+     db.refresh(preference)
+ 
+-    return preference
+\ No newline at end of file
++    return preference
++
++
++def delete_monitoring_preference_for_asset(
++    db: Session,
++    *,
++    asset_id: int,
++) -> None:
++    """
++    Delete the monitoring preference row for one asset, ahead of
++    deleting the asset itself. A plain bulk delete rather than a
++    None-check on get_monitoring_preference(), since an asset that was
++    never monitored (no row yet) is a normal, no-op case here.
++    """
++    db.execute(
++        delete(MonitoringPreference).where(
++            MonitoringPreference.asset_id == asset_id,
++        )
++    )
+\ No newline at end of file
+diff --git a/backend/app/crud/scan_job.py b/backend/app/crud/scan_job.py
+index bb7c661..c5c5045 100644
+--- a/backend/app/crud/scan_job.py
++++ b/backend/app/crud/scan_job.py
+@@ -1,5 +1,6 @@
+ from datetime import datetime, timezone
+ 
++from sqlalchemy import delete
+ from sqlalchemy.orm import Session
+ 
+ from app.models.scan_job import ScanJob
+@@ -76,4 +77,17 @@ def mark_scan_job_failed(
+     db.flush()
+     db.refresh(scan_job)
+ 
+-    return scan_job
+\ No newline at end of file
++    return scan_job
++
++
++def delete_scan_jobs_for_asset(
++    db: Session,
++    *,
++    asset_id: int,
++) -> None:
++    """
++    Bulk-delete every scan job for one asset, ahead of deleting the
++    asset itself. Called after delete_match_records_for_asset(), since
++    MatchRecord.scan_job_id references this table.
++    """
++    db.execute(delete(ScanJob).where(ScanJob.asset_id == asset_id))
+\ No newline at end of file
+diff --git a/backend/app/services/asset_paths.py b/backend/app/services/asset_paths.py
+index a72f054..239c0b2 100644
+--- a/backend/app/services/asset_paths.py
++++ b/backend/app/services/asset_paths.py
+@@ -38,6 +38,30 @@ def original_file_path(asset: Asset) -> Path:
+     return path
+ 
+ 
++def asset_storage_directory(asset: Asset) -> Path:
++    """
++    Resolve the on-disk directory holding one asset's files (original,
++    thumbnail, watermarked), without requiring the original file to
++    still exist.
++
++    Deliberately more lenient than original_file_path(): it is used
++    for best-effort cleanup after a delete, where the file may
++    already be missing (e.g. lost to Railway's ephemeral filesystem
++    before the persistent volume fix), and a missing file should
++    never block deleting the database rows that reference it.
++    """
++    root = DEFAULT_STORAGE_ROOT.resolve()
++    directory = (root / asset.original_url).resolve().parent
++
++    if not directory.is_relative_to(root):
++        raise HTTPException(
++            status_code=status.HTTP_400_BAD_REQUEST,
++            detail="Invalid asset storage reference.",
++        )
++
++    return directory
++
++
+ def load_watermark_secret() -> bytes:
+     hex_value = os.getenv("WATERMARK_SECRET_HEX")
+     b64_value = os.getenv("WATERMARK_SECRET_B64")
+diff --git a/backend/tests/test_asset_deletion.py b/backend/tests/test_asset_deletion.py
+new file mode 100644
+index 0000000..c3c2e8c
+--- /dev/null
++++ b/backend/tests/test_asset_deletion.py
+@@ -0,0 +1,115 @@
++import unittest
++
++from sqlalchemy import create_engine, select
++from sqlalchemy.orm import sessionmaker
++
++from app.crud.asset import delete_asset
++from app.models.asset import Asset
++from app.models.base import Base
++from app.models.match_record import MatchRecord
++from app.models.monitoring import MonitoringPreference
++from app.models.scan_job import ScanJob
++from app.models.user import User
++
++
++class DeleteAssetTests(unittest.TestCase):
++    def setUp(self) -> None:
++        engine = create_engine("sqlite:///:memory:")
++        Base.metadata.create_all(engine)
++
++        session_factory = sessionmaker(bind=engine)
++        self.db = session_factory()
++        self.addCleanup(self.db.close)
++
++        self.user = User(email="artist@example.com", hashed_password="x")
++        self.db.add(self.user)
++        self.db.flush()
++
++        self.target = self._asset("Piece to delete")
++        self.other = self._asset("Unrelated piece")
++        self.db.commit()
++
++    def _asset(self, title: str) -> Asset:
++        asset = Asset(
++            user_id=self.user.id,
++            title=title,
++            original_url=f"{title}/original.png",
++            status="archived",
++        )
++        self.db.add(asset)
++        self.db.flush()
++
++        return asset
++
++    def _give_target_full_history(self) -> None:
++        """
++        Attach one row of each dependent type to self.target, plus one
++        of each to self.other -- so a test can check that deleting the
++        target leaves the other asset's rows untouched.
++        """
++        for asset in (self.target, self.other):
++            scan_job = ScanJob(asset_id=asset.id, provider="fake")
++            self.db.add(scan_job)
++            self.db.flush()
++
++            self.db.add(
++                MonitoringPreference(
++                    asset_id=asset.id,
++                    enabled=True,
++                    scan_frequency="weekly",
++                )
++            )
++
++            self.db.add(
++                MatchRecord(
++                    asset_id=asset.id,
++                    scan_job_id=scan_job.id,
++                    source_name="Demo source",
++                    similarity_percent=91.0,
++                )
++            )
++
++        self.db.commit()
++
++    def test_delete_removes_the_asset_row(self) -> None:
++        delete_asset(self.db, asset=self.target)
++        self.db.commit()
++
++        remaining = list(self.db.scalars(select(Asset)))
++        self.assertEqual([a.id for a in remaining], [self.other.id])
++
++    def test_delete_removes_dependent_rows_for_that_asset_only(self) -> None:
++        self._give_target_full_history()
++
++        delete_asset(self.db, asset=self.target)
++        self.db.commit()
++
++        remaining_matches = list(self.db.scalars(select(MatchRecord)))
++        remaining_scan_jobs = list(self.db.scalars(select(ScanJob)))
++        remaining_preferences = list(
++            self.db.scalars(select(MonitoringPreference))
++        )
++
++        self.assertEqual(
++            [m.asset_id for m in remaining_matches], [self.other.id]
++        )
++        self.assertEqual(
++            [s.asset_id for s in remaining_scan_jobs], [self.other.id]
++        )
++        self.assertEqual(
++            [p.asset_id for p in remaining_preferences], [self.other.id]
++        )
++
++    def test_delete_with_no_dependent_rows_does_not_error(self) -> None:
++        # self.target has no scan jobs, matches, or monitoring
++        # preference -- this is the common case for a never-monitored
++        # asset, and must not raise.
++        delete_asset(self.db, asset=self.target)
++        self.db.commit()
++
++        remaining = list(self.db.scalars(select(Asset)))
++        self.assertEqual([a.id for a in remaining], [self.other.id])
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/frontend/src/components/dashboard/AssetRow.tsx b/frontend/src/components/dashboard/AssetRow.tsx
+index d8f9d63..ff3f47a 100644
+--- a/frontend/src/components/dashboard/AssetRow.tsx
++++ b/frontend/src/components/dashboard/AssetRow.tsx
+@@ -9,6 +9,7 @@ import { Icon } from "./Icon";
+ type AssetRowProps = {
+   asset: Asset;
+   onArchiveChange?: () => void;
++  onDeleted?: () => void;
+ };
+ 
+ type DownloadKind = "original" | "watermarked";
+@@ -27,7 +28,7 @@ function formatDate(value: string): string {
+   });
+ }
+ 
+-export function AssetRow({ asset, onArchiveChange }: AssetRowProps) {
++export function AssetRow({ asset, onArchiveChange, onDeleted }: AssetRowProps) {
+   const { user, logout } = useAuth();
+ 
+   const [thumbnail, setThumbnail] = useState<string | null>(null);
+@@ -36,6 +37,9 @@ export function AssetRow({ asset, onArchiveChange }: AssetRowProps) {
+   const [downloadError, setDownloadError] = useState("");
+   const [archiving, setArchiving] = useState(false);
+   const [archiveError, setArchiveError] = useState("");
++  const [confirmingDelete, setConfirmingDelete] = useState(false);
++  const [deleting, setDeleting] = useState(false);
++  const [deleteError, setDeleteError] = useState("");
+ 
+   const downloadController = useRef<AbortController | null>(null);
+ 
+@@ -199,6 +203,33 @@ export function AssetRow({ asset, onArchiveChange }: AssetRowProps) {
+     }
+   }
+ 
++  async function handleDeleteConfirmed() {
++    if (deleting) return;
++
++    setDeleting(true);
++    setDeleteError("");
++
++    try {
++      await api.deleteAsset(asset.id);
++
++      onDeleted?.();
++    } catch (error) {
++      if (error instanceof ApiError && error.status === 401) {
++        logout();
++        return;
++      }
++
++      setConfirmingDelete(false);
++      setDeleteError(
++        error instanceof ApiError
++          ? error.message
++          : "This artwork could not be deleted.",
++      );
++    } finally {
++      setDeleting(false);
++    }
++  }
++
+   const isDownloading = downloading !== null;
+   const hasWatermark = Boolean(asset.watermarked_url);
+   const isArchived = asset.status === "archived";
+@@ -307,9 +338,57 @@ export function AssetRow({ asset, onArchiveChange }: AssetRowProps) {
+                 ? "Restore"
+                 : "Archive"}
+           </button>
++
++          {isArchived && !confirmingDelete && (
++            <button
++              type="button"
++              disabled={isDownloading || archiving || deleting}
++              onClick={() => setConfirmingDelete(true)}
++              title="Permanently delete this artwork and its files"
++              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--danger)]/40 bg-[var(--surface)] px-3 text-[12px] font-semibold text-[var(--danger)] transition hover:bg-[var(--danger-soft)] disabled:cursor-not-allowed disabled:opacity-50"
++            >
++              <Icon name="delete" />
++              Delete
++            </button>
++          )}
++
++          {isArchived && confirmingDelete && (
++            <div className="flex items-center gap-2 rounded-lg bg-[var(--danger-soft)] px-2.5 py-1.5">
++              <span className="text-[12px] font-semibold text-[var(--danger)]">
++                Delete permanently?
++              </span>
++
++              <button
++                type="button"
++                disabled={deleting}
++                onClick={() => void handleDeleteConfirmed()}
++                className="inline-flex h-7 items-center rounded-md bg-[var(--danger)] px-2.5 text-[11px] font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
++              >
++                {deleting ? "Deleting..." : "Confirm"}
++              </button>
++
++              <button
++                type="button"
++                disabled={deleting}
++                onClick={() => setConfirmingDelete(false)}
++                className="inline-flex h-7 items-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-2.5 text-[11px] font-semibold text-[var(--text)] transition hover:bg-[var(--surface-raised)] disabled:cursor-not-allowed disabled:opacity-50"
++              >
++                Cancel
++              </button>
++            </div>
++          )}
+         </div>
+       </div>
+ 
++      {deleteError && (
++        <p
++          role="alert"
++          className="mt-3 rounded-md bg-[var(--danger-soft)] px-3 py-2 text-[12px] text-[var(--danger)]"
++        >
++          {deleteError}
++        </p>
++      )}
++
+       {archiveError && (
+         <p
+           role="alert"
+diff --git a/frontend/src/components/dashboard/ProtectedAssetsCard.tsx b/frontend/src/components/dashboard/ProtectedAssetsCard.tsx
+index a7c6cb1..2ca144d 100644
+--- a/frontend/src/components/dashboard/ProtectedAssetsCard.tsx
++++ b/frontend/src/components/dashboard/ProtectedAssetsCard.tsx
+@@ -537,18 +537,23 @@ export function ProtectedAssetsCard() {
+         </div>
+       ) : (
+         <div className="mt-5 space-y-3">
+-          {assets.map((asset) => (
+-            <AssetRow
+-              key={asset.id}
+-              asset={asset}
+-              onArchiveChange={() => {
+-                setAssets((current) =>
+-                  current.filter((item) => item.id !== asset.id),
+-                );
+-                void refreshStats();
+-              }}
+-            />
+-          ))}
++          {assets.map((asset) => {
++            function removeFromList() {
++              setAssets((current) =>
++                current.filter((item) => item.id !== asset.id),
++              );
++              void refreshStats();
++            }
++
++            return (
++              <AssetRow
++                key={asset.id}
++                asset={asset}
++                onArchiveChange={removeFromList}
++                onDeleted={removeFromList}
++              />
++            );
++          })}
+         </div>
+       )}
+     </Panel>
+diff --git a/frontend/src/lib/api.ts b/frontend/src/lib/api.ts
+index a66e173..9f8bb6b 100644
+--- a/frontend/src/lib/api.ts
++++ b/frontend/src/lib/api.ts
+@@ -281,6 +281,12 @@ export const api = {
+       signal,
+     }),
+ 
++  deleteAsset: (assetId: number, signal?: AbortSignal) =>
++    request<void>(`/api/v1/assets/${assetId}`, {
++      method: "DELETE",
++      signal,
++    }),
++
+   uploadAsset: (
+     title: string,
+     file: File,
