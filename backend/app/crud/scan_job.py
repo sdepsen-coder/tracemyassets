@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 
+from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
 from app.models.scan_job import ScanJob
@@ -77,3 +78,16 @@ def mark_scan_job_failed(
     db.refresh(scan_job)
 
     return scan_job
+
+
+def delete_scan_jobs_for_asset(
+    db: Session,
+    *,
+    asset_id: int,
+) -> None:
+    """
+    Bulk-delete every scan job for one asset, ahead of deleting the
+    asset itself. Called after delete_match_records_for_asset(), since
+    MatchRecord.scan_job_id references this table.
+    """
+    db.execute(delete(ScanJob).where(ScanJob.asset_id == asset_id))

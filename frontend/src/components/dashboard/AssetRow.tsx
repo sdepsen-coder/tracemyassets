@@ -9,6 +9,7 @@ import { Icon } from "./Icon";
 type AssetRowProps = {
   asset: Asset;
   onArchiveChange?: () => void;
+  onDeleted?: () => void;
 };
 
 type DownloadKind = "original" | "watermarked";
@@ -27,7 +28,7 @@ function formatDate(value: string): string {
   });
 }
 
-export function AssetRow({ asset, onArchiveChange }: AssetRowProps) {
+export function AssetRow({ asset, onArchiveChange, onDeleted }: AssetRowProps) {
   const { user, logout } = useAuth();
 
   const [thumbnail, setThumbnail] = useState<string | null>(null);
@@ -36,6 +37,9 @@ export function AssetRow({ asset, onArchiveChange }: AssetRowProps) {
   const [downloadError, setDownloadError] = useState("");
   const [archiving, setArchiving] = useState(false);
   const [archiveError, setArchiveError] = useState("");
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const downloadController = useRef<AbortController | null>(null);
 
@@ -199,6 +203,33 @@ export function AssetRow({ asset, onArchiveChange }: AssetRowProps) {
     }
   }
 
+  async function handleDeleteConfirmed() {
+    if (deleting) return;
+
+    setDeleting(true);
+    setDeleteError("");
+
+    try {
+      await api.deleteAsset(asset.id);
+
+      onDeleted?.();
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        logout();
+        return;
+      }
+
+      setConfirmingDelete(false);
+      setDeleteError(
+        error instanceof ApiError
+          ? error.message
+          : "This artwork could not be deleted.",
+      );
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   const isDownloading = downloading !== null;
   const hasWatermark = Boolean(asset.watermarked_url);
   const isArchived = asset.status === "archived";
@@ -307,8 +338,56 @@ export function AssetRow({ asset, onArchiveChange }: AssetRowProps) {
                 ? "Restore"
                 : "Archive"}
           </button>
+
+          {isArchived && !confirmingDelete && (
+            <button
+              type="button"
+              disabled={isDownloading || archiving || deleting}
+              onClick={() => setConfirmingDelete(true)}
+              title="Permanently delete this artwork and its files"
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--danger)]/40 bg-[var(--surface)] px-3 text-[12px] font-semibold text-[var(--danger)] transition hover:bg-[var(--danger-soft)] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Icon name="delete" />
+              Delete
+            </button>
+          )}
+
+          {isArchived && confirmingDelete && (
+            <div className="flex items-center gap-2 rounded-lg bg-[var(--danger-soft)] px-2.5 py-1.5">
+              <span className="text-[12px] font-semibold text-[var(--danger)]">
+                Delete permanently?
+              </span>
+
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => void handleDeleteConfirmed()}
+                className="inline-flex h-7 items-center rounded-md bg-[var(--danger)] px-2.5 text-[11px] font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {deleting ? "Deleting..." : "Confirm"}
+              </button>
+
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setConfirmingDelete(false)}
+                className="inline-flex h-7 items-center rounded-md border border-[var(--border)] bg-[var(--surface)] px-2.5 text-[11px] font-semibold text-[var(--text)] transition hover:bg-[var(--surface-raised)] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      {deleteError && (
+        <p
+          role="alert"
+          className="mt-3 rounded-md bg-[var(--danger-soft)] px-3 py-2 text-[12px] text-[var(--danger)]"
+        >
+          {deleteError}
+        </p>
+      )}
 
       {archiveError && (
         <p

@@ -21,6 +21,7 @@ from app.api.deps import get_current_user, get_db
 from app.core.plan_limits import get_plan_limits
 from app.crud.asset import (
     create_asset,
+    delete_asset,
     get_asset,
     get_asset_stats,
     get_assets,
@@ -51,7 +52,11 @@ ScanJobRead,
 from app.services.scan_runner import run_scan_for_asset
 from app.services.match_presentation import build_match_record_response
 from app.services.scheduler import last_completed_scan_at
-from app.services.asset_paths import load_watermark_secret, original_file_path
+from app.services.asset_paths import (
+    asset_storage_directory,
+    load_watermark_secret,
+    original_file_path,
+)
 from app.services.visual_search_provider import get_configured_provider
 from app.services.asset_ingestion import (
     DEFAULT_STORAGE_ROOT,
@@ -228,6 +233,50 @@ def update_asset_archived(
     db.commit()
 
     return asset_response(asset)
+
+
+@router.delete(
+    "/{asset_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_asset_permanently(
+    asset_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Permanently delete an archived artwork: its match records, scan
+    jobs, monitoring preference, database row, and on-disk files.
+
+    Only archived assets can be deleted. Archiving first is the
+    safety net against an accidental one-click permanent delete of
+    something still actively protected -- restore it if it was a
+    mistake, archive it, then delete.
+    """
+    asset = require_owned_asset(
+        db,
+        asset_id=asset_id,
+        user_id=user.id,
+    )
+
+    if asset.status != "archived":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Archive this artwork before deleting it.",
+        )
+
+    # Resolved before the row is deleted, since it is derived from
+    # asset.original_url.
+    storage_directory = asset_storage_directory(asset)
+
+    delete_asset(db, asset=asset)
+    db.commit()
+
+    # Best-effort: the database is already the source of truth once
+    # committed, so a filesystem cleanup failure should not surface
+    # as an error to the user (the files may already be gone, e.g.
+    # lost to a redeploy before the persistent volume was mounted).
+    shutil.rmtree(storage_directory, ignore_errors=True)
 
 
 @router.post(

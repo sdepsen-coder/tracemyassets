@@ -537,18 +537,23 @@ export function ProtectedAssetsCard() {
         </div>
       ) : (
         <div className="mt-5 space-y-3">
-          {assets.map((asset) => (
-            <AssetRow
-              key={asset.id}
-              asset={asset}
-              onArchiveChange={() => {
-                setAssets((current) =>
-                  current.filter((item) => item.id !== asset.id),
-                );
-                void refreshStats();
-              }}
-            />
-          ))}
+          {assets.map((asset) => {
+            function removeFromList() {
+              setAssets((current) =>
+                current.filter((item) => item.id !== asset.id),
+              );
+              void refreshStats();
+            }
+
+            return (
+              <AssetRow
+                key={asset.id}
+                asset={asset}
+                onArchiveChange={removeFromList}
+                onDeleted={removeFromList}
+              />
+            );
+          })}
         </div>
       )}
     </Panel>

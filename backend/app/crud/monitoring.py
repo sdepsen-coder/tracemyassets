@@ -1,4 +1,4 @@
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -117,3 +117,21 @@ def update_monitoring_preference(
     db.refresh(preference)
 
     return preference
+
+
+def delete_monitoring_preference_for_asset(
+    db: Session,
+    *,
+    asset_id: int,
+) -> None:
+    """
+    Delete the monitoring preference row for one asset, ahead of
+    deleting the asset itself. A plain bulk delete rather than a
+    None-check on get_monitoring_preference(), since an asset that was
+    never monitored (no row yet) is a normal, no-op case here.
+    """
+    db.execute(
+        delete(MonitoringPreference).where(
+            MonitoringPreference.asset_id == asset_id,
+        )
+    )

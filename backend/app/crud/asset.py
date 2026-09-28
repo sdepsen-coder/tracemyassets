@@ -1,7 +1,12 @@
 from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
 
-from app.crud.monitoring import count_enabled_monitoring_for_user
+from app.crud.match_record import delete_match_records_for_asset
+from app.crud.monitoring import (
+    count_enabled_monitoring_for_user,
+    delete_monitoring_preference_for_asset,
+)
+from app.crud.scan_job import delete_scan_jobs_for_asset
 from app.models.asset import Asset
 
 
@@ -49,6 +54,37 @@ def set_asset_archived(
     db.refresh(asset)
 
     return asset
+
+
+def delete_asset(
+    db: Session,
+    *,
+    asset: Asset,
+) -> None:
+    """
+    Permanently remove an asset and every row that references it.
+
+    Schema here is created via Base.metadata.create_all() (see
+    app/db/base.py), not migrations, so there is no ON DELETE CASCADE
+    on the assets.id foreign keys in MatchRecord, ScanJob, or
+    MonitoringPreference -- create_all() only creates missing tables,
+    it never retrofits a constraint onto ones that already exist in
+    production. Child rows are therefore deleted explicitly here, in
+    FK-safe order: match records (which may reference a scan job)
+    before scan jobs, then the monitoring preference, then the asset
+    row itself.
+
+    Does not touch on-disk files and does not commit -- the caller
+    does both, committing the database change first and only then
+    removing files, so a filesystem cleanup failure never leaves an
+    orphaned database row.
+    """
+    delete_match_records_for_asset(db, asset_id=asset.id)
+    delete_scan_jobs_for_asset(db, asset_id=asset.id)
+    delete_monitoring_preference_for_asset(db, asset_id=asset.id)
+
+    db.delete(asset)
+    db.flush()
 
 
 def get_assets(

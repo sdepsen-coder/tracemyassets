@@ -281,6 +281,12 @@ export const api = {
       signal,
     }),
 
+  deleteAsset: (assetId: number, signal?: AbortSignal) =>
+    request<void>(`/api/v1/assets/${assetId}`, {
+      method: "DELETE",
+      signal,
+    }),
+
   uploadAsset: (
     title: string,
     file: File,

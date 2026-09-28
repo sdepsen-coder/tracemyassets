@@ -38,6 +38,30 @@ def original_file_path(asset: Asset) -> Path:
     return path
 
 
+def asset_storage_directory(asset: Asset) -> Path:
+    """
+    Resolve the on-disk directory holding one asset's files (original,
+    thumbnail, watermarked), without requiring the original file to
+    still exist.
+
+    Deliberately more lenient than original_file_path(): it is used
+    for best-effort cleanup after a delete, where the file may
+    already be missing (e.g. lost to Railway's ephemeral filesystem
+    before the persistent volume fix), and a missing file should
+    never block deleting the database rows that reference it.
+    """
+    root = DEFAULT_STORAGE_ROOT.resolve()
+    directory = (root / asset.original_url).resolve().parent
+
+    if not directory.is_relative_to(root):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid asset storage reference.",
+        )
+
+    return directory
+
+
 def load_watermark_secret() -> bytes:
     hex_value = os.getenv("WATERMARK_SECRET_HEX")
     b64_value = os.getenv("WATERMARK_SECRET_B64")

@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.models.asset import Asset
@@ -232,3 +232,16 @@ def update_match_record(
     db.refresh(match_record)
 
     return match_record
+
+
+def delete_match_records_for_asset(
+    db: Session,
+    *,
+    asset_id: int,
+) -> None:
+    """
+    Bulk-delete every match record for one asset, ahead of deleting the
+    asset itself. Must run before delete_scan_jobs_for_asset(), since
+    each match record may reference a scan job via scan_job_id.
+    """
+    db.execute(delete(MatchRecord).where(MatchRecord.asset_id == asset_id))
