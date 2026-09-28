@@ -1,0 +1,62 @@
+diff --git a/backend/app/api/v1/endpoints/assets.py b/backend/app/api/v1/endpoints/assets.py
+index 5dd16be..2ff8d85 100644
+--- a/backend/app/api/v1/endpoints/assets.py
++++ b/backend/app/api/v1/endpoints/assets.py
+@@ -245,13 +245,15 @@ def delete_asset_permanently(
+     db: Session = Depends(get_db),
+ ):
+     """
+-    Permanently delete an archived artwork: its match records, scan
+-    jobs, monitoring preference, database row, and on-disk files.
+-
+-    Only archived assets can be deleted. Archiving first is the
+-    safety net against an accidental one-click permanent delete of
+-    something still actively protected -- restore it if it was a
+-    mistake, archive it, then delete.
++    Permanently delete an artwork, active or archived: its match
++    records, scan jobs, monitoring preference, database row, and
++    on-disk files.
++
++    Not gated on archive status -- archiving is a separate, reversible
++    "pause" action, unrelated to this permanent one. The client-side
++    confirm step is the only safety net against an accidental delete,
++    deliberately kept to one click of friction rather than forcing an
++    archive-then-delete sequence a user has to discover first.
+     """
+     asset = require_owned_asset(
+         db,
+@@ -259,12 +261,6 @@ def delete_asset_permanently(
+         user_id=user.id,
+     )
+ 
+-    if asset.status != "archived":
+-        raise HTTPException(
+-            status_code=status.HTTP_400_BAD_REQUEST,
+-            detail="Archive this artwork before deleting it.",
+-        )
+-
+     # Resolved before the row is deleted, since it is derived from
+     # asset.original_url.
+     storage_directory = asset_storage_directory(asset)
+diff --git a/frontend/src/components/dashboard/AssetRow.tsx b/frontend/src/components/dashboard/AssetRow.tsx
+index ff3f47a..3934392 100644
+--- a/frontend/src/components/dashboard/AssetRow.tsx
++++ b/frontend/src/components/dashboard/AssetRow.tsx
+@@ -339,7 +339,7 @@ export function AssetRow({ asset, onArchiveChange, onDeleted }: AssetRowProps) {
+                 : "Archive"}
+           </button>
+ 
+-          {isArchived && !confirmingDelete && (
++          {!confirmingDelete && (
+             <button
+               type="button"
+               disabled={isDownloading || archiving || deleting}
+@@ -352,7 +352,7 @@ export function AssetRow({ asset, onArchiveChange, onDeleted }: AssetRowProps) {
+             </button>
+           )}
+ 
+-          {isArchived && confirmingDelete && (
++          {confirmingDelete && (
+             <div className="flex items-center gap-2 rounded-lg bg-[var(--danger-soft)] px-2.5 py-1.5">
+               <span className="text-[12px] font-semibold text-[var(--danger)]">
+                 Delete permanently?

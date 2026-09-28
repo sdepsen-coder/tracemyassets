@@ -339,7 +339,7 @@ export function AssetRow({ asset, onArchiveChange, onDeleted }: AssetRowProps) {
                 : "Archive"}
           </button>
 
-          {isArchived && !confirmingDelete && (
+          {!confirmingDelete && (
             <button
               type="button"
               disabled={isDownloading || archiving || deleting}
@@ -352,7 +352,7 @@ export function AssetRow({ asset, onArchiveChange, onDeleted }: AssetRowProps) {
             </button>
           )}
 
-          {isArchived && confirmingDelete && (
+          {confirmingDelete && (
             <div className="flex items-center gap-2 rounded-lg bg-[var(--danger-soft)] px-2.5 py-1.5">
               <span className="text-[12px] font-semibold text-[var(--danger)]">
                 Delete permanently?

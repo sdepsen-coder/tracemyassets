@@ -245,25 +245,21 @@ def delete_asset_permanently(
     db: Session = Depends(get_db),
 ):
     """
-    Permanently delete an archived artwork: its match records, scan
-    jobs, monitoring preference, database row, and on-disk files.
+    Permanently delete an artwork, active or archived: its match
+    records, scan jobs, monitoring preference, database row, and
+    on-disk files.
 
-    Only archived assets can be deleted. Archiving first is the
-    safety net against an accidental one-click permanent delete of
-    something still actively protected -- restore it if it was a
-    mistake, archive it, then delete.
+    Not gated on archive status -- archiving is a separate, reversible
+    "pause" action, unrelated to this permanent one. The client-side
+    confirm step is the only safety net against an accidental delete,
+    deliberately kept to one click of friction rather than forcing an
+    archive-then-delete sequence a user has to discover first.
     """
     asset = require_owned_asset(
         db,
         asset_id=asset_id,
         user_id=user.id,
     )
-
-    if asset.status != "archived":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Archive this artwork before deleting it.",
-        )
 
     # Resolved before the row is deleted, since it is derived from
     # asset.original_url.
