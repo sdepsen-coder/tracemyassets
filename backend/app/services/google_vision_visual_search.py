@@ -50,7 +50,10 @@ import google.auth
 from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
 
-from app.services.visual_search_provider import DiscoveredCandidate
+from app.services.visual_search_provider import (
+    DiscoveredCandidate,
+    truncate_source_name,
+)
 
 VISION_API_URL = "https://vision.googleapis.com/v1/images:annotate"
 REQUEST_TIMEOUT_SECONDS = 15.0
@@ -157,7 +160,7 @@ class GoogleVisionWebDetectionProvider:
 
             candidates.append(
                 DiscoveredCandidate(
-                    source_name=page_title,
+                    source_name=truncate_source_name(page_title),
                     source_url=page_url,
                     candidate_image_url=image_url,
                     candidate_page_url=page_url,

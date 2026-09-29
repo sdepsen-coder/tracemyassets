@@ -8,6 +8,7 @@ plain DB session).
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -25,12 +26,15 @@ from app.models.monitoring import MonitoringPreference
 from app.models.scan_job import ScanJob
 from app.services.asset_ingestion import UploadValidationError
 from app.services.visual_search_provider import (
+    DiscoveredCandidate,
     VisualSearchProvider,
     fetch_candidate_bytes,
-    get_configured_provider,
+    get_configured_providers,
 )
 from app.services.visual_verification import verify_candidate_image
 from app.services.watermark import WatermarkError
+
+logger = logging.getLogger("tracemyassets.scan_runner")
 
 
 @dataclass
@@ -38,6 +42,49 @@ class ScanOutcome:
     scan_job: ScanJob
     matches: list[MatchRecord]
     provider_name: str
+
+
+def _collect_candidates(
+    providers: list[VisualSearchProvider],
+    *,
+    asset_id: int,
+    asset_title: str,
+    reference_path: Path,
+    watermarked_path: Path | None,
+) -> list[DiscoveredCandidate]:
+    """
+    Run every configured provider and pool their candidates.
+
+    One provider failing at *search* time (a timeout, a rate limit, an
+    API error for this particular query) must not lose the candidates
+    the other providers already found -- so each provider's
+    find_candidates() is isolated here, the same way the scheduler
+    isolates failures per asset. A provider that fails to even
+    *construct* (a missing/invalid API key) still fails fast, before
+    this point -- see get_configured_providers() /
+    visual_search_provider._build_provider().
+    """
+    candidates: list[DiscoveredCandidate] = []
+
+    for provider in providers:
+        try:
+            candidates.extend(
+                provider.find_candidates(
+                    asset_id=asset_id,
+                    asset_title=asset_title,
+                    reference_original_path=reference_path,
+                    reference_watermarked_path=watermarked_path,
+                )
+            )
+        except Exception:
+            logger.exception(
+                "Discovery provider %r failed for asset_id=%s -- "
+                "continuing with the remaining provider(s).",
+                provider.name,
+                asset_id,
+            )
+
+    return candidates
 
 
 def run_scan_for_asset(
@@ -49,36 +96,50 @@ def run_scan_for_asset(
     reference_path: Path,
     watermarked_path: Path | None,
     watermark_secret: bytes,
-    provider: VisualSearchProvider | None = None,
+    providers: list[VisualSearchProvider] | None = None,
 ) -> ScanOutcome:
     """
-    Execute one scan for a single asset: discover candidates, re-verify
-    each through our own pHash/watermark/ORB pipeline, and record or
-    touch the resulting match rows (see record_or_touch_match for the
-    dedup rule).
+    Execute one scan for a single asset: run every configured
+    discovery provider, pool their candidates, re-verify each through
+    our own pHash/watermark/ORB pipeline, and record or touch the
+    resulting match rows (see record_or_touch_match for the dedup
+    rule).
 
-    Raises whatever the provider or verification pipeline raises on a
-    genuine failure (e.g. the provider itself is unreachable or
-    misconfigured); it does NOT try/except around that, because the
-    HTTP endpoint and the scheduler each want to react differently
-    (one returns a 5xx to the caller, the other logs and moves on to
-    the next asset) -- see both call sites for how each wraps this.
+    One ScanJob row covers the whole run, whatever providers are
+    configured -- its `provider` column holds every provider's name,
+    comma-joined (e.g. "google-vision,rainforest-amazon,etsy"). There
+    is no separate "found by which marketplace" column on a match;
+    each MatchRecord's own source_name says which provider actually
+    found it (see each provider's own DiscoveredCandidate
+    construction, e.g. "Amazon (amazon.co.uk): ..." or "Etsy: ...").
+
+    A provider that fails at construction time (bad/missing
+    credential) raises before this function is even called -- see
+    get_configured_providers(). A provider that fails at *search*
+    time is isolated in _collect_candidates() instead, so one flaky
+    provider never discards the other providers' results for this
+    same scan; only a failure in the verification/database step below
+    still fails the whole scan job (see both call sites' handling of
+    that).
     """
-    if provider is None:
-        provider = get_configured_provider()
+    if providers is None:
+        providers = get_configured_providers()
+
+    provider_name = ",".join(provider.name for provider in providers)
 
     scan_job = create_scan_job(
         db,
         asset_id=asset.id,
-        provider=provider.name,
+        provider=provider_name,
     )
     scan_job = mark_scan_job_running(db, scan_job)
 
-    candidates = provider.find_candidates(
+    candidates = _collect_candidates(
+        providers,
         asset_id=asset.id,
         asset_title=asset.title,
-        reference_original_path=reference_path,
-        reference_watermarked_path=watermarked_path,
+        reference_path=reference_path,
+        watermarked_path=watermarked_path,
     )
 
     matches: list[MatchRecord] = []
@@ -150,5 +211,5 @@ def run_scan_for_asset(
     return ScanOutcome(
         scan_job=scan_job,
         matches=matches,
-        provider_name=provider.name,
+        provider_name=provider_name,
     )

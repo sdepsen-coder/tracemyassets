@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Protocol
 
 import httpx
 
 MAX_CANDIDATE_FETCH_BYTES = 25 * 1024 * 1024
 CANDIDATE_FETCH_TIMEOUT_SECONDS = 10.0
+SOURCE_NAME_MAX_LENGTH = 100  # matches MatchRecord.source_name's column width
 
 
 @dataclass(frozen=True)
@@ -55,18 +57,21 @@ class VisualSearchProvider(Protocol):
         *,
         asset_id: int,
         asset_title: str,
+        reference_original_path: Path,
+        reference_watermarked_path: Path | None,
     ) -> list[DiscoveredCandidate]: ...
 
 
-def get_configured_provider() -> VisualSearchProvider:
+def _build_provider(provider_name: str) -> VisualSearchProvider:
     """
-    Build the discovery provider selected by VISUAL_SEARCH_PROVIDER
-    (see app.core.config). Defaults to the fake/demo provider so the
-    app keeps working out of the box with no external credentials.
+    Instantiate one named provider. Construction failures (a missing
+    or invalid API key/credential) are deliberately fail-fast here --
+    that is a setup problem, different from a provider that fails at
+    *search* time (see run_scan_for_asset._collect_candidates, which
+    isolates that case instead so one flaky provider doesn't lose the
+    other configured providers' results for the same scan).
     """
-    from app.core.config import settings
-
-    provider_name = (settings.visual_search_provider or "fake").lower()
+    provider_name = provider_name.strip().lower()
 
     if provider_name == "fake":
         from app.services.fake_visual_search import FakeVisualSearchProvider
@@ -82,15 +87,97 @@ def get_configured_provider() -> VisualSearchProvider:
             return GoogleVisionWebDetectionProvider()
         except Exception as exc:
             raise RuntimeError(
-                "VISUAL_SEARCH_PROVIDER=google-vision but the provider "
-                "could not be initialized -- check "
-                "GOOGLE_APPLICATION_CREDENTIALS. "
+                "VISUAL_SEARCH_PROVIDER includes google-vision but the "
+                "provider could not be initialized -- check "
+                "GOOGLE_APPLICATION_CREDENTIALS[_JSON]. "
+                f"Details: {exc}"
+            ) from exc
+
+    if provider_name == "rainforest-amazon":
+        from app.services.rainforest_amazon_visual_search import (
+            RainforestAmazonProvider,
+        )
+
+        try:
+            return RainforestAmazonProvider()
+        except Exception as exc:
+            raise RuntimeError(
+                "VISUAL_SEARCH_PROVIDER includes rainforest-amazon but "
+                "the provider could not be initialized -- check "
+                "RAINFOREST_API_KEY. "
+                f"Details: {exc}"
+            ) from exc
+
+    if provider_name == "etsy":
+        from app.services.etsy_visual_search import EtsyProvider
+
+        try:
+            return EtsyProvider()
+        except Exception as exc:
+            raise RuntimeError(
+                "VISUAL_SEARCH_PROVIDER includes etsy but the provider "
+                "could not be initialized -- check ETSY_API_KEY. "
                 f"Details: {exc}"
             ) from exc
 
     raise RuntimeError(
         f"Unknown VISUAL_SEARCH_PROVIDER value: {provider_name!r}"
     )
+
+
+def get_configured_providers() -> list[VisualSearchProvider]:
+    """
+    Build every discovery provider named in VISUAL_SEARCH_PROVIDER
+    (comma-separated, e.g. "google-vision,rainforest-amazon,etsy").
+    Defaults to the fake/demo provider so the app keeps working out of
+    the box with no external credentials.
+
+    Every configured provider runs on every scan (see
+    run_scan_for_asset); their candidates are pooled into one list
+    before our own pHash/watermark/ORB verification. There is no
+    separate "source platform" field on a match -- each provider tags
+    its own candidates by building a suitable DiscoveredCandidate.
+    source_name (e.g. "Amazon (amazon.co.uk): ..." or "Etsy: ...", vs
+    Google Web Detection's page title), truncated with
+    truncate_source_name() so a long marketplace listing title can
+    never fail the database insert.
+    """
+    from app.core.config import settings
+
+    raw_value = settings.visual_search_provider or "fake"
+    names = [item.strip() for item in raw_value.split(",") if item.strip()]
+
+    if not names:
+        names = ["fake"]
+
+    return [_build_provider(name) for name in names]
+
+
+def get_configured_provider() -> VisualSearchProvider:
+    """
+    Backward-compatible single-provider accessor: returns the first
+    provider named in VISUAL_SEARCH_PROVIDER. Prefer
+    get_configured_providers() for anything that runs a scan.
+    """
+    return get_configured_providers()[0]
+
+
+def truncate_source_name(text: str, limit: int = SOURCE_NAME_MAX_LENGTH) -> str:
+    """
+    Clip a candidate's human-readable label to fit
+    MatchRecord.source_name (String(100)) before it reaches the scan
+    pipeline. Marketplace listing titles routinely run past 100
+    characters (Amazon's SEO-stuffed titles especially) -- an
+    unclipped value would fail the database insert outright, not just
+    display truncated, so every provider that builds source_name from
+    a listing/page title should pass it through this first.
+    """
+    text = text.strip()
+
+    if len(text) <= limit:
+        return text
+
+    return text[: limit - 1].rstrip() + "…"
 
 
 def fetch_candidate_bytes(url: str) -> bytes | None:

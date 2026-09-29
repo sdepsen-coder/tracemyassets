@@ -57,7 +57,7 @@ from app.services.asset_paths import (
     load_watermark_secret,
     original_file_path,
 )
-from app.services.visual_search_provider import get_configured_provider
+from app.services.visual_search_provider import get_configured_providers
 from app.services.asset_ingestion import (
     DEFAULT_STORAGE_ROOT,
     MAX_UPLOAD_BYTES,
@@ -457,12 +457,15 @@ def scan_asset(
     """
     Run a monitoring scan for one owned artwork.
 
-    The discovery provider is selected by VISUAL_SEARCH_PROVIDER (see
-    app.core.config); it defaults to a fake/demo provider that does
-    not scan the public web. Whichever provider is configured, every
-    discovered candidate is still re-verified through our own
-    pHash/watermark/ORB pipeline before becoming a match record --
-    see get_configured_provider() and verify_candidate_image().
+    The discovery provider(s) are selected by VISUAL_SEARCH_PROVIDER
+    (see app.core.config) -- a single name, or several comma-separated
+    names run together per scan (e.g.
+    "google-vision,rainforest-amazon,etsy"). Defaults to a fake/demo
+    provider that does not scan the public web. Whichever provider(s)
+    are configured, every discovered candidate is still re-verified
+    through our own pHash/watermark/ORB pipeline before becoming a
+    match record -- see get_configured_providers() and
+    verify_candidate_image().
     """
     asset = require_owned_asset(
         db,
@@ -476,7 +479,7 @@ def scan_asset(
     )
 
     try:
-        provider = get_configured_provider()
+        providers = get_configured_providers()
     except RuntimeError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -501,7 +504,7 @@ def scan_asset(
             reference_path=reference_path,
             watermarked_path=watermarked_path,
             watermark_secret=load_watermark_secret(),
-            provider=provider,
+            providers=providers,
         )
         scan_job = outcome.scan_job
 

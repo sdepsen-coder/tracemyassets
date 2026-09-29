@@ -1,0 +1,1433 @@
+diff --git a/backend/.env.example b/backend/.env.example
+index aab85cb..440a1a0 100644
+--- a/backend/.env.example
++++ b/backend/.env.example
+@@ -5,4 +5,23 @@ OPENAI_API_KEY=
+ # Generate a random secret locally; never commit the real value.
+ AUTH_SECRET_KEY=
+ # Set the real secret only in your local .env file.
+-WATERMARK_SECRET_HEX=
+\ No newline at end of file
++WATERMARK_SECRET_HEX=
++
++# Discovery provider(s) for monitoring scans. Comma-separated to run
++# several together per scan (results are pooled, each tagged by its
++# own provider -- see app/services/visual_search_provider.py).
++# "fake" (the default if unset) needs no credentials and doesn't scan
++# the public web -- keep it for local dev unless you have real keys.
++VISUAL_SEARCH_PROVIDER=fake
++# google-vision: paste the full contents of a Google Cloud service
++# account JSON key here (see google_vision_visual_search.py for setup).
++GOOGLE_APPLICATION_CREDENTIALS_JSON=
++# rainforest-amazon: API key from https://www.rainforestapi.com
++RAINFOREST_API_KEY=
++# rainforest-amazon: comma-separated Amazon domains to search.
++# Defaults to amazon.co.uk if unset. Each extra domain is a separate
++# billed Rainforest request per scan.
++RAINFOREST_AMAZON_DOMAINS=amazon.co.uk
++# etsy: a plain "keystring" API key from
++# https://www.etsy.com/developers/register (no OAuth needed for this).
++ETSY_API_KEY=
+\ No newline at end of file
+diff --git a/backend/app/api/v1/endpoints/assets.py b/backend/app/api/v1/endpoints/assets.py
+index 2ff8d85..0fc5897 100644
+--- a/backend/app/api/v1/endpoints/assets.py
++++ b/backend/app/api/v1/endpoints/assets.py
+@@ -57,7 +57,7 @@ from app.services.asset_paths import (
+     load_watermark_secret,
+     original_file_path,
+ )
+-from app.services.visual_search_provider import get_configured_provider
++from app.services.visual_search_provider import get_configured_providers
+ from app.services.asset_ingestion import (
+     DEFAULT_STORAGE_ROOT,
+     MAX_UPLOAD_BYTES,
+@@ -457,12 +457,15 @@ def scan_asset(
+     """
+     Run a monitoring scan for one owned artwork.
+ 
+-    The discovery provider is selected by VISUAL_SEARCH_PROVIDER (see
+-    app.core.config); it defaults to a fake/demo provider that does
+-    not scan the public web. Whichever provider is configured, every
+-    discovered candidate is still re-verified through our own
+-    pHash/watermark/ORB pipeline before becoming a match record --
+-    see get_configured_provider() and verify_candidate_image().
++    The discovery provider(s) are selected by VISUAL_SEARCH_PROVIDER
++    (see app.core.config) -- a single name, or several comma-separated
++    names run together per scan (e.g.
++    "google-vision,rainforest-amazon,etsy"). Defaults to a fake/demo
++    provider that does not scan the public web. Whichever provider(s)
++    are configured, every discovered candidate is still re-verified
++    through our own pHash/watermark/ORB pipeline before becoming a
++    match record -- see get_configured_providers() and
++    verify_candidate_image().
+     """
+     asset = require_owned_asset(
+         db,
+@@ -476,7 +479,7 @@ def scan_asset(
+     )
+ 
+     try:
+-        provider = get_configured_provider()
++        providers = get_configured_providers()
+     except RuntimeError as exc:
+         raise HTTPException(
+             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+@@ -501,7 +504,7 @@ def scan_asset(
+             reference_path=reference_path,
+             watermarked_path=watermarked_path,
+             watermark_secret=load_watermark_secret(),
+-            provider=provider,
++            providers=providers,
+         )
+         scan_job = outcome.scan_job
+ 
+diff --git a/backend/app/services/etsy_visual_search.py b/backend/app/services/etsy_visual_search.py
+new file mode 100644
+index 0000000..09df6d4
+--- /dev/null
++++ b/backend/app/services/etsy_visual_search.py
+@@ -0,0 +1,168 @@
++"""
++Etsy Open API v3 discovery provider.
++
++Selected via VISUAL_SEARCH_PROVIDER=etsy, alone or combined with other
++providers (e.g. VISUAL_SEARCH_PROVIDER=google-vision,rainforest-amazon,etsy)
++-- see app.services.visual_search_provider.get_configured_providers.
++This class itself has no FastAPI/endpoint wiring of its own.
++
++Etsy's v3 API supports public active-listing search
++(GET /v3/application/listings/active) with only an API key -- no
++seller registration, no OAuth, no approval gate. Confirmed against
++Etsy's own published API reference, and against a real third-party
++integration built around exactly this (pipeworx-io/mcp-etsy, described
++as "public listing search via Etsy Open API v3 (api_key auth only)").
++
++Search is by keyword (the asset's title) -- Etsy has no
++image-similarity search of its own, the same limitation as Amazon/
++Rainforest. This only ever supplies *candidate locations*; every
++candidate is still re-verified through our own pHash/watermark/ORB
++pipeline (app.services.visual_verification.verify_candidate_image)
++exactly like every other provider -- this class never computes a
++similarity score or watermark verdict itself.
++
++Setup (do this yourself -- Claude does not create accounts or keys):
++    1. Register an app at https://www.etsy.com/developers/register --
++       the plain "keystring" API key issued there is enough for this
++       read-only public search; no OAuth flow and no Etsy seller
++       account is required.
++    2. Set ETSY_API_KEY in the backend's environment.
++
++Not yet live-tested against Etsy's real API (unlike
++rainforest-amazon, which was validated this session with a real
++positive-control search against a known listing) -- this is
++implemented directly from Etsy's published v3 reference. Run one real
++search against a listing you already know exists before relying on
++this in production; see claude/deployment-status.md for how the
++equivalent Amazon test was done, and do the same here first.
++"""
++
++from __future__ import annotations
++
++import os
++
++import httpx
++
++from app.services.visual_search_provider import (
++    DiscoveredCandidate,
++    truncate_source_name,
++)
++
++ETSY_ACTIVE_LISTINGS_URL = "https://openapi.etsy.com/v3/application/listings/active"
++REQUEST_TIMEOUT_SECONDS = 20.0
++DEFAULT_MAX_RESULTS = 20
++
++# Etsy's v3 image objects carry several pre-resized URLs; largest
++# first, so a candidate is still usable even if a smaller variant is
++# missing for some reason.
++IMAGE_URL_FIELDS_LARGEST_FIRST = (
++    "url_fullxfull",
++    "url_570xN",
++    "url_170x135",
++    "url_75x75",
++)
++
++
++class EtsyProvider:
++    """
++    Discovery provider backed by Etsy Open API v3's active-listing
++    keyword search, with images embedded via includes=Images so no
++    second request is needed per candidate.
++    """
++
++    name = "etsy"
++
++    def __init__(
++        self,
++        api_key: str | None = None,
++        max_results: int = DEFAULT_MAX_RESULTS,
++    ) -> None:
++        self.api_key = api_key or os.getenv("ETSY_API_KEY")
++
++        if not self.api_key:
++            raise RuntimeError(
++                "ETSY_API_KEY is not set -- required for the etsy "
++                "discovery provider."
++            )
++
++        self.max_results = max_results
++
++    def find_candidates(
++        self,
++        *,
++        asset_id: int,
++        asset_title: str,
++        reference_original_path,
++        reference_watermarked_path,
++    ) -> list[DiscoveredCandidate]:
++        search_term = asset_title.strip()
++
++        if not search_term:
++            return []
++
++        response = httpx.get(
++            ETSY_ACTIVE_LISTINGS_URL,
++            params={
++                "keywords": search_term,
++                "limit": self.max_results,
++                "includes": "Images",
++            },
++            headers={"x-api-key": self.api_key},
++            timeout=REQUEST_TIMEOUT_SECONDS,
++        )
++
++        if not response.is_success:
++            raise RuntimeError(
++                f"Etsy API request failed ({response.status_code}): "
++                f"{response.text}"
++            )
++
++        payload = response.json()
++        results = payload.get("results") or []
++
++        candidates: list[DiscoveredCandidate] = []
++
++        for listing in results[: self.max_results]:
++            image_url = _first_image_url(listing)
++
++            if not image_url:
++                continue
++
++            title = listing.get("title") or "Etsy listing"
++            page_url = listing.get("url")
++
++            candidates.append(
++                DiscoveredCandidate(
++                    source_name=truncate_source_name(f"Etsy: {title}"),
++                    source_url=page_url,
++                    candidate_image_url=image_url,
++                    candidate_page_url=page_url,
++                    candidate_image_bytes=None,  # scan pipeline fetches it
++                )
++            )
++
++        return candidates
++
++
++def _first_image_url(listing: dict) -> str | None:
++    """
++    Etsy's v3 API only embeds each listing's images under an "images"
++    key when the request asked for includes=Images (as this provider
++    always does). Each image entry carries several resized URLs --
++    take the largest one available rather than assuming a fixed key is
++    always present.
++    """
++    images = listing.get("images") or []
++
++    if not images:
++        return None
++
++    first_image = images[0]
++
++    for field in IMAGE_URL_FIELDS_LARGEST_FIRST:
++        url = first_image.get(field)
++
++        if url:
++            return url
++
++    return None
+diff --git a/backend/app/services/google_vision_visual_search.py b/backend/app/services/google_vision_visual_search.py
+index 9d57d16..803e61c 100644
+--- a/backend/app/services/google_vision_visual_search.py
++++ b/backend/app/services/google_vision_visual_search.py
+@@ -50,7 +50,10 @@ import google.auth
+ from google.auth.transport.requests import AuthorizedSession
+ from google.oauth2 import service_account
+ 
+-from app.services.visual_search_provider import DiscoveredCandidate
++from app.services.visual_search_provider import (
++    DiscoveredCandidate,
++    truncate_source_name,
++)
+ 
+ VISION_API_URL = "https://vision.googleapis.com/v1/images:annotate"
+ REQUEST_TIMEOUT_SECONDS = 15.0
+@@ -157,7 +160,7 @@ class GoogleVisionWebDetectionProvider:
+ 
+             candidates.append(
+                 DiscoveredCandidate(
+-                    source_name=page_title,
++                    source_name=truncate_source_name(page_title),
+                     source_url=page_url,
+                     candidate_image_url=image_url,
+                     candidate_page_url=page_url,
+diff --git a/backend/app/services/rainforest_amazon_visual_search.py b/backend/app/services/rainforest_amazon_visual_search.py
+new file mode 100644
+index 0000000..1790c78
+--- /dev/null
++++ b/backend/app/services/rainforest_amazon_visual_search.py
+@@ -0,0 +1,173 @@
++"""
++Rainforest API (Traject Data) discovery provider for Amazon.
++
++Selected via VISUAL_SEARCH_PROVIDER=rainforest-amazon, alone or
++combined with other providers (e.g.
++VISUAL_SEARCH_PROVIDER=google-vision,rainforest-amazon,etsy) -- see
++app.services.visual_search_provider.get_configured_providers. This
++class itself has no FastAPI/endpoint wiring of its own.
++
++Rainforest is a third-party scraping/parsing service for Amazon's
++public search results -- not Amazon's own SP-API. Background on why
++this path was chosen over SP-API, and the legal/risk framing (scraping
++violates Amazon's Terms of Service but is not a crime in the US after
++hiQ v. LinkedIn; a proxy/scraper reduces detection risk, it does not
++transfer legal responsibility), lives in claude/deployment-status.md.
++
++Search is by keyword (the asset's title) -- Rainforest has no
++image-similarity search of its own, so this only ever supplies
++*candidate locations*. Every candidate it returns is still re-verified
++through our own pHash/watermark/ORB pipeline
++(app.services.visual_verification.verify_candidate_image) exactly like
++every other provider; this class never computes a similarity score or
++watermark verdict itself.
++
++Validated this session with a real positive-control search using the
++founder's own Rainforest API key: searching "Smith Mugs Art Timeline
++Mug" against amazon.co.uk found the founder's own known real listing
++(ASIN B077V3XGG1) at position #1, with a usable image URL returned
++directly in the search response -- no second request needed per
++candidate. That test also surfaced a real operational detail: Amazon
++(and therefore Rainforest) is split per country domain, so which
++domain(s) get searched is a real design choice, not a default to set
++once and forget -- see RAINFOREST_AMAZON_DOMAINS below.
++
++Setup (do this yourself -- Claude does not create accounts or keys):
++    1. Sign up at https://www.rainforestapi.com and copy the API key
++       from the dashboard.
++    2. Set RAINFOREST_API_KEY in the backend's environment.
++    3. Optionally set RAINFOREST_AMAZON_DOMAINS to a comma-separated
++       list of Amazon domains to search (default: "amazon.co.uk",
++       matching the founder's own market and the one already
++       validated). Each additional domain is a separate Rainforest
++       request -- and a separate billed credit -- per scan, so widen
++       this deliberately, not by default.
++
++Pricing is real money (see claude/deployment-status.md for the
++current tiers) -- get explicit approval before moving off the free
++trial onto a paid Rainforest plan, and before raising
++RAINFOREST_MAX_RESULTS_PER_DOMAIN or adding domains in a way that
++meaningfully changes credit spend.
++"""
++
++from __future__ import annotations
++
++import os
++
++import httpx
++
++from app.services.visual_search_provider import (
++    DiscoveredCandidate,
++    truncate_source_name,
++)
++
++RAINFOREST_API_URL = "https://api.rainforestapi.com/request"
++REQUEST_TIMEOUT_SECONDS = 20.0
++DEFAULT_AMAZON_DOMAINS = "amazon.co.uk"
++DEFAULT_MAX_RESULTS_PER_DOMAIN = 10
++
++
++class RainforestAmazonProvider:
++    """
++    Discovery provider backed by the Rainforest API's Amazon product
++    search (type=search) -- keyword search, not image search. Each
++    result already carries a usable image thumbnail URL, so no second
++    request is needed per candidate.
++    """
++
++    name = "rainforest-amazon"
++
++    def __init__(
++        self,
++        api_key: str | None = None,
++        domains: list[str] | str | None = None,
++        max_results_per_domain: int = DEFAULT_MAX_RESULTS_PER_DOMAIN,
++    ) -> None:
++        self.api_key = api_key or os.getenv("RAINFOREST_API_KEY")
++
++        if not self.api_key:
++            raise RuntimeError(
++                "RAINFOREST_API_KEY is not set -- required for the "
++                "rainforest-amazon discovery provider."
++            )
++
++        raw_domains = (
++            domains
++            if domains is not None
++            else os.getenv("RAINFOREST_AMAZON_DOMAINS", DEFAULT_AMAZON_DOMAINS)
++        )
++
++        if isinstance(raw_domains, str):
++            self.domains = [
++                item.strip() for item in raw_domains.split(",") if item.strip()
++            ]
++        else:
++            self.domains = [item.strip() for item in raw_domains if item.strip()]
++
++        if not self.domains:
++            self.domains = [DEFAULT_AMAZON_DOMAINS]
++
++        self.max_results_per_domain = max_results_per_domain
++
++    def find_candidates(
++        self,
++        *,
++        asset_id: int,
++        asset_title: str,
++        reference_original_path,
++        reference_watermarked_path,
++    ) -> list[DiscoveredCandidate]:
++        search_term = asset_title.strip()
++
++        if not search_term:
++            return []
++
++        candidates: list[DiscoveredCandidate] = []
++
++        for domain in self.domains:
++            response = httpx.get(
++                RAINFOREST_API_URL,
++                params={
++                    "api_key": self.api_key,
++                    "type": "search",
++                    "amazon_domain": domain,
++                    "search_term": search_term,
++                },
++                timeout=REQUEST_TIMEOUT_SECONDS,
++            )
++
++            if not response.is_success:
++                raise RuntimeError(
++                    f"Rainforest API request failed for domain "
++                    f"{domain!r} ({response.status_code}): {response.text}"
++                )
++
++            payload = response.json()
++            results = payload.get("search_results") or []
++
++            for result in results[: self.max_results_per_domain]:
++                image_url = result.get("image")
++
++                if not image_url:
++                    # No result_type=="ad"/sponsored placement or
++                    # similar edge case with no product image at all
++                    # -- nothing our verification pipeline could
++                    # compare against.
++                    continue
++
++                title = result.get("title") or "Amazon listing"
++                page_url = result.get("link")
++
++                candidates.append(
++                    DiscoveredCandidate(
++                        source_name=truncate_source_name(
++                            f"Amazon ({domain}): {title}"
++                        ),
++                        source_url=page_url,
++                        candidate_image_url=image_url,
++                        candidate_page_url=page_url,
++                        candidate_image_bytes=None,  # scan pipeline fetches it
++                    )
++                )
++
++        return candidates
+diff --git a/backend/app/services/scan_runner.py b/backend/app/services/scan_runner.py
+index d3afd1c..30bffcf 100644
+--- a/backend/app/services/scan_runner.py
++++ b/backend/app/services/scan_runner.py
+@@ -8,6 +8,7 @@ plain DB session).
+ 
+ from __future__ import annotations
+ 
++import logging
+ from dataclasses import dataclass
+ from pathlib import Path
+ 
+@@ -25,13 +26,16 @@ from app.models.monitoring import MonitoringPreference
+ from app.models.scan_job import ScanJob
+ from app.services.asset_ingestion import UploadValidationError
+ from app.services.visual_search_provider import (
++    DiscoveredCandidate,
+     VisualSearchProvider,
+     fetch_candidate_bytes,
+-    get_configured_provider,
++    get_configured_providers,
+ )
+ from app.services.visual_verification import verify_candidate_image
+ from app.services.watermark import WatermarkError
+ 
++logger = logging.getLogger("tracemyassets.scan_runner")
++
+ 
+ @dataclass
+ class ScanOutcome:
+@@ -40,6 +44,49 @@ class ScanOutcome:
+     provider_name: str
+ 
+ 
++def _collect_candidates(
++    providers: list[VisualSearchProvider],
++    *,
++    asset_id: int,
++    asset_title: str,
++    reference_path: Path,
++    watermarked_path: Path | None,
++) -> list[DiscoveredCandidate]:
++    """
++    Run every configured provider and pool their candidates.
++
++    One provider failing at *search* time (a timeout, a rate limit, an
++    API error for this particular query) must not lose the candidates
++    the other providers already found -- so each provider's
++    find_candidates() is isolated here, the same way the scheduler
++    isolates failures per asset. A provider that fails to even
++    *construct* (a missing/invalid API key) still fails fast, before
++    this point -- see get_configured_providers() /
++    visual_search_provider._build_provider().
++    """
++    candidates: list[DiscoveredCandidate] = []
++
++    for provider in providers:
++        try:
++            candidates.extend(
++                provider.find_candidates(
++                    asset_id=asset_id,
++                    asset_title=asset_title,
++                    reference_original_path=reference_path,
++                    reference_watermarked_path=watermarked_path,
++                )
++            )
++        except Exception:
++            logger.exception(
++                "Discovery provider %r failed for asset_id=%s -- "
++                "continuing with the remaining provider(s).",
++                provider.name,
++                asset_id,
++            )
++
++    return candidates
++
++
+ def run_scan_for_asset(
+     db: Session,
+     *,
+@@ -49,36 +96,50 @@ def run_scan_for_asset(
+     reference_path: Path,
+     watermarked_path: Path | None,
+     watermark_secret: bytes,
+-    provider: VisualSearchProvider | None = None,
++    providers: list[VisualSearchProvider] | None = None,
+ ) -> ScanOutcome:
+     """
+-    Execute one scan for a single asset: discover candidates, re-verify
+-    each through our own pHash/watermark/ORB pipeline, and record or
+-    touch the resulting match rows (see record_or_touch_match for the
+-    dedup rule).
+-
+-    Raises whatever the provider or verification pipeline raises on a
+-    genuine failure (e.g. the provider itself is unreachable or
+-    misconfigured); it does NOT try/except around that, because the
+-    HTTP endpoint and the scheduler each want to react differently
+-    (one returns a 5xx to the caller, the other logs and moves on to
+-    the next asset) -- see both call sites for how each wraps this.
++    Execute one scan for a single asset: run every configured
++    discovery provider, pool their candidates, re-verify each through
++    our own pHash/watermark/ORB pipeline, and record or touch the
++    resulting match rows (see record_or_touch_match for the dedup
++    rule).
++
++    One ScanJob row covers the whole run, whatever providers are
++    configured -- its `provider` column holds every provider's name,
++    comma-joined (e.g. "google-vision,rainforest-amazon,etsy"). There
++    is no separate "found by which marketplace" column on a match;
++    each MatchRecord's own source_name says which provider actually
++    found it (see each provider's own DiscoveredCandidate
++    construction, e.g. "Amazon (amazon.co.uk): ..." or "Etsy: ...").
++
++    A provider that fails at construction time (bad/missing
++    credential) raises before this function is even called -- see
++    get_configured_providers(). A provider that fails at *search*
++    time is isolated in _collect_candidates() instead, so one flaky
++    provider never discards the other providers' results for this
++    same scan; only a failure in the verification/database step below
++    still fails the whole scan job (see both call sites' handling of
++    that).
+     """
+-    if provider is None:
+-        provider = get_configured_provider()
++    if providers is None:
++        providers = get_configured_providers()
++
++    provider_name = ",".join(provider.name for provider in providers)
+ 
+     scan_job = create_scan_job(
+         db,
+         asset_id=asset.id,
+-        provider=provider.name,
++        provider=provider_name,
+     )
+     scan_job = mark_scan_job_running(db, scan_job)
+ 
+-    candidates = provider.find_candidates(
++    candidates = _collect_candidates(
++        providers,
+         asset_id=asset.id,
+         asset_title=asset.title,
+-        reference_original_path=reference_path,
+-        reference_watermarked_path=watermarked_path,
++        reference_path=reference_path,
++        watermarked_path=watermarked_path,
+     )
+ 
+     matches: list[MatchRecord] = []
+@@ -150,5 +211,5 @@ def run_scan_for_asset(
+     return ScanOutcome(
+         scan_job=scan_job,
+         matches=matches,
+-        provider_name=provider.name,
++        provider_name=provider_name,
+     )
+diff --git a/backend/app/services/visual_search_provider.py b/backend/app/services/visual_search_provider.py
+index 630632b..3e74fab 100644
+--- a/backend/app/services/visual_search_provider.py
++++ b/backend/app/services/visual_search_provider.py
+@@ -1,12 +1,14 @@
+ from __future__ import annotations
+ 
+ from dataclasses import dataclass
++from pathlib import Path
+ from typing import Protocol
+ 
+ import httpx
+ 
+ MAX_CANDIDATE_FETCH_BYTES = 25 * 1024 * 1024
+ CANDIDATE_FETCH_TIMEOUT_SECONDS = 10.0
++SOURCE_NAME_MAX_LENGTH = 100  # matches MatchRecord.source_name's column width
+ 
+ 
+ @dataclass(frozen=True)
+@@ -55,18 +57,21 @@ class VisualSearchProvider(Protocol):
+         *,
+         asset_id: int,
+         asset_title: str,
++        reference_original_path: Path,
++        reference_watermarked_path: Path | None,
+     ) -> list[DiscoveredCandidate]: ...
+ 
+ 
+-def get_configured_provider() -> VisualSearchProvider:
++def _build_provider(provider_name: str) -> VisualSearchProvider:
+     """
+-    Build the discovery provider selected by VISUAL_SEARCH_PROVIDER
+-    (see app.core.config). Defaults to the fake/demo provider so the
+-    app keeps working out of the box with no external credentials.
++    Instantiate one named provider. Construction failures (a missing
++    or invalid API key/credential) are deliberately fail-fast here --
++    that is a setup problem, different from a provider that fails at
++    *search* time (see run_scan_for_asset._collect_candidates, which
++    isolates that case instead so one flaky provider doesn't lose the
++    other configured providers' results for the same scan).
+     """
+-    from app.core.config import settings
+-
+-    provider_name = (settings.visual_search_provider or "fake").lower()
++    provider_name = provider_name.strip().lower()
+ 
+     if provider_name == "fake":
+         from app.services.fake_visual_search import FakeVisualSearchProvider
+@@ -82,9 +87,36 @@ def get_configured_provider() -> VisualSearchProvider:
+             return GoogleVisionWebDetectionProvider()
+         except Exception as exc:
+             raise RuntimeError(
+-                "VISUAL_SEARCH_PROVIDER=google-vision but the provider "
+-                "could not be initialized -- check "
+-                "GOOGLE_APPLICATION_CREDENTIALS. "
++                "VISUAL_SEARCH_PROVIDER includes google-vision but the "
++                "provider could not be initialized -- check "
++                "GOOGLE_APPLICATION_CREDENTIALS[_JSON]. "
++                f"Details: {exc}"
++            ) from exc
++
++    if provider_name == "rainforest-amazon":
++        from app.services.rainforest_amazon_visual_search import (
++            RainforestAmazonProvider,
++        )
++
++        try:
++            return RainforestAmazonProvider()
++        except Exception as exc:
++            raise RuntimeError(
++                "VISUAL_SEARCH_PROVIDER includes rainforest-amazon but "
++                "the provider could not be initialized -- check "
++                "RAINFOREST_API_KEY. "
++                f"Details: {exc}"
++            ) from exc
++
++    if provider_name == "etsy":
++        from app.services.etsy_visual_search import EtsyProvider
++
++        try:
++            return EtsyProvider()
++        except Exception as exc:
++            raise RuntimeError(
++                "VISUAL_SEARCH_PROVIDER includes etsy but the provider "
++                "could not be initialized -- check ETSY_API_KEY. "
+                 f"Details: {exc}"
+             ) from exc
+ 
+@@ -93,6 +125,61 @@ def get_configured_provider() -> VisualSearchProvider:
+     )
+ 
+ 
++def get_configured_providers() -> list[VisualSearchProvider]:
++    """
++    Build every discovery provider named in VISUAL_SEARCH_PROVIDER
++    (comma-separated, e.g. "google-vision,rainforest-amazon,etsy").
++    Defaults to the fake/demo provider so the app keeps working out of
++    the box with no external credentials.
++
++    Every configured provider runs on every scan (see
++    run_scan_for_asset); their candidates are pooled into one list
++    before our own pHash/watermark/ORB verification. There is no
++    separate "source platform" field on a match -- each provider tags
++    its own candidates by building a suitable DiscoveredCandidate.
++    source_name (e.g. "Amazon (amazon.co.uk): ..." or "Etsy: ...", vs
++    Google Web Detection's page title), truncated with
++    truncate_source_name() so a long marketplace listing title can
++    never fail the database insert.
++    """
++    from app.core.config import settings
++
++    raw_value = settings.visual_search_provider or "fake"
++    names = [item.strip() for item in raw_value.split(",") if item.strip()]
++
++    if not names:
++        names = ["fake"]
++
++    return [_build_provider(name) for name in names]
++
++
++def get_configured_provider() -> VisualSearchProvider:
++    """
++    Backward-compatible single-provider accessor: returns the first
++    provider named in VISUAL_SEARCH_PROVIDER. Prefer
++    get_configured_providers() for anything that runs a scan.
++    """
++    return get_configured_providers()[0]
++
++
++def truncate_source_name(text: str, limit: int = SOURCE_NAME_MAX_LENGTH) -> str:
++    """
++    Clip a candidate's human-readable label to fit
++    MatchRecord.source_name (String(100)) before it reaches the scan
++    pipeline. Marketplace listing titles routinely run past 100
++    characters (Amazon's SEO-stuffed titles especially) -- an
++    unclipped value would fail the database insert outright, not just
++    display truncated, so every provider that builds source_name from
++    a listing/page title should pass it through this first.
++    """
++    text = text.strip()
++
++    if len(text) <= limit:
++        return text
++
++    return text[: limit - 1].rstrip() + "…"
++
++
+ def fetch_candidate_bytes(url: str) -> bytes | None:
+     """
+     Download a candidate image for a real provider's URL.
+diff --git a/backend/tests/test_etsy_provider.py b/backend/tests/test_etsy_provider.py
+new file mode 100644
+index 0000000..6218242
+--- /dev/null
++++ b/backend/tests/test_etsy_provider.py
+@@ -0,0 +1,184 @@
++import unittest
++from unittest import mock
++
++from app.services.etsy_visual_search import EtsyProvider
++
++
++class _FakeResponse:
++    def __init__(self, status_code: int, json_data=None, text: str = ""):
++        self.status_code = status_code
++        self._json_data = json_data or {}
++        self.text = text
++
++    @property
++    def is_success(self) -> bool:
++        return 200 <= self.status_code < 300
++
++    def json(self):
++        return self._json_data
++
++
++class EtsyProviderTests(unittest.TestCase):
++    def test_missing_api_key_raises(self) -> None:
++        with mock.patch.dict("os.environ", {}, clear=True):
++            with self.assertRaises(RuntimeError):
++                EtsyProvider()
++
++    def test_finds_candidates_with_images(self) -> None:
++        provider = EtsyProvider(api_key="key")
++
++        fake_payload = {
++            "results": [
++                {
++                    "listing_id": 123,
++                    "title": "Botanical watercolor print",
++                    "url": "https://www.etsy.com/listing/123",
++                    "images": [
++                        {
++                            "url_75x75": "https://etsy.example/75.jpg",
++                            "url_170x135": "https://etsy.example/170.jpg",
++                            "url_570xN": "https://etsy.example/570.jpg",
++                            "url_fullxfull": "https://etsy.example/full.jpg",
++                        }
++                    ],
++                }
++            ]
++        }
++
++        with mock.patch(
++            "app.services.etsy_visual_search.httpx.get",
++            return_value=_FakeResponse(200, fake_payload),
++        ) as mock_get:
++            candidates = provider.find_candidates(
++                asset_id=1,
++                asset_title="Botanical watercolor print",
++                reference_original_path=None,
++                reference_watermarked_path=None,
++            )
++
++        mock_get.assert_called_once()
++        call_kwargs = mock_get.call_args.kwargs
++        self.assertEqual(
++            call_kwargs["params"]["keywords"], "Botanical watercolor print"
++        )
++        self.assertEqual(call_kwargs["params"]["includes"], "Images")
++        self.assertEqual(call_kwargs["headers"]["x-api-key"], "key")
++
++        self.assertEqual(len(candidates), 1)
++        candidate = candidates[0]
++        # Largest available variant (url_fullxfull) should be preferred.
++        self.assertEqual(candidate.candidate_image_url, "https://etsy.example/full.jpg")
++        self.assertEqual(
++            candidate.candidate_page_url, "https://www.etsy.com/listing/123"
++        )
++        self.assertTrue(candidate.source_name.startswith("Etsy:"))
++        self.assertIsNone(candidate.candidate_image_bytes)
++
++    def test_falls_back_to_smaller_image_variant(self) -> None:
++        provider = EtsyProvider(api_key="key")
++
++        fake_payload = {
++            "results": [
++                {
++                    "title": "No full-size image",
++                    "url": "https://www.etsy.com/listing/456",
++                    "images": [{"url_170x135": "https://etsy.example/170.jpg"}],
++                }
++            ]
++        }
++
++        with mock.patch(
++            "app.services.etsy_visual_search.httpx.get",
++            return_value=_FakeResponse(200, fake_payload),
++        ):
++            candidates = provider.find_candidates(
++                asset_id=1,
++                asset_title="Anything",
++                reference_original_path=None,
++                reference_watermarked_path=None,
++            )
++
++        self.assertEqual(
++            candidates[0].candidate_image_url, "https://etsy.example/170.jpg"
++        )
++
++    def test_listing_without_images_is_skipped(self) -> None:
++        provider = EtsyProvider(api_key="key")
++
++        fake_payload = {
++            "results": [{"title": "No images key at all", "url": "https://example.com"}]
++        }
++
++        with mock.patch(
++            "app.services.etsy_visual_search.httpx.get",
++            return_value=_FakeResponse(200, fake_payload),
++        ):
++            candidates = provider.find_candidates(
++                asset_id=1,
++                asset_title="Anything",
++                reference_original_path=None,
++                reference_watermarked_path=None,
++            )
++
++        self.assertEqual(candidates, [])
++
++    def test_long_title_is_truncated_to_fit_source_name_column(self) -> None:
++        provider = EtsyProvider(api_key="key")
++
++        fake_payload = {
++            "results": [
++                {
++                    "title": "B" * 300,
++                    "url": "https://example.com",
++                    "images": [{"url_570xN": "https://etsy.example/570.jpg"}],
++                }
++            ]
++        }
++
++        with mock.patch(
++            "app.services.etsy_visual_search.httpx.get",
++            return_value=_FakeResponse(200, fake_payload),
++        ):
++            candidates = provider.find_candidates(
++                asset_id=1,
++                asset_title="Anything",
++                reference_original_path=None,
++                reference_watermarked_path=None,
++            )
++
++        self.assertLessEqual(len(candidates[0].source_name), 100)
++
++    def test_empty_asset_title_returns_no_candidates_without_a_request(
++        self,
++    ) -> None:
++        provider = EtsyProvider(api_key="key")
++
++        with mock.patch("app.services.etsy_visual_search.httpx.get") as mock_get:
++            candidates = provider.find_candidates(
++                asset_id=1,
++                asset_title="   ",
++                reference_original_path=None,
++                reference_watermarked_path=None,
++            )
++
++        mock_get.assert_not_called()
++        self.assertEqual(candidates, [])
++
++    def test_failed_request_raises(self) -> None:
++        provider = EtsyProvider(api_key="key")
++
++        with mock.patch(
++            "app.services.etsy_visual_search.httpx.get",
++            return_value=_FakeResponse(401, text="Unauthorized"),
++        ):
++            with self.assertRaises(RuntimeError):
++                provider.find_candidates(
++                    asset_id=1,
++                    asset_title="Anything",
++                    reference_original_path=None,
++                    reference_watermarked_path=None,
++                )
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/backend/tests/test_provider_selection.py b/backend/tests/test_provider_selection.py
+new file mode 100644
+index 0000000..5154239
+--- /dev/null
++++ b/backend/tests/test_provider_selection.py
+@@ -0,0 +1,78 @@
++import unittest
++from unittest import mock
++
++from app.core.config import settings
++from app.services.fake_visual_search import FakeVisualSearchProvider
++from app.services.visual_search_provider import (
++    get_configured_provider,
++    get_configured_providers,
++    truncate_source_name,
++)
++
++
++class GetConfiguredProvidersTests(unittest.TestCase):
++    def test_defaults_to_a_single_fake_provider(self) -> None:
++        with mock.patch.object(settings, "visual_search_provider", ""):
++            providers = get_configured_providers()
++
++        self.assertEqual(len(providers), 1)
++        self.assertIsInstance(providers[0], FakeVisualSearchProvider)
++
++    def test_comma_separated_names_build_one_provider_each(self) -> None:
++        with mock.patch.object(
++            settings, "visual_search_provider", "fake, fake"
++        ):
++            providers = get_configured_providers()
++
++        self.assertEqual(len(providers), 2)
++        self.assertTrue(all(p.name == "fake" for p in providers))
++
++    def test_unknown_provider_name_raises(self) -> None:
++        with mock.patch.object(settings, "visual_search_provider", "not-a-real-provider"):
++            with self.assertRaises(RuntimeError):
++                get_configured_providers()
++
++    def test_rainforest_amazon_without_api_key_raises_with_a_clear_message(
++        self,
++    ) -> None:
++        with mock.patch.object(
++            settings, "visual_search_provider", "rainforest-amazon"
++        ):
++            with mock.patch.dict("os.environ", {}, clear=True):
++                with self.assertRaises(RuntimeError) as ctx:
++                    get_configured_providers()
++
++        self.assertIn("RAINFOREST_API_KEY", str(ctx.exception))
++
++    def test_etsy_without_api_key_raises_with_a_clear_message(self) -> None:
++        with mock.patch.object(settings, "visual_search_provider", "etsy"):
++            with mock.patch.dict("os.environ", {}, clear=True):
++                with self.assertRaises(RuntimeError) as ctx:
++                    get_configured_providers()
++
++        self.assertIn("ETSY_API_KEY", str(ctx.exception))
++
++    def test_get_configured_provider_returns_the_first_of_several(self) -> None:
++        with mock.patch.object(
++            settings, "visual_search_provider", "fake, fake"
++        ):
++            provider = get_configured_provider()
++
++        self.assertIsInstance(provider, FakeVisualSearchProvider)
++
++
++class TruncateSourceNameTests(unittest.TestCase):
++    def test_short_text_is_unchanged(self) -> None:
++        self.assertEqual(truncate_source_name("Amazon: mug"), "Amazon: mug")
++
++    def test_long_text_is_clipped_to_the_limit(self) -> None:
++        long_title = "Amazon: " + "x" * 200
++
++        result = truncate_source_name(long_title)
++
++        self.assertEqual(len(result), 100)
++        self.assertTrue(result.endswith("…"))
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/backend/tests/test_rainforest_amazon_provider.py b/backend/tests/test_rainforest_amazon_provider.py
+new file mode 100644
+index 0000000..32e5e79
+--- /dev/null
++++ b/backend/tests/test_rainforest_amazon_provider.py
+@@ -0,0 +1,186 @@
++import unittest
++from unittest import mock
++
++from app.services.rainforest_amazon_visual_search import RainforestAmazonProvider
++
++
++class _FakeResponse:
++    def __init__(self, status_code: int, json_data=None, text: str = ""):
++        self.status_code = status_code
++        self._json_data = json_data or {}
++        self.text = text
++
++    @property
++    def is_success(self) -> bool:
++        return 200 <= self.status_code < 300
++
++    def json(self):
++        return self._json_data
++
++
++class RainforestAmazonProviderTests(unittest.TestCase):
++    def test_missing_api_key_raises(self) -> None:
++        with mock.patch.dict("os.environ", {}, clear=True):
++            with self.assertRaises(RuntimeError):
++                RainforestAmazonProvider()
++
++    def test_domains_default_to_amazon_co_uk(self) -> None:
++        provider = RainforestAmazonProvider(api_key="key")
++
++        self.assertEqual(provider.domains, ["amazon.co.uk"])
++
++    def test_domains_env_var_is_comma_split(self) -> None:
++        with mock.patch.dict(
++            "os.environ",
++            {"RAINFOREST_AMAZON_DOMAINS": "amazon.com, amazon.co.uk"},
++        ):
++            provider = RainforestAmazonProvider(api_key="key")
++
++        self.assertEqual(provider.domains, ["amazon.com", "amazon.co.uk"])
++
++    def test_finds_candidates_with_images(self) -> None:
++        provider = RainforestAmazonProvider(api_key="key", domains=["amazon.co.uk"])
++
++        fake_payload = {
++            "search_results": [
++                {
++                    "title": "Smith Mugs Art Timeline Mug",
++                    "link": "https://www.amazon.co.uk/dp/B077V3XGG1",
++                    "image": "https://m.media-amazon.com/images/example.jpg",
++                    "asin": "B077V3XGG1",
++                }
++            ]
++        }
++
++        with mock.patch(
++            "app.services.rainforest_amazon_visual_search.httpx.get",
++            return_value=_FakeResponse(200, fake_payload),
++        ) as mock_get:
++            candidates = provider.find_candidates(
++                asset_id=1,
++                asset_title="Smith Mugs Art Timeline Mug",
++                reference_original_path=None,
++                reference_watermarked_path=None,
++            )
++
++        mock_get.assert_called_once()
++        call_kwargs = mock_get.call_args.kwargs
++        self.assertEqual(call_kwargs["params"]["amazon_domain"], "amazon.co.uk")
++        self.assertEqual(call_kwargs["params"]["type"], "search")
++
++        self.assertEqual(len(candidates), 1)
++        candidate = candidates[0]
++        self.assertEqual(
++            candidate.candidate_image_url,
++            "https://m.media-amazon.com/images/example.jpg",
++        )
++        self.assertEqual(
++            candidate.candidate_page_url,
++            "https://www.amazon.co.uk/dp/B077V3XGG1",
++        )
++        self.assertIn("Amazon (amazon.co.uk)", candidate.source_name)
++        self.assertIsNone(candidate.candidate_image_bytes)
++
++    def test_result_without_image_is_skipped(self) -> None:
++        provider = RainforestAmazonProvider(api_key="key", domains=["amazon.co.uk"])
++
++        fake_payload = {
++            "search_results": [
++                {"title": "No image here", "link": "https://example.com"}
++            ]
++        }
++
++        with mock.patch(
++            "app.services.rainforest_amazon_visual_search.httpx.get",
++            return_value=_FakeResponse(200, fake_payload),
++        ):
++            candidates = provider.find_candidates(
++                asset_id=1,
++                asset_title="Anything",
++                reference_original_path=None,
++                reference_watermarked_path=None,
++            )
++
++        self.assertEqual(candidates, [])
++
++    def test_long_title_is_truncated_to_fit_source_name_column(self) -> None:
++        provider = RainforestAmazonProvider(api_key="key", domains=["amazon.co.uk"])
++
++        long_title = "A" * 300
++        fake_payload = {
++            "search_results": [
++                {
++                    "title": long_title,
++                    "link": "https://example.com",
++                    "image": "https://example.com/image.jpg",
++                }
++            ]
++        }
++
++        with mock.patch(
++            "app.services.rainforest_amazon_visual_search.httpx.get",
++            return_value=_FakeResponse(200, fake_payload),
++        ):
++            candidates = provider.find_candidates(
++                asset_id=1,
++                asset_title="Anything",
++                reference_original_path=None,
++                reference_watermarked_path=None,
++            )
++
++        self.assertLessEqual(len(candidates[0].source_name), 100)
++
++    def test_empty_asset_title_returns_no_candidates_without_a_request(
++        self,
++    ) -> None:
++        provider = RainforestAmazonProvider(api_key="key")
++
++        with mock.patch(
++            "app.services.rainforest_amazon_visual_search.httpx.get"
++        ) as mock_get:
++            candidates = provider.find_candidates(
++                asset_id=1,
++                asset_title="   ",
++                reference_original_path=None,
++                reference_watermarked_path=None,
++            )
++
++        mock_get.assert_not_called()
++        self.assertEqual(candidates, [])
++
++    def test_failed_request_raises(self) -> None:
++        provider = RainforestAmazonProvider(api_key="key", domains=["amazon.co.uk"])
++
++        with mock.patch(
++            "app.services.rainforest_amazon_visual_search.httpx.get",
++            return_value=_FakeResponse(403, text="Forbidden"),
++        ):
++            with self.assertRaises(RuntimeError):
++                provider.find_candidates(
++                    asset_id=1,
++                    asset_title="Anything",
++                    reference_original_path=None,
++                    reference_watermarked_path=None,
++                )
++
++    def test_multiple_domains_each_produce_a_request(self) -> None:
++        provider = RainforestAmazonProvider(
++            api_key="key", domains=["amazon.com", "amazon.co.uk"]
++        )
++
++        with mock.patch(
++            "app.services.rainforest_amazon_visual_search.httpx.get",
++            return_value=_FakeResponse(200, {"search_results": []}),
++        ) as mock_get:
++            provider.find_candidates(
++                asset_id=1,
++                asset_title="Anything",
++                reference_original_path=None,
++                reference_watermarked_path=None,
++            )
++
++        self.assertEqual(mock_get.call_count, 2)
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/backend/tests/test_scan_runner_providers.py b/backend/tests/test_scan_runner_providers.py
+new file mode 100644
+index 0000000..854021c
+--- /dev/null
++++ b/backend/tests/test_scan_runner_providers.py
+@@ -0,0 +1,193 @@
++"""
++Tests for scan_runner's multi-provider aggregation: several discovery
++providers run per scan, pooled into one ScanJob, and one provider
++failing at search time must not lose the candidates the other
++provider(s) already found (see scan_runner._collect_candidates).
++"""
++
++import os
++import shutil
++import unittest
++from pathlib import Path
++from unittest import mock
++
++import numpy as np
++from PIL import Image
++from sqlalchemy import create_engine, select
++from sqlalchemy.orm import sessionmaker
++
++from app.models.asset import Asset
++from app.models.base import Base
++from app.models.match_record import MatchRecord
++from app.models.monitoring import MonitoringPreference
++from app.models.user import User
++from app.services.asset_ingestion import DEFAULT_STORAGE_ROOT
++from app.services.asset_paths import load_watermark_secret
++from app.services.scan_runner import _collect_candidates, run_scan_for_asset
++from app.services.visual_search_provider import DiscoveredCandidate
++
++
++class _FailingProvider:
++    name = "failing"
++
++    def find_candidates(self, **kwargs):
++        raise RuntimeError("simulated provider outage")
++
++
++class _WorkingProvider:
++    def __init__(self, name: str, candidates: list[DiscoveredCandidate]) -> None:
++        self.name = name
++        self._candidates = candidates
++
++    def find_candidates(self, **kwargs):
++        return self._candidates
++
++
++class CollectCandidatesTests(unittest.TestCase):
++    def test_a_failing_provider_does_not_lose_the_others_candidates(
++        self,
++    ) -> None:
++        candidate = DiscoveredCandidate(
++            source_name="Working source",
++            source_url="https://example.com",
++            candidate_image_url=None,
++            candidate_page_url="https://example.com/page",
++            candidate_image_bytes=b"fake-bytes",
++        )
++
++        providers = [_FailingProvider(), _WorkingProvider("working", [candidate])]
++
++        collected = _collect_candidates(
++            providers,
++            asset_id=1,
++            asset_title="Anything",
++            reference_path=Path("/dev/null"),
++            watermarked_path=None,
++        )
++
++        self.assertEqual(collected, [candidate])
++
++    def test_every_provider_failing_returns_an_empty_list_not_an_error(
++        self,
++    ) -> None:
++        providers = [_FailingProvider(), _FailingProvider()]
++
++        collected = _collect_candidates(
++            providers,
++            asset_id=1,
++            asset_title="Anything",
++            reference_path=Path("/dev/null"),
++            watermarked_path=None,
++        )
++
++        self.assertEqual(collected, [])
++
++
++class RunScanForAssetMultiProviderTests(unittest.TestCase):
++    def setUp(self) -> None:
++        env_patch = mock.patch.dict(
++            os.environ, {"WATERMARK_SECRET_HEX": "00" * 32}
++        )
++        env_patch.start()
++        self.addCleanup(env_patch.stop)
++
++        engine = create_engine("sqlite:///:memory:")
++        Base.metadata.create_all(engine)
++
++        session_factory = sessionmaker(bind=engine)
++        self.db = session_factory()
++        self.addCleanup(self.db.close)
++
++        user = User(email="artist@example.com", hashed_password="hashed")
++        self.db.add(user)
++        self.db.flush()
++        self.user_id = user.id
++
++        self.storage_dir = (
++            DEFAULT_STORAGE_ROOT / "test-scan-runner-providers-fixture"
++        )
++        self.storage_dir.mkdir(parents=True, exist_ok=True)
++        self.addCleanup(
++            lambda: shutil.rmtree(self.storage_dir, ignore_errors=True)
++        )
++
++        self.image_path = self.storage_dir / "original.png"
++        y, x = np.indices((256, 256), dtype=np.uint16)
++        gradient = np.stack(
++            (48 + x // 4, 64 + y // 4, 80 + (x + y) // 8), axis=-1
++        ).astype(np.uint16)
++        texture = np.random.default_rng(0).integers(
++            0, 255, size=(256, 256, 3), dtype=np.uint16
++        )
++        pixels = (0.6 * gradient + 0.4 * texture).astype(np.uint8)
++
++        with Image.fromarray(pixels) as image:
++            image.save(self.image_path, format="PNG")
++
++        self.asset = Asset(
++            user_id=self.user_id,
++            title="Scan runner fixture asset",
++            original_url="test-scan-runner-providers-fixture/original.png",
++        )
++        self.db.add(self.asset)
++        self.db.flush()
++
++        self.preference = MonitoringPreference(
++            asset_id=self.asset.id,
++            enabled=True,
++            alert_threshold_percent=50.0,
++            scan_frequency="weekly",
++        )
++        self.db.add(self.preference)
++        self.db.commit()
++
++    def test_scan_job_provider_column_lists_every_configured_provider(
++        self,
++    ) -> None:
++        candidate = DiscoveredCandidate(
++            source_name="Amazon (amazon.co.uk): a matching listing",
++            source_url="https://www.amazon.co.uk/dp/EXAMPLE",
++            candidate_image_url=None,
++            candidate_page_url="https://www.amazon.co.uk/dp/EXAMPLE",
++            candidate_image_bytes=self.image_path.read_bytes(),
++        )
++
++        providers = [
++            _FailingProvider(),
++            _WorkingProvider("rainforest-amazon", [candidate]),
++        ]
++
++        outcome = run_scan_for_asset(
++            self.db,
++            asset=self.asset,
++            user_id=self.user_id,
++            preference=self.preference,
++            reference_path=self.image_path,
++            watermarked_path=None,
++            watermark_secret=load_watermark_secret(),
++            providers=providers,
++        )
++
++        self.assertEqual(outcome.provider_name, "failing,rainforest-amazon")
++        self.assertEqual(outcome.scan_job.provider, "failing,rainforest-amazon")
++
++        # The failing provider must not have prevented the working
++        # provider's verbatim-copy candidate from becoming a match.
++        self.assertEqual(len(outcome.matches), 1)
++        self.assertEqual(
++            outcome.matches[0].source_name,
++            "Amazon (amazon.co.uk): a matching listing",
++        )
++
++        stored_matches = list(
++            self.db.scalars(
++                select(MatchRecord).where(
++                    MatchRecord.asset_id == self.asset.id
++                )
++            )
++        )
++        self.assertEqual(len(stored_matches), 1)
++
++
++if __name__ == "__main__":
++    unittest.main()
