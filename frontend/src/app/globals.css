@@ -105,3 +105,34 @@ select:focus-visible {
 ::-webkit-scrollbar-track {
   background: var(--background);
 }
+
+/* Landing page: a soft light sweep over the "found online" illustration. */
+@keyframes tma-scan {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(420%);
+  }
+}
+
+.tma-scan {
+  animation: tma-scan 3.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tma-scan {
+    animation: none;
+    display: none;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

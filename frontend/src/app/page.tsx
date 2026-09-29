@@ -5,11 +5,12 @@ import { HeroBanner } from "@/components/dashboard/HeroBanner";
 import { MatchesSummaryBanner } from "@/components/dashboard/MatchesSummaryBanner";
 import { ProtectedAssetsCard } from "@/components/dashboard/ProtectedAssetsCard";
 import { Topbar } from "@/components/dashboard/Topbar";
+import { LandingPage } from "@/components/landing/LandingPage";
 import { SiteFooter } from "@/components/SiteFooter";
 
 export default function HomePage() {
   return (
-    <AuthGate>
+    <AuthGate landing={<LandingPage />}>
       <AssetStatsProvider>
         <div className="min-h-screen bg-[var(--background)] text-[var(--text)]">
           <Topbar />

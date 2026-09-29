@@ -21,6 +21,22 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/**
+ * Lets the public landing page (rendered inside AuthGate while signed out)
+ * open the sign-in / registration form without owning any auth state.
+ */
+type AuthEntryContextValue = {
+  openAuth: (mode: "login" | "register") => void;
+};
+
+const AuthEntryContext = createContext<AuthEntryContextValue>({
+  openAuth: () => {},
+});
+
+export function useAuthEntry(): AuthEntryContextValue {
+  return useContext(AuthEntryContext);
+}
+
 export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
 
@@ -31,7 +47,17 @@ export function useAuth(): AuthContextValue {
   return context;
 }
 
-export function AuthGate({ children }: { children: ReactNode }) {
+type AuthGateProps = {
+  children: ReactNode;
+  /**
+   * Optional public page shown to signed-out visitors instead of going
+   * straight to the sign-in form. Only the dashboard route passes this.
+   */
+  landing?: ReactNode;
+};
+
+export function AuthGate({ children, landing }: AuthGateProps) {
+  const [screen, setScreen] = useState<"landing" | "auth">("landing");
   const [session, setSession] = useState<User | null>(null);
   const [checking, setChecking] = useState(true);
   const [restoreError, setRestoreError] = useState("");
@@ -125,6 +151,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
           setPassword("");
           setMode("login");
           setError("");
+          setScreen("auth");
           setMessage("Your session has expired. Please sign in again.");
         }
 
@@ -163,6 +190,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
       setPassword("");
       setMessage("");
       setMode("login");
+      setScreen("landing");
     } catch {
       setError(
         "Sign out could not be confirmed. Check your connection and retry.",
@@ -281,10 +309,39 @@ export function AuthGate({ children }: { children: ReactNode }) {
     );
   }
 
+  if (landing && screen === "landing") {
+    return (
+      <AuthEntryContext.Provider
+        value={{
+          openAuth: (nextMode) => {
+            setMode(nextMode);
+            setPassword("");
+            setError("");
+            setMessage("");
+            setScreen("auth");
+            window.scrollTo({ top: 0 });
+          },
+        }}
+      >
+        {landing}
+      </AuthEntryContext.Provider>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-[#0e1320] text-slate-100">
     <main className="flex flex-1 items-center justify-center px-4 py-10">
       <section className="w-full max-w-md rounded-2xl border border-white/10 bg-[#161b29] p-6 shadow-xl sm:p-8">
+        {landing && (
+          <button
+            type="button"
+            onClick={() => setScreen("landing")}
+            className="mb-4 text-sm text-slate-400 hover:text-slate-200"
+          >
+            &larr; Back to home
+          </button>
+        )}
+
         <p className="text-xs font-semibold uppercase tracking-widest text-sky-300">
           TraceMyAssets
         </p>
