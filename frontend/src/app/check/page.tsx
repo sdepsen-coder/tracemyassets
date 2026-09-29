@@ -12,6 +12,7 @@ import {
 
 import { AuthGate, useAuth } from "@/components/AuthGate";
 import { Topbar } from "@/components/dashboard/Topbar";
+import { SiteFooter } from "@/components/SiteFooter";
 import {
   api,
   ApiError,
@@ -277,7 +278,7 @@ function CheckImageContent() {
   const presentation = result ? getSignalPresentation(result) : null;
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--text)]">
+    <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--text)]">
       <Topbar />
 
       <main className="mx-auto w-full max-w-[1100px] px-4 py-7 sm:px-6 sm:py-10 xl:px-8">
@@ -628,6 +629,10 @@ function CheckImageContent() {
           </section>
         )}
       </main>
+
+      <div className="mt-auto">
+        <SiteFooter />
+      </div>
     </div>
   );
 }

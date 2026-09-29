@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { SiteFooter } from "@/components/SiteFooter";
 import { api, ApiError, type User } from "@/lib/api";
 
 type AuthContextValue = {
@@ -281,7 +282,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#0e1320] px-4 py-10 text-slate-100">
+    <div className="flex min-h-screen flex-col bg-[#0e1320] text-slate-100">
+    <main className="flex flex-1 items-center justify-center px-4 py-10">
       <section className="w-full max-w-md rounded-2xl border border-white/10 bg-[#161b29] p-6 shadow-xl sm:p-8">
         <p className="text-xs font-semibold uppercase tracking-widest text-sky-300">
           TraceMyAssets
@@ -388,5 +390,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
         </button>
       </section>
     </main>
+
+    <SiteFooter tone="dark" />
+    </div>
   );
 }

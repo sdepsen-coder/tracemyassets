@@ -23,10 +23,15 @@ similarity score or watermark verdict itself.
 
 Setup (do this yourself -- Claude does not create accounts or keys):
     1. Register an app at https://www.etsy.com/developers/register --
-       the plain "keystring" API key issued there is enough for this
-       read-only public search; no OAuth flow and no Etsy seller
-       account is required.
-    2. Set ETSY_API_KEY in the backend's environment.
+       this read-only public search needs no OAuth flow and no Etsy
+       seller account. The app must be *approved* by Etsy before its
+       key works (a pending app gets 403 "API key not found or not
+       active, or incorrect shared secret").
+    2. Set ETSY_API_KEY in the backend's environment. Etsy's current
+       error text refers to a shared secret, so the value may need to
+       be "keystring:shared_secret" rather than the bare keystring --
+       it is sent as-is in the x-api-key header. Not yet confirmed
+       against an approved app; check this first once approved.
 
 Not yet live-tested against Etsy's real API (unlike
 rainforest-amazon, which was validated this session with a real
@@ -43,11 +48,9 @@ import os
 
 import httpx
 
-from app.services.visual_search_provider import (
-    DiscoveredCandidate,
-    truncate_source_name,
-)
+from app.services.visual_search_provider import DiscoveredCandidate
 
+ETSY_SOURCE_NAME = "Etsy listing"
 ETSY_ACTIVE_LISTINGS_URL = "https://openapi.etsy.com/v3/application/listings/active"
 REQUEST_TIMEOUT_SECONDS = 20.0
 DEFAULT_MAX_RESULTS = 20
@@ -128,12 +131,17 @@ class EtsyProvider:
             if not image_url:
                 continue
 
-            title = listing.get("title") or "Etsy listing"
             page_url = listing.get("url")
 
+            # Deliberately NOT the listing's title: Etsy's API Terms
+            # (section 1) forbid storing Etsy content beyond reasonable
+            # periods and displaying product information more than six
+            # hours old. A match record lives indefinitely, so it keeps
+            # only the link back to the listing (required by the same
+            # terms) plus our own comparison results, never Etsy text.
             candidates.append(
                 DiscoveredCandidate(
-                    source_name=truncate_source_name(f"Etsy: {title}"),
+                    source_name=ETSY_SOURCE_NAME,
                     source_url=page_url,
                     candidate_image_url=image_url,
                     candidate_page_url=page_url,

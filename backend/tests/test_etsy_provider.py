@@ -71,7 +71,7 @@ class EtsyProviderTests(unittest.TestCase):
         self.assertEqual(
             candidate.candidate_page_url, "https://www.etsy.com/listing/123"
         )
-        self.assertTrue(candidate.source_name.startswith("Etsy:"))
+        self.assertEqual(candidate.source_name, "Etsy listing")
         self.assertIsNone(candidate.candidate_image_bytes)
 
     def test_falls_back_to_smaller_image_variant(self) -> None:
@@ -122,7 +122,9 @@ class EtsyProviderTests(unittest.TestCase):
 
         self.assertEqual(candidates, [])
 
-    def test_long_title_is_truncated_to_fit_source_name_column(self) -> None:
+    def test_listing_title_is_never_stored_in_source_name(self) -> None:
+        # Etsy's API Terms forbid keeping Etsy content beyond reasonable
+        # periods, so match records must not carry the listing title.
         provider = EtsyProvider(api_key="key")
 
         fake_payload = {
@@ -146,7 +148,8 @@ class EtsyProviderTests(unittest.TestCase):
                 reference_watermarked_path=None,
             )
 
-        self.assertLessEqual(len(candidates[0].source_name), 100)
+        self.assertEqual(candidates[0].source_name, "Etsy listing")
+        self.assertNotIn("B", candidates[0].source_name.replace("Etsy listing", ""))
 
     def test_empty_asset_title_returns_no_candidates_without_a_request(
         self,

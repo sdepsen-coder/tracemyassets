@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { AuthGate, useAuth } from "@/components/AuthGate";
 import { Topbar } from "@/components/dashboard/Topbar";
+import { SiteFooter } from "@/components/SiteFooter";
 import {
   api,
   ApiError,
@@ -258,7 +259,7 @@ function MatchesContent() {
   }, [assetsById, filter, matches, search]);
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--text)]">
+    <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--text)]">
       <Topbar />
 
       <main className="mx-auto w-full max-w-[1280px] px-4 py-8 sm:px-6 lg:px-12">
@@ -591,6 +592,10 @@ function MatchesContent() {
           establish ownership, copyright infringement, or legal liability.
         </p>
       </main>
+
+      <div className="mt-auto">
+        <SiteFooter />
+      </div>
     </div>
   );
 }
