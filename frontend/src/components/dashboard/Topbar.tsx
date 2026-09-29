@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { useAuth } from "@/components/AuthGate";
@@ -8,8 +9,40 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { api, type MatchSummary } from "@/lib/api";
 import { Icon } from "./Icon";
 
+type NavItem = {
+  label: string;
+  href: string;
+  isActive: (pathname: string) => boolean;
+};
+
+// Absolute hrefs ("/#...") so the in-page anchors also work from other
+// pages (e.g. /matches), not only from the dashboard itself.
+const NAV_ITEMS: NavItem[] = [
+  {
+    label: "Dashboard",
+    href: "/",
+    isActive: (pathname) => pathname === "/",
+  },
+  {
+    label: "My Artworks",
+    href: "/#my-artworks",
+    isActive: () => false,
+  },
+  {
+    label: "Matches",
+    href: "/matches",
+    isActive: (pathname) => pathname.startsWith("/matches"),
+  },
+  {
+    label: "Check an Image",
+    href: "/check",
+    isActive: (pathname) => pathname.startsWith("/check"),
+  },
+];
+
 export function Topbar() {
   const { user, logout } = useAuth();
+  const pathname = usePathname() ?? "/";
 
   const [newMatchCount, setNewMatchCount] = useState(0);
 
@@ -57,39 +90,38 @@ export function Topbar() {
 
           <nav
             aria-label="Primary navigation"
-           className="hidden items-center gap-1 rounded-lg bg-[var(--surface-muted)] p-1 lg:flex"
+            className="hidden items-center gap-1 rounded-lg bg-[var(--surface-muted)] p-1 lg:flex"
           >
-            <Link
-              href="/"
-              className="rounded-md bg-[var(--surface)] px-3 py-2 text-[12px] font-semibold text-[var(--primary)] shadow-sm transition hover:text-[var(--primary-strong)]"
-            >
-              Dashboard
-            </Link>
+            {NAV_ITEMS.map((item) => {
+              const active = item.isActive(pathname);
 
-            <a
-              href="#my-artworks"
-              className="rounded-md px-3 py-2 text-[12px] font-medium text-[var(--text-muted)] transition hover:bg-[var(--surface)] hover:text-[var(--text)]"
-            >
-              My Artworks
-            </a>
-
-<Link
-  href="/check"
-  className="rounded-md px-3 py-2 text-[12px] font-medium text-[var(--text-muted)] transition hover:bg-[var(--surface)] hover:text-[var(--text)]"
->
-  Check an Image
-</Link>
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={[
+                    "rounded-md px-3 py-2 text-[12px] transition",
+                    active
+                      ? "bg-[var(--surface)] font-semibold text-[var(--primary)] shadow-sm hover:text-[var(--primary-strong)]"
+                      : "font-medium text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]",
+                  ].join(" ")}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-          <a
-            href="#asset-upload"
+          <Link
+            href="/#asset-upload"
             className="inline-flex h-10 items-center gap-2 rounded-lg bg-[var(--primary-strong)] px-3 text-[13px] font-semibold text-white shadow-card transition hover:brightness-110 sm:px-4"
           >
             <Icon name="add" />
             <span className="hidden sm:inline">Upload artwork</span>
-          </a>
+          </Link>
 
           <ThemeToggle />
 
@@ -126,6 +158,35 @@ export function Topbar() {
           </button>
         </div>
       </div>
+
+      {/* Below the lg breakpoint the pill navigation above is hidden, so
+          the same links are offered here as a scrollable row. */}
+      <nav
+        aria-label="Primary navigation (compact)"
+        className="border-t border-[var(--border)] lg:hidden"
+      >
+        <div className="mx-auto flex max-w-[1440px] gap-1 overflow-x-auto px-4 py-2 sm:px-6">
+          {NAV_ITEMS.map((item) => {
+            const active = item.isActive(pathname);
+
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={[
+                  "shrink-0 rounded-md px-3 py-1.5 text-[12px] transition",
+                  active
+                    ? "bg-[var(--surface-muted)] font-semibold text-[var(--primary)]"
+                    : "font-medium text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)]",
+                ].join(" ")}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </header>
   );
 }

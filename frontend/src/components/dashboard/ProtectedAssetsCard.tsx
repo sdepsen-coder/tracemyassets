@@ -21,10 +21,9 @@ const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
 export function ProtectedAssetsCard() {
   const { user, logout } = useAuth();
-  const { refresh: refreshStats } = useAssetStats();
+  const { refresh: refreshStats, view, setView } = useAssetStats();
 
   const [assets, setAssets] = useState<Asset[]>([]);
-  const [view, setView] = useState<"active" | "archived">("active");
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
@@ -298,7 +297,7 @@ export function ProtectedAssetsCard() {
         id="asset-upload"
         onSubmit={handleUpload}
         aria-busy={uploading}
-        className="mt-6 scroll-mt-24 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4 sm:p-5"
+        className="mt-6 scroll-mt-32 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-4 sm:p-5"
       >
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--primary-soft)] text-[var(--primary)]">
@@ -460,7 +459,10 @@ export function ProtectedAssetsCard() {
         </p>
       )}
 
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        id="artwork-list"
+        className="mt-6 flex scroll-mt-32 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      >
         <div>
           <h3 className="text-[16px] font-semibold text-[var(--text)]">
             {view === "active" ? "Recent artworks" : "Archived artworks"}

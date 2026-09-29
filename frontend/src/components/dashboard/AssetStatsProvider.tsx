@@ -13,11 +13,18 @@ import {
 import { useAuth } from "@/components/AuthGate";
 import { api, ApiError, type AssetStats } from "@/lib/api";
 
+export type ArtworkView = "active" | "archived";
+
 type AssetStatsContextValue = {
   stats: AssetStats | null;
   loading: boolean;
   error: string;
   refresh: () => Promise<void>;
+  /** Which artwork list (active or archived) the dashboard is showing. */
+  view: ArtworkView;
+  setView: (view: ArtworkView) => void;
+  /** Switch the list and scroll it into view (used by the stat tiles). */
+  showArtworks: (view: ArtworkView) => void;
 };
 
 const AssetStatsContext = createContext<AssetStatsContextValue | null>(null);
@@ -42,6 +49,16 @@ export function AssetStatsProvider({
   const [stats, setStats] = useState<AssetStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [view, setView] = useState<ArtworkView>("active");
+
+  const showArtworks = useCallback((nextView: ArtworkView) => {
+    setView(nextView);
+
+    document
+      .getElementById("artwork-list")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   const activeRequest = useRef<AbortController | null>(null);
 
@@ -94,7 +111,15 @@ export function AssetStatsProvider({
 
   return (
     <AssetStatsContext.Provider
-      value={{ stats, loading, error, refresh }}
+      value={{
+        stats,
+        loading,
+        error,
+        refresh,
+        view,
+        setView,
+        showArtworks,
+      }}
     >
       {children}
     </AssetStatsContext.Provider>

@@ -22,7 +22,7 @@ export default function HomePage() {
 
               <DashboardStats />
 
-              <section id="my-artworks">
+              <section id="my-artworks" className="scroll-mt-32">
                 <ProtectedAssetsCard />
               </section>
             </div>

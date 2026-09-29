@@ -4,7 +4,7 @@ import { useAssetStats } from "./AssetStatsProvider";
 import { StatCard } from "./StatCard";
 
 export function DashboardStats() {
-  const { stats, loading, error, refresh } = useAssetStats();
+  const { stats, loading, error, refresh, showArtworks } = useAssetStats();
 
   const total = loading
     ? "..."
@@ -49,6 +49,8 @@ export function DashboardStats() {
           sublabel={loading ? "Loading account data" : "Registered to your account"}
           icon="collections"
           tone="primary"
+          onClick={() => showArtworks("active")}
+          actionLabel="Show your artworks"
         />
 
         <StatCard
@@ -57,6 +59,8 @@ export function DashboardStats() {
           sublabel={loading ? "Loading protection status" : protectionRate}
           icon="verified_user"
           tone="success"
+          onClick={() => showArtworks("active")}
+          actionLabel="Show your protected artworks"
         />
 
         <StatCard
@@ -65,6 +69,8 @@ export function DashboardStats() {
           sublabel="Stored in your account"
           icon="inventory_2"
           tone="neutral"
+          onClick={() => showArtworks("archived")}
+          actionLabel="Show your archived artworks"
         />
 
         <StatCard
@@ -73,6 +79,8 @@ export function DashboardStats() {
           sublabel={loading ? "Loading monitoring status" : monitoringRate}
           icon="visibility"
           tone="warning"
+          onClick={() => showArtworks("active")}
+          actionLabel="Show your artworks and their monitoring settings"
         />
       </div>
 

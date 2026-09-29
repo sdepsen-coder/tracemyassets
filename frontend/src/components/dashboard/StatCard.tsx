@@ -7,6 +7,10 @@ type StatCardProps = {
   icon: string;
   tone?: "primary" | "success" | "warning" | "neutral";
   footer?: string;
+  /** When set, the whole tile becomes a button that runs this on click. */
+  onClick?: () => void;
+  /** Screen-reader hint describing where a clickable tile leads. */
+  actionLabel?: string;
 };
 
 const tones = {
@@ -35,11 +39,13 @@ export function StatCard({
   icon,
   tone = "neutral",
   footer = "",
+  onClick,
+  actionLabel,
 }: StatCardProps) {
   const classes = tones[tone];
 
-  return (
-    <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-card">
+  const content = (
+    <>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]">
@@ -71,6 +77,25 @@ export function StatCard({
           </span>
         )}
       </div>
-    </article>
+    </>
   );
+
+  const base =
+    "rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-card";
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        title={actionLabel}
+        aria-label={actionLabel ? `${label}: ${value}. ${actionLabel}` : undefined}
+        className={`${base} block w-full text-left transition hover:border-[var(--primary)]/50 hover:bg-[var(--surface-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]`}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return <article className={base}>{content}</article>;
 }
