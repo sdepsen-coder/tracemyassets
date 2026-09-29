@@ -266,11 +266,11 @@ export function LandingPage() {
             aria-label="Page sections"
             className="hidden items-center gap-6 text-[13px] font-medium text-[var(--text-muted)] md:flex"
           >
-            <a href="#how-it-works" className="transition hover:text-[var(--text)]">
-              How it works
-            </a>
             <a href="#features" className="transition hover:text-[var(--text)]">
               Features
+            </a>
+            <a href="#how-it-works" className="transition hover:text-[var(--text)]">
+              How it works
             </a>
             <a href="#sources" className="transition hover:text-[var(--text)]">
               Sources
@@ -325,10 +325,10 @@ export function LandingPage() {
                 </AuthEntryButton>
 
                 <a
-                  href="#how-it-works"
+                  href="#features"
                   className="inline-flex h-12 items-center rounded-xl border border-[var(--border)] bg-[var(--surface)] px-6 text-[15px] font-semibold text-[var(--text)] transition hover:bg-[var(--surface-muted)]"
                 >
-                  See how it works
+                  See what you get
                 </a>
               </div>
 
@@ -338,6 +338,38 @@ export function LandingPage() {
             </div>
 
             <HeroMock />
+          </div>
+        </section>
+
+        {/* Features */}
+        <section id="features" className="scroll-mt-20 py-20 sm:py-24">
+          <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
+            <SectionHeading
+              eyebrow="What you get"
+              title="Protect your work and know where it stands"
+              body="A focused set of tools to mark your artwork, watch for copies, and understand what you find."
+            />
+
+            <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {FEATURES.map((feature) => (
+                <FeatureCard key={feature.title} feature={feature} />
+              ))}
+            </div>
+
+            <div className="mt-16">
+              <h3 className="text-center font-heading text-[20px] font-semibold tracking-[-0.02em]">
+                On the way
+              </h3>
+              <p className="mx-auto mt-2 max-w-xl text-center text-[14px] text-[var(--text-muted)]">
+                What we are building next, shaped by what beta users tell us.
+              </p>
+
+              <div className="mt-8 grid gap-5 md:grid-cols-3">
+                {COMING_SOON.map((feature) => (
+                  <FeatureCard key={feature.title} feature={feature} />
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -378,42 +410,10 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* Features */}
-        <section id="features" className="scroll-mt-20 py-20 sm:py-24">
-          <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
-            <SectionHeading
-              eyebrow="What you get"
-              title="Protect your work and know where it stands"
-              body="A focused set of tools to mark your artwork, watch for copies, and understand what you find."
-            />
-
-            <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {FEATURES.map((feature) => (
-                <FeatureCard key={feature.title} feature={feature} />
-              ))}
-            </div>
-
-            <div className="mt-16">
-              <h3 className="text-center font-heading text-[20px] font-semibold tracking-[-0.02em]">
-                On the way
-              </h3>
-              <p className="mx-auto mt-2 max-w-xl text-center text-[14px] text-[var(--text-muted)]">
-                What we are building next, shaped by what beta users tell us.
-              </p>
-
-              <div className="mt-8 grid gap-5 md:grid-cols-3">
-                {COMING_SOON.map((feature) => (
-                  <FeatureCard key={feature.title} feature={feature} />
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* Sources */}
         <section
           id="sources"
-          className="scroll-mt-20 border-y border-[var(--border)] bg-[var(--surface-muted)] py-20 sm:py-24"
+          className="scroll-mt-20 py-20 sm:py-24"
         >
           <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
             <SectionHeading
@@ -452,7 +452,7 @@ export function LandingPage() {
         </section>
 
         {/* Honest limits */}
-        <section id="limits" className="scroll-mt-20 py-20 sm:py-24">
+        <section id="limits" className="scroll-mt-20 border-y border-[var(--border)] bg-[var(--surface-muted)] py-20 sm:py-24">
           <div className="mx-auto max-w-[900px] px-4 sm:px-6">
             <SectionHeading
               eyebrow="Straight talk"
