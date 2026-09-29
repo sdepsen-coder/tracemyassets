@@ -12,50 +12,78 @@ const STEPS = [
   {
     icon: "upload",
     title: "Register your artwork",
-    body: "Upload an original. We keep it private and create a protected copy carrying an invisible watermark, plus a visual fingerprint of the image.",
+    body: "Upload an original. It stays private, and you get back a protected copy with an invisible watermark to share instead.",
   },
   {
     icon: "travel_explore",
-    title: "We look for it online",
-    body: "Each scan searches for visually similar images across the sources we support and gathers candidate pages worth checking.",
+    title: "We keep watch",
+    body: "Your artworks are checked against the sources we support, and possible copies are gathered for review.",
   },
   {
     icon: "fact_check",
-    title: "Review verified matches",
-    body: "Every candidate is compared against your original and your watermark. You see the evidence and decide what, if anything, to do.",
+    title: "Review the evidence",
+    body: "Every candidate is compared with your original and your watermark. You see what we found and decide what to do next.",
   },
 ];
 
-const FEATURES = [
+type Feature = {
+  icon: string;
+  title: string;
+  body: string;
+  soon?: boolean;
+};
+
+const FEATURES: Feature[] = [
   {
     icon: "water_drop",
-    title: "Invisible watermark",
-    body: "A signal woven into the protected copy of your artwork. Nothing visible is added to the image people see.",
+    title: "Prove a copy came from you",
+    body: "Share the protected version of your artwork. Nothing visible is added, but a copy that carries your invisible watermark can be traced back to your file.",
   },
   {
-    icon: "fingerprint",
-    title: "Visual fingerprint",
-    body: "Perceptual matching finds close visual copies even when an image has been resized or re-saved.",
+    icon: "visibility",
+    title: "Keep watch automatically",
+    body: "Set how often each artwork is checked and let the scans run while you get on with your work.",
   },
   {
     icon: "verified",
-    title: "Verified, not guessed",
-    body: "Search results are only leads. Each one is re-checked by our own comparison before it appears as a match.",
+    title: "See real matches, not noise",
+    body: "Search results are only leads. Each one is re-checked against your original before it is shown as a match, so you review fewer false alarms.",
   },
   {
     icon: "check_circle",
-    title: "Check any image",
-    body: "Found something suspicious yourself? Upload it and see how it compares to your registered artwork.",
+    title: "Check any image yourself",
+    body: "Spotted something suspicious? Upload it and see how it compares with your registered artwork.",
   },
   {
     icon: "lock",
-    title: "Private by design",
-    body: "Your originals are never public. Matches and evidence are visible only to your account.",
+    title: "Your originals stay private",
+    body: "Originals are never public. Matches and evidence are visible only to your account, and you can delete an artwork and its data whenever you like.",
   },
   {
     icon: "person_check",
-    title: "You stay in control",
-    body: "We never contact anyone or send notices on your behalf. TraceMyAssets shows you what it found, and the next step is yours.",
+    title: "You decide what happens next",
+    body: "We never contact anyone or send notices for you. TraceMyAssets shows you what it found, and every next step is yours.",
+  },
+];
+
+const COMING_SOON: Feature[] = [
+  {
+    icon: "notifications_active",
+    title: "Email alerts",
+    body: "Get told when a new possible match appears, so you do not have to keep checking.",
+    soon: true,
+  },
+  {
+    icon: "description",
+    title: "Evidence pack",
+    body: "A dated, downloadable record of a match: your original, the copy, and the comparison results.",
+    soon: true,
+  },
+  {
+    icon: "checklist",
+    title: "Next steps and templates",
+    body: "A guide to what you can do once you find a copy, with editable message templates you send yourself. Starting points, not legal advice.",
+    soon: true,
   },
 ];
 
@@ -109,6 +137,35 @@ function SectionHeading({
         </p>
       )}
     </div>
+  );
+}
+
+function FeatureCard({ feature }: { feature: Feature }) {
+  return (
+    <article
+      className={`rounded-2xl border p-6 transition ${
+        feature.soon
+          ? "border-dashed border-[var(--border)] bg-[var(--surface-muted)]"
+          : "border-[var(--border)] bg-[var(--surface)] shadow-card hover:-translate-y-0.5 hover:shadow-floating"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--primary-soft)] text-[var(--primary)]">
+          <Icon name={feature.icon} className="text-[22px]" />
+        </span>
+        {feature.soon && (
+          <span className="rounded-full bg-[var(--warning-soft)] px-2.5 py-1 text-[11px] font-semibold text-[var(--warning)]">
+            Coming soon
+          </span>
+        )}
+      </div>
+      <h3 className="mt-4 font-heading text-[17px] font-semibold tracking-[-0.02em]">
+        {feature.title}
+      </h3>
+      <p className="mt-2 text-[14px] leading-relaxed text-[var(--text-muted)]">
+        {feature.body}
+      </p>
+    </article>
   );
 }
 
@@ -258,10 +315,7 @@ export function LandingPage() {
               </h1>
 
               <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-[var(--text-muted)]">
-                Register your artwork, mark it with an invisible watermark, and
-                let {SITE_NAME} look for visually similar images online. Every
-                possible match is verified against your original, so you review
-                evidence instead of guesses.
+                Protect your artwork with an invisible watermark and keep watch over where it appears online. Every possible match is verified against your original, so you get evidence to act on, not a pile of guesses.
               </p>
 
               <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -328,28 +382,30 @@ export function LandingPage() {
         <section id="features" className="scroll-mt-20 py-20 sm:py-24">
           <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
             <SectionHeading
-              eyebrow="Features"
-              title="Built for artists who want clarity, not noise"
-              body="A small set of tools that do one job carefully: help you find out where your work appears and how sure we are."
+              eyebrow="What you get"
+              title="Protect your work and know where it stands"
+              body="A focused set of tools to mark your artwork, watch for copies, and understand what you find."
             />
 
             <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {FEATURES.map((feature) => (
-                <article
-                  key={feature.title}
-                  className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-card transition hover:-translate-y-0.5 hover:shadow-floating"
-                >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--primary-soft)] text-[var(--primary)]">
-                    <Icon name={feature.icon} className="text-[22px]" />
-                  </span>
-                  <h3 className="mt-4 font-heading text-[17px] font-semibold tracking-[-0.02em]">
-                    {feature.title}
-                  </h3>
-                  <p className="mt-2 text-[14px] leading-relaxed text-[var(--text-muted)]">
-                    {feature.body}
-                  </p>
-                </article>
+                <FeatureCard key={feature.title} feature={feature} />
               ))}
+            </div>
+
+            <div className="mt-16">
+              <h3 className="text-center font-heading text-[20px] font-semibold tracking-[-0.02em]">
+                On the way
+              </h3>
+              <p className="mx-auto mt-2 max-w-xl text-center text-[14px] text-[var(--text-muted)]">
+                What we are building next, shaped by what beta users tell us.
+              </p>
+
+              <div className="mt-8 grid gap-5 md:grid-cols-3">
+                {COMING_SOON.map((feature) => (
+                  <FeatureCard key={feature.title} feature={feature} />
+                ))}
+              </div>
             </div>
           </div>
         </section>
