@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Awaitable, Callable
 from contextlib import asynccontextmanager
 
@@ -8,6 +9,27 @@ from app.api.v1.router import api_router
 from app.core.config import settings
 from app.db.base import initialize_database
 from app.services.scheduler import start_scheduler, stop_scheduler
+
+
+def configure_app_logging() -> None:
+    """
+    Make the app's own INFO logs (scan diagnostics, dropped matches)
+    visible in the server output. Uvicorn only configures its own
+    loggers, so without this our INFO lines are silently discarded.
+    """
+    app_logger = logging.getLogger("tracemyassets")
+    app_logger.setLevel(logging.INFO)
+
+    if not app_logger.handlers:
+        handler = logging.StreamHandler()
+        handler.setFormatter(
+            logging.Formatter("%(levelname)s:     %(name)s: %(message)s")
+        )
+        app_logger.addHandler(handler)
+        app_logger.propagate = False
+
+
+configure_app_logging()
 
 
 @asynccontextmanager
