@@ -31,7 +31,11 @@ from app.services.visual_search_provider import (
     fetch_candidate_bytes,
     get_configured_providers,
 )
-from app.services.page_check import check_candidate_page, should_show_match
+from app.services.page_check import (
+    PageStatus,
+    check_candidate_page,
+    should_show_match,
+)
 from app.services.visual_verification import verify_candidate_image
 from app.services.watermark import WatermarkError
 
@@ -39,10 +43,32 @@ logger = logging.getLogger("tracemyassets.scan_runner")
 
 
 @dataclass
+class ScanDiagnostics:
+    """
+    Why a scan's candidates did or did not become matches.
+
+    Only counts (plus the best similarity seen) -- never source URLs,
+    because those are hidden from Free-plan users. The URLs and
+    per-candidate reasons go to the server log instead.
+    """
+
+    candidates: int = 0
+    no_image_address: int = 0
+    image_unreachable: int = 0
+    not_comparable: int = 0
+    below_threshold: int = 0
+    page_gone: int = 0
+    page_unrelated: int = 0
+    recorded: int = 0
+    best_similarity_percent: float | None = None
+
+
+@dataclass
 class ScanOutcome:
     scan_job: ScanJob
     matches: list[MatchRecord]
     provider_name: str
+    diagnostics: ScanDiagnostics
 
 
 def _collect_candidates(
@@ -144,6 +170,7 @@ def run_scan_for_asset(
     )
 
     matches: list[MatchRecord] = []
+    diagnostics = ScanDiagnostics(candidates=len(candidates))
 
     for candidate in candidates:
         candidate_bytes = candidate.candidate_image_bytes
@@ -158,6 +185,21 @@ def run_scan_for_asset(
         if candidate_bytes is None:
             # Could not retrieve this one candidate -- skip it rather
             # than failing the whole scan job.
+            if candidate.candidate_image_url:
+                diagnostics.image_unreachable += 1
+                logger.info(
+                    "asset_id=%s candidate skipped: image unreachable %s",
+                    asset.id,
+                    candidate.candidate_image_url,
+                )
+            else:
+                diagnostics.no_image_address += 1
+                logger.info(
+                    "asset_id=%s candidate skipped: no image address "
+                    "(page %s)",
+                    asset.id,
+                    candidate.candidate_page_url,
+                )
             continue
 
         try:
@@ -172,7 +214,22 @@ def run_scan_for_asset(
         except (UploadValidationError, WatermarkError):
             # Not a decodable/comparable image -- skip, don't fail the
             # scan job over one bad candidate.
+            diagnostics.not_comparable += 1
+            logger.info(
+                "asset_id=%s candidate skipped: not a comparable image %s",
+                asset.id,
+                candidate.candidate_image_url,
+            )
             continue
+
+        if (
+            diagnostics.best_similarity_percent is None
+            or result.phash_similarity_percent
+            > diagnostics.best_similarity_percent
+        ):
+            diagnostics.best_similarity_percent = (
+                result.phash_similarity_percent
+            )
 
         should_alert = (
             result.watermark_matches_reference
@@ -181,6 +238,14 @@ def run_scan_for_asset(
         )
 
         if not should_alert:
+            diagnostics.below_threshold += 1
+            logger.info(
+                "asset_id=%s candidate below threshold: %.0f%% < %.0f%% (%s)",
+                asset.id,
+                result.phash_similarity_percent,
+                preference.alert_threshold_percent,
+                candidate.candidate_image_url,
+            )
             continue
 
         if candidate.page_may_be_stale and candidate.candidate_page_url:
@@ -196,6 +261,11 @@ def run_scan_for_asset(
             if not should_show_match(
                 candidate.candidate_page_url, page_status
             ):
+                if page_status is PageStatus.GONE:
+                    diagnostics.page_gone += 1
+                else:
+                    diagnostics.page_unrelated += 1
+
                 logger.info(
                     "Dropping match for asset_id=%s: page %s is %s.",
                     asset.id,
@@ -222,6 +292,7 @@ def run_scan_for_asset(
         )
 
         matches.append(match_record)
+        diagnostics.recorded += 1
 
     scan_job = mark_scan_job_completed(
         db,
@@ -234,4 +305,5 @@ def run_scan_for_asset(
         scan_job=scan_job,
         matches=matches,
         provider_name=provider_name,
+        diagnostics=diagnostics,
     )

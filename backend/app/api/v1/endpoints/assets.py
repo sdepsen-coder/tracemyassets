@@ -1,3 +1,4 @@
+import dataclasses
 import json
 import shutil
 from dataclasses import asdict
@@ -45,9 +46,10 @@ from app.schemas.asset import (
     OrbComparisonRead,
     PHashComparisonRead,
     WatermarkPayloadRead,
-AssetScanRead,
-MatchRecordRead,
-ScanJobRead,
+    AssetScanRead,
+    MatchRecordRead,
+    ScanDiagnosticsRead,
+    ScanJobRead,
 )
 from app.services.scan_runner import run_scan_for_asset
 from app.services.match_presentation import build_match_record_response
@@ -519,6 +521,9 @@ def scan_asset(
                 )
                 for match_record in outcome.matches
             ],
+            diagnostics=ScanDiagnosticsRead(
+                **dataclasses.asdict(outcome.diagnostics)
+            ),
         )
 
         db.commit()

@@ -84,6 +84,67 @@ class ScanRunnerPageCheckTests(unittest.TestCase):
         checker.assert_not_called()
         self.assertEqual(len(outcome.matches), 1)
 
+    def test_diagnostics_explain_where_candidates_went(self) -> None:
+        good = self.image_path.read_bytes()
+
+        def candidate(**kwargs):
+            defaults = dict(
+                source_name="c",
+                source_url="https://x.example/p",
+                candidate_image_url="https://cdn.example/a.jpg",
+                candidate_page_url="https://x.example/p",
+                candidate_image_bytes=good,
+            )
+            defaults.update(kwargs)
+            return DiscoveredCandidate(**defaults)
+
+        candidates = [
+            candidate(),  # recorded
+            candidate(
+                candidate_image_bytes=None,
+                candidate_image_url=None,
+            ),  # no image address
+            candidate(
+                candidate_image_bytes=b"not an image",
+            ),  # not comparable
+            candidate(
+                page_may_be_stale=True,
+                candidate_page_url="https://gone.example/p",
+            ),  # page gone
+        ]
+
+        def fake_page_check(page_url, image_url):
+            return (
+                PageStatus.GONE
+                if "gone.example" in page_url
+                else PageStatus.CONFIRMED
+            )
+
+        with mock.patch(
+            "app.services.scan_runner.check_candidate_page",
+            side_effect=fake_page_check,
+        ):
+            outcome = run_scan_for_asset(
+                self.db,
+                asset=self.asset,
+                user_id=self.user_id,
+                preference=self.preference,
+                reference_path=self.image_path,
+                watermarked_path=None,
+                watermark_secret=load_watermark_secret(),
+                providers=[base._WorkingProvider("google-vision", candidates)],
+            )
+
+        d = outcome.diagnostics
+        self.assertEqual(d.candidates, 4)
+        self.assertEqual(d.recorded, 1)
+        self.assertEqual(d.no_image_address, 1)
+        self.assertEqual(d.not_comparable, 1)
+        self.assertEqual(d.page_gone, 1)
+        self.assertEqual(d.below_threshold, 0)
+        self.assertEqual(d.image_unreachable, 0)
+        self.assertGreaterEqual(d.best_similarity_percent, 99.0)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -144,12 +144,27 @@ class MatchSummary(BaseModel):
     archived: int = 0
 
 
+class ScanDiagnosticsRead(BaseModel):
+    """Counts explaining what happened to each candidate in a scan."""
+
+    candidates: int
+    no_image_address: int
+    image_unreachable: int
+    not_comparable: int
+    below_threshold: int
+    page_gone: int
+    page_unrelated: int
+    recorded: int
+    best_similarity_percent: float | None = None
+
+
 class AssetScanRead(BaseModel):
     asset_id: int
     provider: str
     threshold_percent: float
     scan_job: ScanJobRead
     matches: list[MatchRecordRead]
+    diagnostics: ScanDiagnosticsRead | None = None
 
 class MatchRecordUpdate(BaseModel):
     review_status: Literal[

@@ -139,12 +139,25 @@ export type MatchSummary = {
   archived: number;
 };
 
+export type ScanDiagnostics = {
+  candidates: number;
+  no_image_address: number;
+  image_unreachable: number;
+  not_comparable: number;
+  below_threshold: number;
+  page_gone: number;
+  page_unrelated: number;
+  recorded: number;
+  best_similarity_percent: number | null;
+};
+
 export type AssetScan = {
   asset_id: number;
   provider: string;
   threshold_percent: number;
   scan_job: ScanJob;
   matches: MatchRecord[];
+  diagnostics?: ScanDiagnostics | null;
 };
 
 export class ApiError extends Error {

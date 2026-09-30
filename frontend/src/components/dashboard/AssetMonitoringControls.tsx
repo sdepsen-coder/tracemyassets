@@ -8,7 +8,93 @@ import {
   ApiError,
   type AssetScan,
   type MonitoringPreference,
+  type ScanDiagnostics,
 } from "@/lib/api";
+
+/** Plain-language reasons why scan candidates did not become matches. */
+function describeScanDiagnostics(
+  diagnostics: ScanDiagnostics | null | undefined,
+  thresholdPercent: number,
+): string[] {
+  if (!diagnostics) return [];
+
+  const plural = (count: number, one: string, many: string) =>
+    `${count} ${count === 1 ? one : many}`;
+
+  const lines: string[] = [];
+
+  if (diagnostics.candidates === 0) {
+    lines.push("The search sources returned no candidate images to check.");
+    return lines;
+  }
+
+  if (diagnostics.image_unreachable > 0) {
+    lines.push(
+      `${plural(
+        diagnostics.image_unreachable,
+        "image could",
+        "images could",
+      )} not be downloaded.`,
+    );
+  }
+
+  if (diagnostics.no_image_address > 0) {
+    lines.push(
+      `${plural(
+        diagnostics.no_image_address,
+        "result had",
+        "results had",
+      )} no image address to compare.`,
+    );
+  }
+
+  if (diagnostics.not_comparable > 0) {
+    lines.push(
+      `${plural(
+        diagnostics.not_comparable,
+        "file was",
+        "files were",
+      )} not a usable image.`,
+    );
+  }
+
+  if (diagnostics.below_threshold > 0) {
+    const best =
+      diagnostics.best_similarity_percent === null
+        ? ""
+        : ` Closest was ${diagnostics.best_similarity_percent.toFixed(0)}%.`;
+
+    lines.push(
+      `${plural(
+        diagnostics.below_threshold,
+        "image was",
+        "images were",
+      )} below your ${thresholdPercent.toFixed(0)}% similarity threshold.${best}`,
+    );
+  }
+
+  if (diagnostics.page_gone > 0) {
+    lines.push(
+      `${plural(
+        diagnostics.page_gone,
+        "match was",
+        "matches were",
+      )} left out because the page no longer exists.`,
+    );
+  }
+
+  if (diagnostics.page_unrelated > 0) {
+    lines.push(
+      `${plural(
+        diagnostics.page_unrelated,
+        "match was",
+        "matches were",
+      )} left out because the page does not show the image.`,
+    );
+  }
+
+  return lines;
+}
 
 type AssetMonitoringControlsProps = {
   assetId: number;
@@ -182,6 +268,13 @@ export function AssetMonitoringControls({
       }
     }
   }
+
+  const scanDetails = scanResult
+    ? describeScanDiagnostics(
+        scanResult.diagnostics,
+        scanResult.threshold_percent,
+      )
+    : [];
 
   async function runScanNow() {
     if (saving || scanning) return;
@@ -390,6 +483,19 @@ export function AssetMonitoringControls({
               <p>
                 Matches requiring review: {scanResult.scan_job.match_count}
               </p>
+
+              {scanDetails.length > 0 && (
+                <div className="mt-2 border-t border-[var(--border)] pt-2">
+                  <p className="font-semibold text-[var(--text)]">
+                    What happened to the rest
+                  </p>
+                  <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                    {scanDetails.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
 
