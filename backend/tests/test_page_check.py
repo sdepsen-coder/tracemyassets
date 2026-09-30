@@ -162,3 +162,27 @@ class SafeFetchGuardTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ResizedAndEncodedImageTests(unittest.TestCase):
+    def test_wordpress_thumbnail_and_encoded_dash_are_recognised(self) -> None:
+        from app.services.page_check import page_references_image
+
+        original = (
+            "https://shop.example/wp-content/uploads/2026/02/"
+            "Royal-Bathroom-Duck-Poster-%E2%80%93-Mizahi-Duvar-Tablosu-1.webp"
+        )
+        html = (
+            '<img src="https://shop.example/wp-content/uploads/2026/02/'
+            'Royal-Bathroom-Duck-Poster-–-Mizahi-Duvar-Tablosu-1-350x467.webp">'
+        )
+
+        self.assertTrue(page_references_image(html, original))
+
+    def test_unrelated_thumbnail_is_not_recognised(self) -> None:
+        from app.services.page_check import page_references_image
+
+        original = "https://shop.example/uploads/Royal-Bathroom-Duck-Poster-1.webp"
+        html = '<img src="https://shop.example/uploads/Other-Product-Name-1-350x467.webp">'
+
+        self.assertFalse(page_references_image(html, original))

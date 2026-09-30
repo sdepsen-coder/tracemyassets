@@ -25,7 +25,7 @@ import re
 import socket
 from enum import Enum
 from typing import Callable
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 import httpx
 
@@ -77,27 +77,37 @@ def _default_fetcher(url: str) -> FetchResult:
     )
 
 
+# WordPress and similar systems serve resized copies as "name-350x467.webp"
+# while search engines report the original "name.webp".
+_SIZE_SUFFIX = re.compile(r"-\d{2,5}x\d{2,5}$")
+
+
 def _image_tokens(image_url: str) -> list[str]:
     """Strings whose presence in a page's HTML suggests it shows the image."""
     parsed = urlparse(image_url)
     tokens: list[str] = []
+    # Search engines percent-encode non-ASCII filenames; pages usually
+    # contain them raw. Compare in decoded form (the page is decoded too).
+    path = unquote(parsed.path)
 
-    if parsed.netloc and parsed.path:
-        tokens.append(f"{parsed.netloc}{parsed.path}".lower())
+    if parsed.netloc and path:
+        tokens.append(f"{parsed.netloc}{path}".lower())
 
-    filename = parsed.path.rsplit("/", 1)[-1]
+    filename = path.rsplit("/", 1)[-1]
 
     if filename:
         # CDN filenames often carry size suffixes ("71AbC._AC_SX679_.jpg"),
         # so the part before the first dot identifies the picture.
-        stem = filename.split(".", 1)[0]
+        stem = _SIZE_SUFFIX.sub("", filename.split(".", 1)[0])
         tokens.append((stem if len(stem) >= 8 else filename).lower())
 
     return [token for token in tokens if token]
 
 
 def page_references_image(html: str, image_url: str) -> bool:
-    haystack = html.lower().replace("\\/", "/").replace("&amp;", "&")
+    haystack = unquote(
+        html.lower().replace("\\/", "/").replace("&amp;", "&")
+    )
 
     return any(token in haystack for token in _image_tokens(image_url))
 
