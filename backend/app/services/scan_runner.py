@@ -31,6 +31,7 @@ from app.services.visual_search_provider import (
     fetch_candidate_bytes,
     get_configured_providers,
 )
+from app.services.page_check import check_candidate_page, should_show_match
 from app.services.visual_verification import verify_candidate_image
 from app.services.watermark import WatermarkError
 
@@ -181,6 +182,27 @@ def run_scan_for_asset(
 
         if not should_alert:
             continue
+
+        if candidate.page_may_be_stale and candidate.candidate_page_url:
+            # The image matched, but is the page it was found on still
+            # there, and does it really show the image? Dead pages and
+            # unrelated ones (search-result pages, catalogue backends)
+            # would only be noise for the user.
+            page_status = check_candidate_page(
+                candidate.candidate_page_url,
+                candidate.candidate_image_url,
+            )
+
+            if not should_show_match(
+                candidate.candidate_page_url, page_status
+            ):
+                logger.info(
+                    "Dropping match for asset_id=%s: page %s is %s.",
+                    asset.id,
+                    candidate.candidate_page_url,
+                    page_status.value,
+                )
+                continue
 
         match_record = record_or_touch_match(
             db,

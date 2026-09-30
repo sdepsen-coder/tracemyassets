@@ -165,6 +165,8 @@ class GoogleVisionWebDetectionProvider:
                     candidate_image_url=image_url,
                     candidate_page_url=page_url,
                     candidate_image_bytes=None,  # scan pipeline fetches it
+                    # Web Detection reports pages from an old crawl.
+                    page_may_be_stale=True,
                 )
             )
 

@@ -21,6 +21,19 @@ type MatchFilter =
   | "dismissed"
   | "archived";
 
+type StrengthFilter = "all" | "strong" | "watermark";
+
+const strengthOptions: Array<{
+  value: StrengthFilter;
+  label: string;
+}> = [
+  { value: "all", label: "All strengths" },
+  { value: "strong", label: "Strong matches and better" },
+  { value: "watermark", label: "Watermark verified only" },
+];
+
+const SHOW_STRENGTH_KEY = "tma_show_match_strength";
+
 const filters: Array<{
   value: MatchFilter;
   label: string;
@@ -116,6 +129,8 @@ function MatchesContent() {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [filter, setFilter] = useState<MatchFilter>("needs_review");
   const [search, setSearch] = useState("");
+  const [strength, setStrength] = useState<StrengthFilter>("all");
+  const [showStrength, setShowStrength] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [updatingId, setUpdatingId] = useState<number | null>(null);
@@ -223,6 +238,24 @@ function MatchesContent() {
     };
   }, [matches]);
 
+  useEffect(() => {
+    try {
+      setShowStrength(localStorage.getItem(SHOW_STRENGTH_KEY) === "1");
+    } catch {
+      // Storage can be unavailable (private mode); the default is fine.
+    }
+  }, []);
+
+  function handleShowStrengthChange(next: boolean) {
+    setShowStrength(next);
+
+    try {
+      localStorage.setItem(SHOW_STRENGTH_KEY, next ? "1" : "0");
+    } catch {
+      // Not persisting the preference is harmless.
+    }
+  }
+
   const visibleMatches = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
 
@@ -236,6 +269,21 @@ function MatchesContent() {
             : match.review_status === filter;
 
       if (!matchesFilter) {
+        return false;
+      }
+
+      if (
+        strength === "watermark" &&
+        match.overall_signal !== "WATERMARK_VERIFIED"
+      ) {
+        return false;
+      }
+
+      if (
+        strength === "strong" &&
+        match.overall_signal !== "WATERMARK_VERIFIED" &&
+        match.overall_signal !== "STRONG_VISUAL_MATCH"
+      ) {
         return false;
       }
 
@@ -256,7 +304,7 @@ function MatchesContent() {
           String(value).toLowerCase().includes(normalizedSearch),
         );
     });
-  }, [assetsById, filter, matches, search]);
+  }, [assetsById, filter, matches, search, strength]);
 
   return (
     <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--text)]">
@@ -318,6 +366,38 @@ function MatchesContent() {
             />
           </label>
         </section>
+
+        <div className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-3 text-[13px] text-[var(--text-muted)]">
+          <label className="flex items-center gap-2">
+            <span>Show</span>
+            <select
+              aria-label="Filter matches by strength"
+              value={strength}
+              onChange={(event) =>
+                setStrength(event.target.value as StrengthFilter)
+              }
+              className="h-9 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 text-[13px] text-[var(--text)]"
+            >
+              {strengthOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={showStrength}
+              onChange={(event) =>
+                handleShowStrengthChange(event.target.checked)
+              }
+              className="h-4 w-4 accent-[var(--primary-strong)]"
+            />
+            <span>Show match strength on cards</span>
+          </label>
+        </div>
 
         {actionError ? (
           <section
@@ -436,14 +516,16 @@ function MatchesContent() {
                             {asset?.title ?? `Artwork #${match.asset_id}`}
                           </h2>
 
-                          <span
-                            className={[
-                              "rounded-full px-2.5 py-1 text-[11px] font-semibold",
-                              signalClasses(match.overall_signal),
-                            ].join(" ")}
-                          >
-                            {match.similarity_percent.toFixed(0)}% similarity
-                          </span>
+                          {showStrength ? (
+                            <span
+                              className={[
+                                "rounded-full px-2.5 py-1 text-[11px] font-semibold",
+                                signalClasses(match.overall_signal),
+                              ].join(" ")}
+                            >
+                              {match.similarity_percent.toFixed(0)}% similarity
+                            </span>
+                          ) : null}
 
                           <span
                             className={[
@@ -470,29 +552,24 @@ function MatchesContent() {
                           </span>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-3 text-[12px]">
-                          <span
-                            className={[
-                              "inline-flex items-center gap-1 rounded-md px-2 py-1 font-medium",
-                              match.watermark_matches_reference
-                                ? "bg-[var(--success-soft)] text-[var(--success)]"
-                                : "bg-[var(--surface-muted)] text-[var(--text-muted)]",
-                            ].join(" ")}
-                          >
-                            <span className="material-symbols-outlined text-[14px]">
-                              {match.watermark_matches_reference
-                                ? "verified"
-                                : "help_outline"}
-                            </span>
-                            {match.watermark_matches_reference
-                              ? "Watermark verified"
-                              : "Watermark not verified"}
-                          </span>
+                        {match.watermark_matches_reference || showStrength ? (
+                          <div className="flex flex-wrap items-center gap-3 text-[12px]">
+                            {match.watermark_matches_reference ? (
+                              <span className="inline-flex items-center gap-1 rounded-md bg-[var(--success-soft)] px-2 py-1 font-medium text-[var(--success)]">
+                                <span className="material-symbols-outlined text-[14px]">
+                                  verified
+                                </span>
+                                Watermark verified
+                              </span>
+                            ) : null}
 
-                          <span className="text-[var(--text-muted)]">
-                            {formatSignal(match.overall_signal)}
-                          </span>
-                        </div>
+                            {showStrength && !match.watermark_matches_reference ? (
+                              <span className="text-[var(--text-muted)]">
+                                {formatSignal(match.overall_signal)}
+                              </span>
+                            ) : null}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
 

@@ -6,6 +6,12 @@ from typing import Protocol
 
 import httpx
 
+from app.services.safe_fetch import (
+    ResponseTooLarge,
+    UnsafeUrlError,
+    fetch_public,
+)
+
 MAX_CANDIDATE_FETCH_BYTES = 25 * 1024 * 1024
 CANDIDATE_FETCH_TIMEOUT_SECONDS = 10.0
 SOURCE_NAME_MAX_LENGTH = 100  # matches MatchRecord.source_name's column width
@@ -37,6 +43,15 @@ class DiscoveredCandidate:
     or demo providers may supply bytes directly (for example a
     synthetic image) so the full verification pipeline can be exercised
     without any network access.
+    """
+
+    page_may_be_stale: bool = False
+    """
+    True when candidate_page_url comes from a search index rather than a
+    live listing (Google Web Detection reports pages from an old crawl).
+    The scan pipeline then checks the page is still there and really
+    shows the image before recording a match. Providers whose results
+    are live listings (Amazon, Etsy) leave this False.
     """
 
 
@@ -185,31 +200,28 @@ def fetch_candidate_bytes(url: str) -> bytes | None:
     Download a candidate image for a real provider's URL.
 
     Returns None (rather than raising) on any failure -- an
-    unreachable, oversized, or non-image candidate should be skipped by
-    the scan pipeline, not abort the whole scan job. Enforces the same
-    size ceiling as direct uploads (MAX_CANDIDATE_FETCH_BYTES) so a
-    hostile or misbehaving source cannot be used to exhaust memory.
+    unreachable, oversized, non-image or non-public candidate should be
+    skipped by the scan pipeline, not abort the whole scan job. Enforces
+    the same size ceiling as direct uploads (MAX_CANDIDATE_FETCH_BYTES)
+    so a hostile or misbehaving source cannot be used to exhaust memory,
+    and refuses URLs that resolve to private/internal addresses (see
+    app.services.safe_fetch).
     """
     try:
-        with httpx.stream(
-            "GET",
+        result = fetch_public(
             url,
+            max_bytes=MAX_CANDIDATE_FETCH_BYTES,
             timeout=CANDIDATE_FETCH_TIMEOUT_SECONDS,
-            follow_redirects=True,
-        ) as response:
-            response.raise_for_status()
-
-            chunks: list[bytes] = []
-            total = 0
-
-            for chunk in response.iter_bytes():
-                total += len(chunk)
-
-                if total > MAX_CANDIDATE_FETCH_BYTES:
-                    return None
-
-                chunks.append(chunk)
-
-            return b"".join(chunks)
-    except httpx.HTTPError:
+        )
+    except (
+        httpx.HTTPError,
+        OSError,
+        UnsafeUrlError,
+        ResponseTooLarge,
+    ):
         return None
+
+    if not 200 <= result.status_code < 300:
+        return None
+
+    return result.content
