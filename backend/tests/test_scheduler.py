@@ -188,6 +188,65 @@ class RunDueScansTests(unittest.TestCase):
         self.assertEqual(len(scan_jobs), 1)
         self.assertEqual(scan_jobs[0].id, recent_job.id)
 
+    def _enabled_asset(self) -> Asset:
+        asset = self._make_asset()
+        self.db.add(
+            MonitoringPreference(
+                asset_id=asset.id,
+                enabled=True,
+                alert_threshold_percent=80.0,
+                scan_frequency="weekly",
+            )
+        )
+        self.db.commit()
+
+        return asset
+
+    def _fake_outcome(self, new_match_count):
+        return mock.Mock(new_match_count=new_match_count)
+
+    def test_scheduled_scan_with_new_matches_sends_one_alert(self) -> None:
+        self._enabled_asset()
+
+        with mock.patch(
+            "app.services.scheduler.run_scan_for_asset",
+            return_value=self._fake_outcome(3),
+        ), mock.patch(
+            "app.services.scheduler.send_new_match_alert"
+        ) as alert:
+            run_due_scans(self.db)
+
+        alert.assert_called_once_with(
+            to_email="artist@example.com",
+            asset_title="Scheduler test asset",
+            new_match_count=3,
+        )
+
+    def test_no_alert_without_new_matches(self) -> None:
+        self._enabled_asset()
+
+        with mock.patch(
+            "app.services.scheduler.run_scan_for_asset",
+            return_value=self._fake_outcome(0),
+        ), mock.patch(
+            "app.services.scheduler.send_new_match_alert"
+        ) as alert:
+            run_due_scans(self.db)
+
+        alert.assert_not_called()
+
+    def test_email_failure_does_not_break_the_run(self) -> None:
+        self._enabled_asset()
+
+        with mock.patch(
+            "app.services.scheduler.run_scan_for_asset",
+            return_value=self._fake_outcome(1),
+        ), mock.patch(
+            "app.services.scheduler.send_new_match_alert",
+            side_effect=RuntimeError("boom"),
+        ):
+            run_due_scans(self.db)  # must not raise
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -43,6 +43,15 @@ class Settings:
         self.scan_scheduler_interval_minutes = int(
             os.getenv("SCAN_SCHEDULER_INTERVAL_MINUTES", "15")
         )
+        # Email alerts (Resend). Alerts are silently skipped when no key
+        # is configured, so local development and tests never send mail.
+        self.resend_api_key = os.getenv("RESEND_API_KEY", "").strip()
+        self.email_from = os.getenv(
+            "EMAIL_FROM", "TraceMyAssets <alerts@tracemyassets.com>"
+        ).strip()
+        self.frontend_url = os.getenv(
+            "FRONTEND_URL", "http://localhost:3000"
+        ).strip().rstrip("/")
 
 
 settings = Settings()

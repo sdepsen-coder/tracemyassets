@@ -15,7 +15,10 @@ from pathlib import Path
 
 from sqlalchemy.orm import Session
 
-from app.crud.match_record import record_or_touch_match
+from app.crud.match_record import (
+    find_existing_match_for_dedup,
+    record_or_touch_match,
+)
 from app.crud.scan_job import (
     create_scan_job,
     mark_scan_job_completed,
@@ -75,6 +78,9 @@ class ScanOutcome:
     matches: list[MatchRecord]
     provider_name: str
     diagnostics: ScanDiagnostics
+    # Matches this scan recorded for the first time (a re-discovery of a
+    # match from an earlier scan does not count as new).
+    new_match_count: int = 0
 
 
 def _collect_candidates(
@@ -333,6 +339,7 @@ def run_scan_for_asset(
     )
 
     matches: list[MatchRecord] = []
+    new_match_count = 0
     diagnostics = ScanDiagnostics(candidates=len(candidates))
 
     page_budget = PageReadBudget()
@@ -486,6 +493,16 @@ def run_scan_for_asset(
                 )
                 continue
 
+        already_known = (
+            find_existing_match_for_dedup(
+                db,
+                asset_id=asset.id,
+                candidate_page_url=candidate.candidate_page_url,
+                candidate_image_hash=result.candidate_phash,
+            )
+            is not None
+        )
+
         match_record = record_or_touch_match(
             db,
             asset_id=asset.id,
@@ -506,6 +523,9 @@ def run_scan_for_asset(
         matches.append(match_record)
         diagnostics.recorded += 1
 
+        if not already_known:
+            new_match_count += 1
+
         if candidate.candidate_page_url in expanded_pages:
             recorded_expanded_pages.add(candidate.candidate_page_url)
 
@@ -521,4 +541,5 @@ def run_scan_for_asset(
         matches=matches,
         provider_name=provider_name,
         diagnostics=diagnostics,
+        new_match_count=new_match_count,
     )

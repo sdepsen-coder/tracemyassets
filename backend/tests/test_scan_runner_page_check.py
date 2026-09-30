@@ -59,6 +59,22 @@ class ScanRunnerPageCheckTests(unittest.TestCase):
         )
         self.assertEqual(outcome.matches, [])
 
+    def test_rediscovered_match_is_not_counted_as_new(self) -> None:
+        first, _ = self.scan(
+            page_url="https://shop.example/p/9",
+            status=PageStatus.CONFIRMED,
+            stale=False,
+        )
+        second, _ = self.scan(
+            page_url="https://shop.example/p/9",
+            status=PageStatus.CONFIRMED,
+            stale=False,
+        )
+
+        self.assertEqual(first.new_match_count, 1)
+        self.assertEqual(second.new_match_count, 0)
+        self.assertEqual(len(second.matches), 1)
+
     def test_confirmed_page_is_recorded(self) -> None:
         outcome, _ = self.scan(
             page_url="https://shop.example/p/1", status=PageStatus.CONFIRMED

@@ -22,6 +22,8 @@ from app.db.session import SessionLocal
 from app.models.asset import Asset
 from app.models.monitoring import MonitoringPreference
 from app.models.scan_job import ScanJob
+from app.models.user import User
+from app.services.alert_emails import send_new_match_alert
 from app.services.asset_paths import load_watermark_secret, original_file_path
 from app.services.scan_runner import run_scan_for_asset
 
@@ -129,7 +131,7 @@ def run_due_scans(db: Session | None = None) -> None:
                     else None
                 )
 
-                run_scan_for_asset(
+                outcome = run_scan_for_asset(
                     db,
                     asset=asset,
                     user_id=asset.user_id,
@@ -144,6 +146,25 @@ def run_due_scans(db: Session | None = None) -> None:
                 logger.exception(
                     "Scheduled scan failed for asset_id=%s", asset.id
                 )
+                continue
+
+            # Only scheduled scans email: someone who ran a scan by hand
+            # is already looking at the result. Sent after the commit and
+            # isolated, so an email problem never affects the scan.
+            if outcome.new_match_count > 0:
+                try:
+                    user = db.get(User, asset.user_id)
+
+                    if user is not None:
+                        send_new_match_alert(
+                            to_email=user.email,
+                            asset_title=asset.title,
+                            new_match_count=outcome.new_match_count,
+                        )
+                except Exception:
+                    logger.exception(
+                        "Alert email failed for asset_id=%s", asset.id
+                    )
 
         logger.info(
             "Scheduler tick: %s of %s enabled asset(s) were due.",
