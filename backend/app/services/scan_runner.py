@@ -399,15 +399,6 @@ def run_scan_for_asset(
             )
             continue
 
-        if (
-            diagnostics.best_similarity_percent is None
-            or result.phash_similarity_percent
-            > diagnostics.best_similarity_percent
-        ):
-            diagnostics.best_similarity_percent = (
-                result.phash_similarity_percent
-            )
-
         # The user's threshold applies to whole-image similarity. A copy
         # that is cropped, framed or shown in a mockup scores low there
         # but is still the same artwork, so geometric evidence (see
@@ -424,6 +415,18 @@ def run_scan_for_asset(
 
         if not should_alert:
             diagnostics.below_threshold += 1
+
+            # "Closest" describes only the rejected candidates, so it is
+            # always below the user's threshold and reads consistently.
+            if (
+                diagnostics.best_similarity_percent is None
+                or result.phash_similarity_percent
+                > diagnostics.best_similarity_percent
+            ):
+                diagnostics.best_similarity_percent = (
+                    result.phash_similarity_percent
+                )
+
             logger.info(
                 "asset_id=%s candidate below threshold: %.0f%% < %.0f%% "
                 "(orb good=%s inliers=%s ratio=%s) (%s)",

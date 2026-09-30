@@ -286,8 +286,21 @@ export function AssetMonitoringControls({
       )
     : [];
 
+  const hasUnsavedChanges =
+    preference !== null &&
+    (Math.round(preference.alert_threshold_percent) !== threshold ||
+      preference.enabled !== enabled ||
+      preference.scan_frequency !== frequency);
+
   async function runScanNow() {
     if (saving || scanning) return;
+
+    if (hasUnsavedChanges) {
+      // The scan uses the saved settings, not the values in the form.
+      setMessage("");
+      setError("You have unsaved changes. Save them first, then run the scan.");
+      return;
+    }
 
     const controller = new AbortController();
     requestController.current = controller;

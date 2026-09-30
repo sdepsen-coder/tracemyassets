@@ -156,7 +156,8 @@ class ScanRunnerPageCheckTests(unittest.TestCase):
         self.assertEqual(d.page_gone, 1)
         self.assertEqual(d.below_threshold, 0)
         self.assertEqual(d.image_unreachable, 0)
-        self.assertGreaterEqual(d.best_similarity_percent, 99.0)
+        # Nothing was rejected for low similarity, so there is no "closest".
+        self.assertIsNone(d.best_similarity_percent)
 
     def test_unconfirmed_page_is_kept_when_its_own_images_match(self) -> None:
         outcome, _ = self.scan(
@@ -267,3 +268,4 @@ class ScanRunnerPageCheckTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
