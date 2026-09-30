@@ -16,7 +16,7 @@ from app.services.visual_search_provider import DiscoveredCandidate
 class ScanRunnerPageCheckTests(unittest.TestCase):
     setUp = base.RunScanForAssetMultiProviderTests.setUp
 
-    def scan(self, *, page_url, status, stale=True):
+    def scan(self, *, page_url, status, stale=True, page_images=None):
         candidate = DiscoveredCandidate(
             source_name="Some page",
             source_url=page_url,
@@ -29,7 +29,17 @@ class ScanRunnerPageCheckTests(unittest.TestCase):
         with mock.patch(
             "app.services.scan_runner.check_candidate_page",
             return_value=status,
-        ) as checker:
+        ) as checker, mock.patch(
+            "app.services.scan_runner.read_page_images",
+            return_value=(
+                (None, page_images)
+                if page_images is not None
+                else (PageStatus.BLOCKED, [])
+            ),
+        ), mock.patch(
+            "app.services.scan_runner.fetch_candidate_bytes",
+            side_effect=lambda url: self.image_path.read_bytes(),
+        ):
             outcome = run_scan_for_asset(
                 self.db,
                 asset=self.asset,
@@ -147,6 +157,36 @@ class ScanRunnerPageCheckTests(unittest.TestCase):
         self.assertEqual(d.below_threshold, 0)
         self.assertEqual(d.image_unreachable, 0)
         self.assertGreaterEqual(d.best_similarity_percent, 99.0)
+
+    def test_unconfirmed_page_is_kept_when_its_own_images_match(self) -> None:
+        outcome, _ = self.scan(
+            page_url="https://unknown-shop.example/p/1",
+            status=PageStatus.UNCONFIRMED,
+            page_images=["https://cdn.example/hero.jpg"],
+        )
+
+        self.assertEqual(len(outcome.matches), 1)
+        self.assertEqual(outcome.diagnostics.page_unrelated, 0)
+
+    def test_unconfirmed_page_is_dropped_when_its_images_do_not_match(
+        self,
+    ) -> None:
+        outcome, _ = self.scan(
+            page_url="https://unknown-shop.example/p/2",
+            status=PageStatus.UNCONFIRMED,
+            page_images=[],
+        )
+
+        self.assertEqual(len(outcome.matches), 0)
+        self.assertEqual(outcome.diagnostics.page_unrelated, 1)
+
+    def test_page_budget_is_shared_and_limited(self) -> None:
+        from app.services.scan_runner import PageReadBudget
+
+        budget = PageReadBudget(max_pages=2, seconds=60)
+        self.assertTrue(budget.take())
+        self.assertTrue(budget.take())
+        self.assertFalse(budget.take())
 
     def run_with_pages(self, candidates, *, reader, fetch_bytes=None):
         with mock.patch(

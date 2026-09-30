@@ -128,11 +128,93 @@ MAX_PAGES_TO_READ = 6
 PAGE_READING_BUDGET_SECONDS = 45.0
 
 
+class PageReadBudget:
+    """
+    Shared limit on how many pages one scan may read itself, whether to
+    find images on image-less results or to confirm a doubtful page.
+    """
+
+    def __init__(
+        self,
+        max_pages: int | None = None,
+        seconds: float | None = None,
+    ) -> None:
+        self.remaining = (
+            MAX_PAGES_TO_READ if max_pages is None else max_pages
+        )
+        self.deadline = time.monotonic() + (
+            PAGE_READING_BUDGET_SECONDS if seconds is None else seconds
+        )
+
+    def take(self) -> bool:
+        if self.remaining <= 0 or time.monotonic() > self.deadline:
+            return False
+
+        self.remaining -= 1
+        return True
+
+
+def _page_shows_reference(
+    page_url: str,
+    *,
+    reference_path: Path,
+    asset: Asset,
+    user_id: int,
+    watermark_secret: bytes,
+    threshold_percent: float,
+    budget: PageReadBudget,
+) -> bool:
+    """
+    Content-based confirmation for a page whose HTML does not mention
+    the matched image address: read the page's own main images and keep
+    the page only if one of them is really our artwork. Unrelated pages
+    (search results, catalogue back-ends) show nothing that matches.
+    """
+    if not budget.take():
+        return False
+
+    failure, image_urls = read_page_images(page_url)
+
+    if failure is not None:
+        return False
+
+    for image_url in image_urls:
+        content = fetch_candidate_bytes(image_url)
+
+        if content is None:
+            continue
+
+        try:
+            result = verify_candidate_image(
+                reference_path=reference_path,
+                reference_phash=asset.phash_value,
+                expected_asset_id=asset.id,
+                expected_user_id=user_id,
+                candidate_content=content,
+                watermark_secret=watermark_secret,
+            )
+        except (UploadValidationError, WatermarkError):
+            continue
+
+        if (
+            result.watermark_matches_reference
+            or result.phash_similarity_percent >= threshold_percent
+            or is_geometric_copy(
+                result.orb.homography_inliers,
+                result.orb.inlier_ratio_percent,
+            )
+        ):
+            return True
+
+    return False
+
+
 def _expand_pages_without_images(
     candidates: list[DiscoveredCandidate],
     diagnostics: "ScanDiagnostics",
     *,
     asset_id: int,
+    budget: PageReadBudget | None = None,
 ) -> tuple[list[DiscoveredCandidate], set[str]]:
     """
     Replace each image-less page candidate with one candidate per main
@@ -142,8 +224,7 @@ def _expand_pages_without_images(
     """
     expanded: list[DiscoveredCandidate] = []
     expanded_pages: set[str] = set()
-    pages_read = 0
-    deadline = time.monotonic() + PAGE_READING_BUDGET_SECONDS
+    budget = budget or PageReadBudget()
 
     for candidate in candidates:
         needs_reading = (
@@ -156,11 +237,10 @@ def _expand_pages_without_images(
             expanded.append(candidate)
             continue
 
-        if pages_read >= MAX_PAGES_TO_READ or time.monotonic() > deadline:
+        if not budget.take():
             diagnostics.no_image_address += 1
             continue
 
-        pages_read += 1
         failure, image_urls = read_page_images(candidate.candidate_page_url)
 
         if failure is not None and failure.value == "gone":
@@ -255,8 +335,9 @@ def run_scan_for_asset(
     matches: list[MatchRecord] = []
     diagnostics = ScanDiagnostics(candidates=len(candidates))
 
+    page_budget = PageReadBudget()
     candidates, expanded_pages = _expand_pages_without_images(
-        candidates, diagnostics, asset_id=asset.id
+        candidates, diagnostics, asset_id=asset.id, budget=page_budget
     )
     recorded_expanded_pages: set[str] = set()
 
@@ -365,6 +446,26 @@ def run_scan_for_asset(
                 candidate.candidate_page_url,
                 candidate.candidate_image_url,
             )
+
+            if (
+                page_status is PageStatus.UNCONFIRMED
+                and not should_show_match(
+                    candidate.candidate_page_url, page_status
+                )
+                and _page_shows_reference(
+                    candidate.candidate_page_url,
+                    reference_path=reference_path,
+                    asset=asset,
+                    user_id=user_id,
+                    watermark_secret=watermark_secret,
+                    threshold_percent=preference.alert_threshold_percent,
+                    budget=page_budget,
+                )
+            ):
+                # The page's own images contain our artwork, so it is
+                # a real appearance even though the HTML did not name
+                # the exact image address the search engine reported.
+                page_status = PageStatus.CONFIRMED
 
             if not should_show_match(
                 candidate.candidate_page_url, page_status
