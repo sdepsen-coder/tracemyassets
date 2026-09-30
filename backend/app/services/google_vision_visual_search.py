@@ -170,4 +170,33 @@ class GoogleVisionWebDetectionProvider:
                 )
             )
 
+        # Web Detection also lists matching *images* on their own, with no
+        # page attached. They are direct addresses of exact and partial
+        # copies, so they are worth checking too.
+        seen_images = {
+            candidate.candidate_image_url
+            for candidate in candidates
+            if candidate.candidate_image_url
+        }
+
+        for key in ("fullMatchingImages", "partialMatchingImages"):
+            for image in web_detection.get(key, []):
+                image_url = image.get("url")
+
+                if not image_url or image_url in seen_images:
+                    continue
+
+                seen_images.add(image_url)
+                candidates.append(
+                    DiscoveredCandidate(
+                        source_name="Google image match",
+                        # No page is known, so the image address itself
+                        # is the link back to where the copy was seen.
+                        source_url=image_url,
+                        candidate_image_url=image_url,
+                        candidate_page_url=None,
+                        candidate_image_bytes=None,
+                    )
+                )
+
         return candidates

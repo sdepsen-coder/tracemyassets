@@ -108,23 +108,8 @@ def is_trusted_marketplace(page_url: str) -> bool:
     return bool(_TRUSTED_MARKETPLACE_HOST.search(host))
 
 
-def check_candidate_page(
-    page_url: str,
-    image_url: str | None,
-    *,
-    fetcher: PageFetcher | None = None,
-) -> PageStatus:
-    fetch = fetcher or _default_fetcher
-
-    try:
-        result = fetch(page_url)
-    except (UnsafeUrlError, socket.gaierror):
-        return PageStatus.GONE
-    except httpx.ConnectError:
-        return PageStatus.GONE
-    except (httpx.HTTPError, ResponseTooLarge):
-        return PageStatus.BLOCKED
-
+def _response_status(result: FetchResult) -> PageStatus | None:
+    """A failure status for an HTTP response, or None if it is a usable 2xx."""
     status = result.status_code
 
     if status in (404, 410):
@@ -136,10 +121,50 @@ def check_candidate_page(
     if status >= 400:
         return PageStatus.GONE
 
+    return None
+
+
+def fetch_page(
+    page_url: str,
+    *,
+    fetcher: PageFetcher | None = None,
+) -> tuple[PageStatus | None, str]:
+    """
+    Fetch a page. Returns (failure_status, html): failure_status is None
+    when the page was read successfully, otherwise GONE or BLOCKED.
+    """
+    fetch = fetcher or _default_fetcher
+
+    try:
+        result = fetch(page_url)
+    except (UnsafeUrlError, socket.gaierror):
+        return PageStatus.GONE, ""
+    except httpx.ConnectError:
+        return PageStatus.GONE, ""
+    except (httpx.HTTPError, ResponseTooLarge):
+        return PageStatus.BLOCKED, ""
+
+    failure = _response_status(result)
+
+    if failure is not None:
+        return failure, ""
+
+    return None, result.content.decode("utf-8", errors="ignore")
+
+
+def check_candidate_page(
+    page_url: str,
+    image_url: str | None,
+    *,
+    fetcher: PageFetcher | None = None,
+) -> PageStatus:
+    failure, html = fetch_page(page_url, fetcher=fetcher)
+
+    if failure is not None:
+        return failure
+
     if not image_url:
         return PageStatus.UNCONFIRMED
-
-    html = result.content.decode("utf-8", errors="ignore")
 
     if page_references_image(html, image_url):
         return PageStatus.CONFIRMED

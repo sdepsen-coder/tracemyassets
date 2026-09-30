@@ -44,6 +44,30 @@ class VisualVerificationResult:
     review_recommended: bool
 
 
+# A perceptual hash compares whole-image layout, so it collapses when a copy
+# is cropped, framed, or shown inside a room mockup (typical of stolen art on
+# marketplaces). ORB keypoints checked with a RANSAC homography survive those
+# changes: on test variants of one artwork, crops and mockups produced 450-650
+# geometrically consistent points while unrelated images produced at most 4.
+GEOMETRIC_STRONG_MIN_INLIERS = 40
+GEOMETRIC_STRONG_MIN_RATIO = 60.0
+GEOMETRIC_MIN_INLIERS = 25
+GEOMETRIC_MIN_RATIO = 50.0
+
+
+def is_geometric_copy(
+    homography_inliers: int,
+    inlier_ratio_percent: float | None,
+) -> bool:
+    """True when the candidate shows the reference artwork, even cropped,
+    scaled, framed or in perspective, judged by ORB + homography alone."""
+    return (
+        inlier_ratio_percent is not None
+        and homography_inliers >= GEOMETRIC_MIN_INLIERS
+        and inlier_ratio_percent >= GEOMETRIC_MIN_RATIO
+    )
+
+
 def classify_match(
     *,
     watermark_verified: bool,
@@ -61,12 +85,22 @@ def classify_match(
         return ("WATERMARK_VERIFIED", True)
 
     if (
+        inlier_ratio_percent is not None
+        and homography_inliers >= GEOMETRIC_STRONG_MIN_INLIERS
+        and inlier_ratio_percent >= GEOMETRIC_STRONG_MIN_RATIO
+    ):
+        return ("STRONG_VISUAL_MATCH", True)
+
+    if (
         phash_similarity_percent >= 90.0
         and homography_inliers >= 20
         and inlier_ratio_percent is not None
         and inlier_ratio_percent >= 60.0
     ):
         return ("STRONG_VISUAL_MATCH", True)
+
+    if is_geometric_copy(homography_inliers, inlier_ratio_percent):
+        return ("POSSIBLE_VISUAL_MATCH", True)
 
     if (
         phash_similarity_percent >= 75.0

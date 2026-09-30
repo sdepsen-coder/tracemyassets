@@ -154,6 +154,7 @@ class ScanDiagnosticsRead(BaseModel):
     below_threshold: int
     page_gone: int
     page_unrelated: int
+    page_unreadable: int = 0
     recorded: int
     best_similarity_percent: float | None = None
 

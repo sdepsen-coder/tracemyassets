@@ -147,6 +147,7 @@ export type ScanDiagnostics = {
   below_threshold: number;
   page_gone: number;
   page_unrelated: number;
+  page_unreadable?: number;
   recorded: number;
   best_similarity_percent: number | null;
 };

@@ -93,6 +93,16 @@ function describeScanDiagnostics(
     );
   }
 
+  if ((diagnostics.page_unreadable ?? 0) > 0) {
+    lines.push(
+      `${plural(
+        diagnostics.page_unreadable ?? 0,
+        "page",
+        "pages",
+      )} could not be read (blocked by the site, or no usable image on it).`,
+    );
+  }
+
   return lines;
 }
 

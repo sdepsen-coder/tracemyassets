@@ -103,7 +103,7 @@ class ScanRunnerPageCheckTests(unittest.TestCase):
             candidate(
                 candidate_image_bytes=None,
                 candidate_image_url=None,
-            ),  # no image address
+            ),  # page without image address, page cannot be read
             candidate(
                 candidate_image_bytes=b"not an image",
             ),  # not comparable
@@ -123,6 +123,9 @@ class ScanRunnerPageCheckTests(unittest.TestCase):
         with mock.patch(
             "app.services.scan_runner.check_candidate_page",
             side_effect=fake_page_check,
+        ), mock.patch(
+            "app.services.scan_runner.read_page_images",
+            return_value=(PageStatus.BLOCKED, []),
         ):
             outcome = run_scan_for_asset(
                 self.db,
@@ -138,12 +141,88 @@ class ScanRunnerPageCheckTests(unittest.TestCase):
         d = outcome.diagnostics
         self.assertEqual(d.candidates, 4)
         self.assertEqual(d.recorded, 1)
-        self.assertEqual(d.no_image_address, 1)
+        self.assertEqual(d.page_unreadable, 1)
         self.assertEqual(d.not_comparable, 1)
         self.assertEqual(d.page_gone, 1)
         self.assertEqual(d.below_threshold, 0)
         self.assertEqual(d.image_unreachable, 0)
         self.assertGreaterEqual(d.best_similarity_percent, 99.0)
+
+    def run_with_pages(self, candidates, *, reader, fetch_bytes=None):
+        with mock.patch(
+            "app.services.scan_runner.read_page_images", side_effect=reader
+        ), mock.patch(
+            "app.services.scan_runner.fetch_candidate_bytes",
+            side_effect=fetch_bytes or (lambda url: self.image_path.read_bytes()),
+        ):
+            return run_scan_for_asset(
+                self.db,
+                asset=self.asset,
+                user_id=self.user_id,
+                preference=self.preference,
+                reference_path=self.image_path,
+                watermarked_path=None,
+                watermark_secret=load_watermark_secret(),
+                providers=[base._WorkingProvider("google-vision", candidates)],
+            )
+
+    def imageless_page(self, url="https://shop.example/listing/1"):
+        return DiscoveredCandidate(
+            source_name="A page",
+            source_url=url,
+            candidate_image_url=None,
+            candidate_page_url=url,
+            page_may_be_stale=True,
+        )
+
+    def test_page_without_image_address_is_read_and_its_images_checked(
+        self,
+    ) -> None:
+        outcome = self.run_with_pages(
+            [self.imageless_page()],
+            reader=lambda url: (
+                None,
+                ["https://cdn.example/a.jpg", "https://cdn.example/b.jpg"],
+            ),
+        )
+
+        # Both images match, but one record per page is enough.
+        self.assertEqual(len(outcome.matches), 1)
+        self.assertEqual(outcome.diagnostics.candidates, 1)
+        self.assertEqual(
+            outcome.matches[0].candidate_image_url,
+            "https://cdn.example/a.jpg",
+        )
+
+    def test_gone_page_without_image_address_is_counted(self) -> None:
+        outcome = self.run_with_pages(
+            [self.imageless_page()],
+            reader=lambda url: (PageStatus.GONE, []),
+        )
+
+        self.assertEqual(outcome.matches, [])
+        self.assertEqual(outcome.diagnostics.page_gone, 1)
+
+    def test_page_reading_is_capped(self) -> None:
+        pages = [
+            self.imageless_page(f"https://shop.example/listing/{index}")
+            for index in range(10)
+        ]
+        calls = []
+
+        def reader(url):
+            calls.append(url)
+            return (PageStatus.BLOCKED, [])
+
+        outcome = self.run_with_pages(pages, reader=reader)
+
+        from app.services.scan_runner import MAX_PAGES_TO_READ
+
+        self.assertEqual(len(calls), MAX_PAGES_TO_READ)
+        self.assertEqual(outcome.diagnostics.page_unreadable, MAX_PAGES_TO_READ)
+        self.assertEqual(
+            outcome.diagnostics.no_image_address, 10 - MAX_PAGES_TO_READ
+        )
 
 
 if __name__ == "__main__":

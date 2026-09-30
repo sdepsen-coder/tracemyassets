@@ -9,7 +9,8 @@ plain DB session).
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+import time
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from sqlalchemy.orm import Session
@@ -31,12 +32,16 @@ from app.services.visual_search_provider import (
     fetch_candidate_bytes,
     get_configured_providers,
 )
+from app.services.page_images import read_page_images
 from app.services.page_check import (
     PageStatus,
     check_candidate_page,
     should_show_match,
 )
-from app.services.visual_verification import verify_candidate_image
+from app.services.visual_verification import (
+    is_geometric_copy,
+    verify_candidate_image,
+)
 from app.services.watermark import WatermarkError
 
 logger = logging.getLogger("tracemyassets.scan_runner")
@@ -59,6 +64,7 @@ class ScanDiagnostics:
     below_threshold: int = 0
     page_gone: int = 0
     page_unrelated: int = 0
+    page_unreadable: int = 0
     recorded: int = 0
     best_similarity_percent: float | None = None
 
@@ -112,6 +118,83 @@ def _collect_candidates(
             )
 
     return candidates
+
+
+# Search engines sometimes report a page that contains a matching image
+# without saying which image. We read a few such pages ourselves and check
+# their main images. Bounded so a scan (which runs inside an HTTP request)
+# cannot be held up by slow third-party sites.
+MAX_PAGES_TO_READ = 6
+PAGE_READING_BUDGET_SECONDS = 45.0
+
+
+def _expand_pages_without_images(
+    candidates: list[DiscoveredCandidate],
+    diagnostics: "ScanDiagnostics",
+    *,
+    asset_id: int,
+) -> tuple[list[DiscoveredCandidate], set[str]]:
+    """
+    Replace each image-less page candidate with one candidate per main
+    image found on that page. Returns the new candidate list and the set
+    of page URLs that were expanded (so only the best image per page is
+    recorded).
+    """
+    expanded: list[DiscoveredCandidate] = []
+    expanded_pages: set[str] = set()
+    pages_read = 0
+    deadline = time.monotonic() + PAGE_READING_BUDGET_SECONDS
+
+    for candidate in candidates:
+        needs_reading = (
+            candidate.candidate_image_bytes is None
+            and not candidate.candidate_image_url
+            and candidate.candidate_page_url
+        )
+
+        if not needs_reading:
+            expanded.append(candidate)
+            continue
+
+        if pages_read >= MAX_PAGES_TO_READ or time.monotonic() > deadline:
+            diagnostics.no_image_address += 1
+            continue
+
+        pages_read += 1
+        failure, image_urls = read_page_images(candidate.candidate_page_url)
+
+        if failure is not None and failure.value == "gone":
+            diagnostics.page_gone += 1
+            logger.info(
+                "asset_id=%s page gone while looking for images: %s",
+                asset_id,
+                candidate.candidate_page_url,
+            )
+            continue
+
+        if failure is not None or not image_urls:
+            diagnostics.page_unreadable += 1
+            logger.info(
+                "asset_id=%s page unreadable or without usable images: %s",
+                asset_id,
+                candidate.candidate_page_url,
+            )
+            continue
+
+        expanded_pages.add(candidate.candidate_page_url)
+
+        for image_url in image_urls:
+            # The page was just read successfully and the image comes
+            # from its own HTML, so it needs no second page check.
+            expanded.append(
+                replace(
+                    candidate,
+                    candidate_image_url=image_url,
+                    page_may_be_stale=False,
+                )
+            )
+
+    return expanded, expanded_pages
 
 
 def run_scan_for_asset(
@@ -172,7 +255,20 @@ def run_scan_for_asset(
     matches: list[MatchRecord] = []
     diagnostics = ScanDiagnostics(candidates=len(candidates))
 
+    candidates, expanded_pages = _expand_pages_without_images(
+        candidates, diagnostics, asset_id=asset.id
+    )
+    recorded_expanded_pages: set[str] = set()
+
     for candidate in candidates:
+        if (
+            candidate.candidate_page_url in expanded_pages
+            and candidate.candidate_page_url in recorded_expanded_pages
+        ):
+            # This page already produced a match from another of its
+            # images; one record per page is enough.
+            continue
+
         candidate_bytes = candidate.candidate_image_bytes
 
         if candidate_bytes is None and candidate.candidate_image_url:
@@ -231,19 +327,31 @@ def run_scan_for_asset(
                 result.phash_similarity_percent
             )
 
+        # The user's threshold applies to whole-image similarity. A copy
+        # that is cropped, framed or shown in a mockup scores low there
+        # but is still the same artwork, so geometric evidence (see
+        # visual_verification.is_geometric_copy) qualifies on its own.
         should_alert = (
             result.watermark_matches_reference
             or result.phash_similarity_percent
             >= preference.alert_threshold_percent
+            or is_geometric_copy(
+                result.orb.homography_inliers,
+                result.orb.inlier_ratio_percent,
+            )
         )
 
         if not should_alert:
             diagnostics.below_threshold += 1
             logger.info(
-                "asset_id=%s candidate below threshold: %.0f%% < %.0f%% (%s)",
+                "asset_id=%s candidate below threshold: %.0f%% < %.0f%% "
+                "(orb good=%s inliers=%s ratio=%s) (%s)",
                 asset.id,
                 result.phash_similarity_percent,
                 preference.alert_threshold_percent,
+                result.orb.good_matches,
+                result.orb.homography_inliers,
+                result.orb.inlier_ratio_percent,
                 candidate.candidate_image_url,
             )
             continue
@@ -294,10 +402,13 @@ def run_scan_for_asset(
         matches.append(match_record)
         diagnostics.recorded += 1
 
+        if candidate.candidate_page_url in expanded_pages:
+            recorded_expanded_pages.add(candidate.candidate_page_url)
+
     scan_job = mark_scan_job_completed(
         db,
         scan_job,
-        candidate_count=len(candidates),
+        candidate_count=diagnostics.candidates,
         match_count=len(matches),
     )
 
