@@ -406,6 +406,28 @@ def run_scan_for_asset(
             )
             continue
 
+        # One line per verified candidate, whatever the outcome, so a
+        # surprising similarity figure can be traced to the exact image,
+        # the hashes compared and the geometric evidence behind it.
+        logger.info(
+            "asset_id=%s verified candidate: image=%s page=%s "
+            "bytes=%d ref_phash=%s cand_phash=%s distance=%d "
+            "similarity=%.0f%% orb_good=%s orb_inliers=%s orb_ratio=%s "
+            "signal=%s",
+            asset.id,
+            candidate.candidate_image_url,
+            candidate.candidate_page_url,
+            len(candidate_bytes),
+            result.reference_phash,
+            result.candidate_phash,
+            result.phash_hamming_distance,
+            result.phash_similarity_percent,
+            result.orb.good_matches,
+            result.orb.homography_inliers,
+            result.orb.inlier_ratio_percent,
+            result.overall_signal,
+        )
+
         # The user's threshold applies to whole-image similarity. A copy
         # that is cropped, framed or shown in a mockup scores low there
         # but is still the same artwork, so geometric evidence (see
