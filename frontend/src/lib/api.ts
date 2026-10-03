@@ -127,7 +127,11 @@ export type MatchRecord = {
   updated_at: string;
 };
 
-export type MatchVerdict = "useful" | "false_positive" | "not_my_work";
+export type MatchVerdict =
+  | "useful"
+  | "irrelevant"
+  | "unrelated"
+  | "different";
 
 export type SurveyAnswers = Partial<
   Record<"check_today" | "would_pay" | "if_found", string>

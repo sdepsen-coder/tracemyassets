@@ -2,7 +2,11 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-MatchVerdict = Literal["useful", "false_positive", "not_my_work"]
+# "useful" is a real copy the artist is glad to know about. The other three
+# say why a result was not useful: "irrelevant" (a genuine match that is
+# not worth their attention), "unrelated" (nothing to do with their
+# artwork) and "different" (similar, but a different artwork).
+MatchVerdict = Literal["useful", "irrelevant", "unrelated", "different"]
 
 # The only questions the beta survey asks. Anything else is rejected, so
 # the table cannot be used as a general-purpose storage endpoint.

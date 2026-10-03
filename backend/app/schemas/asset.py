@@ -132,12 +132,14 @@ class MatchRecordRead(BaseModel):
     dismissed_at: datetime | None
     notes: str | None
     source_locked: bool
-    # This user's own verdict on the match ("useful", "false_positive",
-    # "not_my_work"), if they gave one -- see app.models.feedback.
+    # This user's own verdict on the match ("useful", "irrelevant",
+    # "unrelated" or "different"), if they gave one -- see
+    # app.models.feedback.
     feedback_verdict: Literal[
         "useful",
-        "false_positive",
-        "not_my_work",
+        "irrelevant",
+        "unrelated",
+        "different",
     ] | None = None
     created_at: datetime
     updated_at: datetime

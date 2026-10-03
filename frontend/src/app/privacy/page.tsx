@@ -32,7 +32,7 @@ export default function PrivacyPage() {
             "Account data: your email address and a password hash (we never store your password itself).",
             "Artwork you upload: the original file, a thumbnail, a protected watermarked copy, and a visual fingerprint (perceptual hash) computed from it, plus the title you give it.",
             "Monitoring data: your scan settings, scan history, and the possible matches found for your artwork (including the address of the page and image where a possible copy was found, and similarity results).",
-            "Feedback you choose to send: your verdicts on matches (useful, false positive, not my work) and any answers or messages you submit through the feedback form. A verdict keeps only a small technical snapshot of the match (its similarity result and source type), not the address where it was found, and it is kept even if you later delete the artwork, so we can improve how matches are judged.",
+            "Feedback you choose to send: your verdicts on matches (useful, irrelevant, unrelated, different) and any answers or messages you submit through the feedback form. A verdict keeps only a small technical snapshot of the match (its similarity result and source type), not the address where it was found, and it is kept even if you later delete the artwork, so we can improve how matches are judged.",
             "A session cookie that keeps you signed in. We do not use advertising or analytics trackers.",
           ]}
         />
@@ -57,6 +57,7 @@ export default function PrivacyPage() {
             "Hosting: our application, database and file storage run on Railway.",
             "Google Cloud Vision (Web Detection): when a scan runs, the image of the artwork being monitored is sent to Google to look for visually similar images on the web.",
             "Marketplace search: the title you give an artwork is sent as a search keyword to marketplace search services, including the Etsy API and a third-party Amazon search data provider. Only the title is sent, not the image. Any candidate images returned are downloaded by our servers for comparison and are not kept.",
+            "Resend (email): if monitoring is on for an artwork, we email you when a scan finds new possible matches. To send it, your email address, the artwork's title and the number of new matches are passed to Resend. The email never contains where a match was found.",
             "Fonts and icons are loaded from Google Fonts by your browser.",
           ]}
         />

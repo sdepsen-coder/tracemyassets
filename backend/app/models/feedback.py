@@ -19,7 +19,7 @@ class FeedbackEntry(Base):
     One piece of beta feedback, either:
 
     - kind="match_verdict": a user's verdict on one match ("useful",
-      "false_positive" or "not_my_work"). At most one per user and match
+      "irrelevant", "unrelated" or "different"). At most one per user and match
       (see the unique constraint), changed in place if the user changes
       their mind. These feed threshold tuning.
     - kind="beta_survey": answers to the short in-app beta questions.

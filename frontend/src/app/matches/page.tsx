@@ -46,14 +46,19 @@ const verdictOptions: Array<{
     hint: "A real copy I am glad to know about",
   },
   {
-    value: "false_positive",
-    label: "False positive",
-    hint: "This is not a copy of my artwork",
+    value: "irrelevant",
+    label: "Irrelevant",
+    hint: "A genuine match, but not worth my attention",
   },
   {
-    value: "not_my_work",
-    label: "Not my work",
-    hint: "The artwork shown is not mine",
+    value: "unrelated",
+    label: "Unrelated",
+    hint: "Nothing to do with my artwork",
+  },
+  {
+    value: "different",
+    label: "Different",
+    hint: "Similar, but a different artwork",
   },
 ];
 

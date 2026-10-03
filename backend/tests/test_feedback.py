@@ -135,14 +135,14 @@ class MatchVerdictTests(FeedbackDataTestCase):
             self.db,
             user_id=self.user.id,
             match_record=self.match,
-            verdict="false_positive",
+            verdict="unrelated",
         )
         self.db.commit()
 
         rows = list(self.db.scalars(select(FeedbackEntry)))
 
         self.assertEqual(len(rows), 1)
-        self.assertEqual(rows[0].verdict, "false_positive")
+        self.assertEqual(rows[0].verdict, "unrelated")
 
     def test_the_snapshot_is_not_an_address(self) -> None:
         entry = upsert_match_verdict(
@@ -176,7 +176,7 @@ class MatchVerdictTests(FeedbackDataTestCase):
             self.db,
             user_id=self.other_user.id,
             match_record=self.match,
-            verdict="not_my_work",
+            verdict="different",
         )
         self.db.commit()
 
@@ -188,7 +188,7 @@ class MatchVerdictTests(FeedbackDataTestCase):
         )
 
         self.assertEqual(mine, {self.match.id: "useful"})
-        self.assertEqual(theirs, {self.match.id: "not_my_work"})
+        self.assertEqual(theirs, {self.match.id: "different"})
 
     def test_lookup_with_no_ids_is_empty(self) -> None:
         self.assertEqual(
@@ -210,7 +210,7 @@ class MatchVerdictTests(FeedbackDataTestCase):
             self.db,
             user_id=self.user.id,
             match_record=second,
-            verdict="false_positive",
+            verdict="unrelated",
         )
         self.db.commit()
 
@@ -231,14 +231,14 @@ class MatchVerdictTests(FeedbackDataTestCase):
             match_ids=[self.match.id, second.id],
         )
 
-        self.assertEqual(remaining, {second.id: "false_positive"})
+        self.assertEqual(remaining, {second.id: "unrelated"})
 
     def test_a_verdict_survives_deleting_the_artwork(self) -> None:
         upsert_match_verdict(
             self.db,
             user_id=self.user.id,
             match_record=self.match,
-            verdict="false_positive",
+            verdict="unrelated",
         )
         self.db.commit()
 
@@ -250,7 +250,7 @@ class MatchVerdictTests(FeedbackDataTestCase):
         rows = list(self.db.scalars(select(FeedbackEntry)))
 
         self.assertEqual(len(rows), 1)
-        self.assertEqual(rows[0].verdict, "false_positive")
+        self.assertEqual(rows[0].verdict, "unrelated")
         self.assertEqual(rows[0].similarity_percent, 91.0)
 
 
@@ -378,18 +378,18 @@ class FeedbackEndpointTests(FeedbackDataTestCase):
     def test_verdict_round_trip_shows_up_on_the_match_list(self) -> None:
         response = self.client.put(
             f"/api/v1/matches/{self.match.id}/feedback",
-            json={"verdict": "false_positive"},
+            json={"verdict": "unrelated"},
         )
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.json(),
-            {"match_id": self.match.id, "verdict": "false_positive"},
+            {"match_id": self.match.id, "verdict": "unrelated"},
         )
 
         listed = self.client.get("/api/v1/matches").json()
 
-        self.assertEqual(listed[0]["feedback_verdict"], "false_positive")
+        self.assertEqual(listed[0]["feedback_verdict"], "unrelated")
 
     def test_unrated_match_has_no_verdict(self) -> None:
         listed = self.client.get("/api/v1/matches").json()
