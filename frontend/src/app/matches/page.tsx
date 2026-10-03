@@ -12,6 +12,7 @@ import {
   type Asset,
   type MatchRecord,
   type MatchRecordUpdate,
+  type MatchVerdict,
 } from "@/lib/api";
 
 type MatchFilter =
@@ -33,6 +34,28 @@ const strengthOptions: Array<{
 ];
 
 const SHOW_STRENGTH_KEY = "tma_show_match_strength";
+
+const verdictOptions: Array<{
+  value: MatchVerdict;
+  label: string;
+  hint: string;
+}> = [
+  {
+    value: "useful",
+    label: "Useful",
+    hint: "A real copy I am glad to know about",
+  },
+  {
+    value: "false_positive",
+    label: "False positive",
+    hint: "This is not a copy of my artwork",
+  },
+  {
+    value: "not_my_work",
+    label: "Not my work",
+    hint: "The artwork shown is not mine",
+  },
+];
 
 const filters: Array<{
   value: MatchFilter;
@@ -210,6 +233,49 @@ function MatchesContent() {
       );
     } finally {
       setUpdatingId((current) => (current === matchId ? null : current));
+    }
+  }
+
+  async function handleVerdict(matchId: number, verdict: MatchVerdict) {
+    const previous =
+      matches.find((match) => match.id === matchId)?.feedback_verdict ??
+      null;
+
+    // Pressing the chosen verdict again takes it back.
+    const next = previous === verdict ? null : verdict;
+
+    function show(value: MatchVerdict | null) {
+      setMatches((current) =>
+        current.map((match) =>
+          match.id === matchId
+            ? { ...match, feedback_verdict: value }
+            : match,
+        ),
+      );
+    }
+
+    setActionError("");
+    show(next);
+
+    try {
+      if (next === null) {
+        await api.clearMatchFeedback(matchId);
+      } else {
+        await api.setMatchFeedback(matchId, next);
+      }
+    } catch (err) {
+      show(previous);
+
+      if (err instanceof ApiError && err.status === 401) {
+        await logout();
+        return;
+      }
+
+      setActionError(
+        err instanceof ApiError
+          ? err.message
+          : "Your feedback could not be saved.",
+      );
     }
   }
 
@@ -657,6 +723,41 @@ function MatchesContent() {
                         Match ID #{match.id}
                       </span>
                     </div>
+                  </div>
+
+                  <div
+                    role="group"
+                    aria-label="Was this result right?"
+                    className="mt-4 flex flex-wrap items-center gap-2 border-t border-[var(--border)] pt-3"
+                  >
+                    <span className="mr-1 text-[12px] text-[var(--text-muted)]">
+                      Was this result right?
+                    </span>
+
+                    {verdictOptions.map((option) => {
+                      const selected =
+                        match.feedback_verdict === option.value;
+
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          title={option.hint}
+                          aria-pressed={selected}
+                          onClick={() =>
+                            void handleVerdict(match.id, option.value)
+                          }
+                          className={[
+                            "inline-flex h-8 items-center rounded-lg border px-3 text-[12px] font-semibold transition",
+                            selected
+                              ? "border-[var(--primary)] bg-[var(--primary-soft)] text-[var(--primary)]"
+                              : "border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:text-[var(--text)]",
+                          ].join(" ")}
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
                   </div>
                 </article>
               );

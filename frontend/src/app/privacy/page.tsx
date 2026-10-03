@@ -32,6 +32,7 @@ export default function PrivacyPage() {
             "Account data: your email address and a password hash (we never store your password itself).",
             "Artwork you upload: the original file, a thumbnail, a protected watermarked copy, and a visual fingerprint (perceptual hash) computed from it, plus the title you give it.",
             "Monitoring data: your scan settings, scan history, and the possible matches found for your artwork (including the address of the page and image where a possible copy was found, and similarity results).",
+            "Feedback you choose to send: your verdicts on matches (useful, false positive, not my work) and any answers or messages you submit through the feedback form. A verdict keeps only a small technical snapshot of the match (its similarity result and source type), not the address where it was found, and it is kept even if you later delete the artwork, so we can improve how matches are judged.",
             "A session cookie that keeps you signed in. We do not use advertising or analytics trackers.",
           ]}
         />

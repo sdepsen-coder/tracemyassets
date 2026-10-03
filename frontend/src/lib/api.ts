@@ -122,8 +122,21 @@ export type MatchRecord = {
   dismissed_at: string | null;
   notes: string | null;
   source_locked: boolean;
+  feedback_verdict: MatchVerdict | null;
   created_at: string;
   updated_at: string;
+};
+
+export type MatchVerdict = "useful" | "false_positive" | "not_my_work";
+
+export type SurveyAnswers = Partial<
+  Record<"check_today" | "would_pay" | "if_found", string>
+>;
+
+export type FeedbackSubmission = {
+  kind: "beta_survey" | "general";
+  message?: string;
+  answers?: SurveyAnswers;
 };
 
 export type MatchRecordUpdate = {
@@ -437,6 +450,36 @@ export const api = {
     request<MatchRecord>(`/api/v1/matches/${matchId}`, {
       method: "PATCH",
       body: JSON.stringify(update),
+      signal,
+    }),
+
+  setMatchFeedback: (
+    matchId: number,
+    verdict: MatchVerdict,
+    signal?: AbortSignal,
+  ) =>
+    request<{ match_id: number; verdict: MatchVerdict }>(
+      `/api/v1/matches/${matchId}/feedback`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ verdict }),
+        signal,
+      },
+    ),
+
+  clearMatchFeedback: (matchId: number, signal?: AbortSignal) =>
+    request<void>(`/api/v1/matches/${matchId}/feedback`, {
+      method: "DELETE",
+      signal,
+    }),
+
+  sendFeedback: (
+    feedback: FeedbackSubmission,
+    signal?: AbortSignal,
+  ) =>
+    request<{ id: number }>("/api/v1/feedback", {
+      method: "POST",
+      body: JSON.stringify(feedback),
       signal,
     }),
 };

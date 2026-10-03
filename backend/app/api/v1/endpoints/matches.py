@@ -4,6 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
+from app.crud.feedback import (
+    clear_match_verdict,
+    get_verdicts_for_matches,
+    upsert_match_verdict,
+)
 from app.crud.match_record import (
     count_match_records_by_status,
     get_match_record_for_user,
@@ -12,6 +17,7 @@ from app.crud.match_record import (
 )
 from app.models.user import User
 from app.schemas.asset import MatchRecordRead, MatchRecordUpdate, MatchSummary
+from app.schemas.feedback import MatchFeedbackRead, MatchFeedbackUpdate
 from app.services.match_presentation import build_match_record_response
 
 
@@ -43,8 +49,18 @@ def read_matches(
         limit=limit,
     )
 
+    verdicts = get_verdicts_for_matches(
+        db,
+        user_id=user.id,
+        match_ids=[record.id for record in records],
+    )
+
     return [
-        build_match_record_response(record, plan_type=user.plan_type)
+        build_match_record_response(
+            record,
+            plan_type=user.plan_type,
+            feedback_verdict=verdicts.get(record.id),
+        )
         for record in records
     ]
 
@@ -89,4 +105,74 @@ def update_match(
     db.commit()
     db.refresh(updated)
 
-    return build_match_record_response(updated, plan_type=user.plan_type)
+    verdicts = get_verdicts_for_matches(
+        db,
+        user_id=user.id,
+        match_ids=[updated.id],
+    )
+
+    return build_match_record_response(
+        updated,
+        plan_type=user.plan_type,
+        feedback_verdict=verdicts.get(updated.id),
+    )
+
+
+@router.put("/{match_id}/feedback", response_model=MatchFeedbackRead)
+def set_match_feedback(
+    match_id: int,
+    request: MatchFeedbackUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> MatchFeedbackRead:
+    """
+    Record the user's verdict on one match: useful, a false positive,
+    or "not my work". Changing it later replaces the earlier verdict.
+    """
+    match_record = get_match_record_for_user(
+        db,
+        match_id=match_id,
+        user_id=user.id,
+    )
+
+    if match_record is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Match not found.",
+        )
+
+    entry = upsert_match_verdict(
+        db,
+        user_id=user.id,
+        match_record=match_record,
+        verdict=request.verdict,
+    )
+
+    db.commit()
+
+    return MatchFeedbackRead(match_id=match_id, verdict=entry.verdict)
+
+
+@router.delete(
+    "/{match_id}/feedback",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_match_feedback(
+    match_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> None:
+    match_record = get_match_record_for_user(
+        db,
+        match_id=match_id,
+        user_id=user.id,
+    )
+
+    if match_record is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Match not found.",
+        )
+
+    clear_match_verdict(db, user_id=user.id, match_id=match_id)
+    db.commit()

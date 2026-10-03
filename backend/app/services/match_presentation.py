@@ -21,6 +21,7 @@ def build_match_record_response(
     match_record: MatchRecord,
     *,
     plan_type: str | None,
+    feedback_verdict: str | None = None,
 ) -> MatchRecordRead:
     unlocked = get_plan_limits(plan_type).reveals_match_source
 
@@ -49,6 +50,7 @@ def build_match_record_response(
         dismissed_at=match_record.dismissed_at,
         notes=match_record.notes,
         source_locked=not unlocked,
+        feedback_verdict=feedback_verdict,
         created_at=match_record.created_at,
         updated_at=match_record.updated_at,
     )
