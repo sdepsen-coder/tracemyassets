@@ -122,10 +122,14 @@ export type MatchRecord = {
   dismissed_at: string | null;
   notes: string | null;
   source_locked: boolean;
+  page_kind: MatchPageKind;
   feedback_verdict: MatchVerdict | null;
   created_at: string;
   updated_at: string;
 };
+
+// What kind of page a match was found on (see backend page_kind.py).
+export type MatchPageKind = "item" | "collection" | "page" | "image_only";
 
 export type MatchVerdict =
   | "useful"

@@ -132,6 +132,10 @@ class MatchRecordRead(BaseModel):
     dismissed_at: datetime | None
     notes: str | None
     source_locked: bool
+    # What kind of page this was found on (derived from its address,
+    # shown even when the address itself is locked) -- see
+    # app.services.page_kind.
+    page_kind: Literal["item", "collection", "page", "image_only"] = "page"
     # This user's own verdict on the match ("useful", "irrelevant",
     # "unrelated" or "different"), if they gave one -- see
     # app.models.feedback.

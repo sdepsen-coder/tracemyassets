@@ -12,6 +12,7 @@ import {
   type Asset,
   type MatchRecord,
   type MatchRecordUpdate,
+  type MatchPageKind,
   type MatchVerdict,
 } from "@/lib/api";
 
@@ -34,6 +35,36 @@ const strengthOptions: Array<{
 ];
 
 const SHOW_STRENGTH_KEY = "tma_show_match_strength";
+
+const pageKindInfo: Record<
+  MatchPageKind,
+  { label: string; hint: string; icon: string; rank: number }
+> = {
+  item: {
+    label: "Item page",
+    hint: "A single listing or pin. The image may be its main photo or sit elsewhere on the page, for example under related items.",
+    icon: "sell",
+    rank: 0,
+  },
+  page: {
+    label: "Web page",
+    hint: "The image appears somewhere on this page, not necessarily as its main item.",
+    icon: "article",
+    rank: 1,
+  },
+  collection: {
+    label: "Search or category page",
+    hint: "A search, category, board or shop page. The image appears among many other items.",
+    icon: "grid_view",
+    rank: 2,
+  },
+  image_only: {
+    label: "Image only",
+    hint: "The image was found, but not the page it is shown on.",
+    icon: "image",
+    rank: 3,
+  },
+};
 
 const verdictOptions: Array<{
   value: MatchVerdict;
@@ -330,7 +361,7 @@ function MatchesContent() {
   const visibleMatches = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
 
-    return matches.filter((match) => {
+    const filtered = matches.filter((match) => {
       const matchesFilter =
         filter === "all"
           ? true
@@ -375,6 +406,15 @@ function MatchesContent() {
           String(value).toLowerCase().includes(normalizedSearch),
         );
     });
+
+    // Best evidence first: pages about the item, then other pages, then
+    // search/category pages, then bare images. The sort is stable, so
+    // within each group the order the server gave is kept.
+    return [...filtered].sort(
+      (a, b) =>
+        pageKindInfo[a.page_kind ?? "page"].rank -
+        pageKindInfo[b.page_kind ?? "page"].rank,
+    );
   }, [assetsById, filter, matches, search, strength]);
 
   return (
@@ -621,7 +661,21 @@ function MatchesContent() {
                           <span>
                             Found {formatDate(match.found_at)}
                           </span>
+
+                          <span
+                            title={pageKindInfo[match.page_kind ?? "page"].hint}
+                            className="inline-flex items-center gap-1.5"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">
+                              {pageKindInfo[match.page_kind ?? "page"].icon}
+                            </span>
+                            {pageKindInfo[match.page_kind ?? "page"].label}
+                          </span>
                         </div>
+
+                        <p className="max-w-xl text-[12px] leading-5 text-[var(--text-muted)]">
+                          {pageKindInfo[match.page_kind ?? "page"].hint}
+                        </p>
 
                         {match.watermark_matches_reference || showStrength ? (
                           <div className="flex flex-wrap items-center gap-3 text-[12px]">

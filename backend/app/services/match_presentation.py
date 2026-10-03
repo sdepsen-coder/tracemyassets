@@ -15,6 +15,7 @@ from __future__ import annotations
 from app.core.plan_limits import get_plan_limits
 from app.models.match_record import MatchRecord
 from app.schemas.asset import MatchRecordRead
+from app.services.page_kind import classify_page
 
 
 def build_match_record_response(
@@ -50,6 +51,7 @@ def build_match_record_response(
         dismissed_at=match_record.dismissed_at,
         notes=match_record.notes,
         source_locked=not unlocked,
+        page_kind=classify_page(match_record.candidate_page_url),
         feedback_verdict=feedback_verdict,
         created_at=match_record.created_at,
         updated_at=match_record.updated_at,
