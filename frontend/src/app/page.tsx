@@ -19,13 +19,13 @@ export default function HomePage() {
             <div className="mx-auto flex max-w-[1440px] flex-col gap-6">
               <HeroBanner />
 
-              <MatchesSummaryBanner />
-
               <DashboardStats />
 
               <section id="my-artworks" className="scroll-mt-32">
                 <ProtectedAssetsCard />
               </section>
+
+              <MatchesSummaryBanner />
             </div>
           </main>
 

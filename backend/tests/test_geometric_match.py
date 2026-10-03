@@ -131,5 +131,63 @@ class GeometricRuleTests(unittest.TestCase):
         self.assertFalse(is_geometric_copy(4, 100.0))
 
 
+class NearIdenticalHashTests(unittest.TestCase):
+    """Real log values: small Pinterest thumbnails of the artwork."""
+
+    def _signal(self, phash, good, inliers, ratio):
+        return classify_match(
+            watermark_verified=False,
+            phash_similarity_percent=phash,
+            good_matches=good,
+            homography_inliers=inliers,
+            inlier_ratio_percent=ratio,
+        )[0]
+
+    def test_a_97_percent_thumbnail_with_19_inliers_is_strong(self) -> None:
+        self.assertEqual(
+            self._signal(97.0, 22, 19, 86.4), "STRONG_VISUAL_MATCH"
+        )
+
+    def test_a_97_percent_thumbnail_with_12_inliers_is_strong(self) -> None:
+        self.assertEqual(
+            self._signal(97.0, 17, 12, 70.6), "STRONG_VISUAL_MATCH"
+        )
+
+    def test_the_91_percent_thumbnail_stays_strong(self) -> None:
+        self.assertEqual(
+            self._signal(90.6, 32, 27, 84.4), "STRONG_VISUAL_MATCH"
+        )
+
+    def test_a_near_identical_hash_still_needs_geometric_support(self) -> None:
+        self.assertNotEqual(
+            self._signal(97.0, 3, 4, 100.0), "STRONG_VISUAL_MATCH"
+        )
+        self.assertNotEqual(
+            self._signal(97.0, 20, 11, 90.0), "STRONG_VISUAL_MATCH"
+        )
+        self.assertNotEqual(
+            self._signal(97.0, 20, 15, 55.0), "STRONG_VISUAL_MATCH"
+        )
+
+    def test_a_lower_hash_does_not_get_the_relaxed_rule(self) -> None:
+        # 94 % with 15 inliers is not enough for "strong".
+        self.assertNotEqual(
+            self._signal(94.0, 20, 15, 90.0), "STRONG_VISUAL_MATCH"
+        )
+
+    def test_unrelated_images_in_the_real_log_stay_unmatched(self) -> None:
+        for phash, good, inliers, ratio in (
+            (50.0, 2, 0, None),
+            (56.0, 4, 4, 100.0),
+            (53.0, 8, 4, 50.0),
+            (59.0, 6, 4, 66.7),
+            (50.0, 19, 9, 47.4),
+        ):
+            self.assertNotIn(
+                self._signal(phash, good, inliers, ratio),
+                ("STRONG_VISUAL_MATCH", "POSSIBLE_VISUAL_MATCH"),
+            )
+
+
 if __name__ == "__main__":
     unittest.main()

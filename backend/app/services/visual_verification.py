@@ -53,6 +53,8 @@ GEOMETRIC_STRONG_MIN_INLIERS = 40
 GEOMETRIC_STRONG_MIN_RATIO = 60.0
 GEOMETRIC_MIN_INLIERS = 25
 GEOMETRIC_MIN_RATIO = 50.0
+NEAR_IDENTICAL_PHASH_PERCENT = 95.0
+NEAR_IDENTICAL_MIN_INLIERS = 12
 
 
 def is_geometric_copy(
@@ -88,6 +90,17 @@ def classify_match(
         inlier_ratio_percent is not None
         and homography_inliers >= GEOMETRIC_STRONG_MIN_INLIERS
         and inlier_ratio_percent >= GEOMETRIC_STRONG_MIN_RATIO
+    ):
+        return ("STRONG_VISUAL_MATCH", True)
+
+    # A near-identical hash (3 bits or fewer apart out of 64) is itself
+    # strong evidence, but small thumbnails carry few keypoints, so a
+    # 236 px copy of the artwork can fall just short of the usual 20.
+    if (
+        phash_similarity_percent >= NEAR_IDENTICAL_PHASH_PERCENT
+        and homography_inliers >= NEAR_IDENTICAL_MIN_INLIERS
+        and inlier_ratio_percent is not None
+        and inlier_ratio_percent >= 60.0
     ):
         return ("STRONG_VISUAL_MATCH", True)
 
