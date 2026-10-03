@@ -22,6 +22,10 @@ a locked business decision:
   candidate_image_url are redacted in the API response for any plan
   where this is False). This is a deliberate, honest upgrade prompt,
   not a fake claim -- see app.services.match_presentation.
+- allows_deep_scan: whether the plan may run a deep scan (Google Lens
+  through SerpApi), which costs real money per search. For now only the
+  Internal plan; once credits exist (see the roadmap) deep scans will be
+  paid for with credits instead of being switched on per plan.
 - Internal: not a customer-facing plan -- there is no signup path
   that assigns it. It exists only so the founder's own account(s)
   can be tested against without tripping the Free plan's asset limit
@@ -42,6 +46,7 @@ class PlanLimits:
     max_monitored_assets: int
     allowed_scan_frequencies: frozenset[str]
     reveals_match_source: bool
+    allows_deep_scan: bool = False
 
 
 DEFAULT_PLAN = "Free"
@@ -51,6 +56,7 @@ PLAN_LIMITS: dict[str, PlanLimits] = {
         max_monitored_assets=3,
         allowed_scan_frequencies=frozenset({"weekly", "monthly"}),
         reveals_match_source=False,
+        allows_deep_scan=False,
     ),
     "Pro": PlanLimits(
         max_monitored_assets=25,
@@ -58,6 +64,7 @@ PLAN_LIMITS: dict[str, PlanLimits] = {
             {"daily", "weekly", "monthly"}
         ),
         reveals_match_source=True,
+        allows_deep_scan=False,
     ),
     "Internal": PlanLimits(
         max_monitored_assets=9999,
@@ -65,6 +72,7 @@ PLAN_LIMITS: dict[str, PlanLimits] = {
             {"daily", "weekly", "monthly"}
         ),
         reveals_match_source=True,
+        allows_deep_scan=True,
     ),
 }
 

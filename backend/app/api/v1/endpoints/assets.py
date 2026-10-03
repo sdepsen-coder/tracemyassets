@@ -19,6 +19,7 @@ from PIL import Image
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
+from app.core.config import settings
 from app.core.plan_limits import get_plan_limits
 from app.crud.asset import (
     create_asset,
@@ -59,7 +60,11 @@ from app.services.asset_paths import (
     load_watermark_secret,
     original_file_path,
 )
-from app.services.visual_search_provider import get_configured_providers
+from app.services.provider_budget import get_budget_status
+from app.services.visual_search_provider import (
+    get_configured_providers,
+    get_deep_scan_providers,
+)
 from app.services.asset_ingestion import (
     DEFAULT_STORAGE_ROOT,
     MAX_UPLOAD_BYTES,
@@ -447,47 +452,20 @@ def verify_candidate(
         ) from exc
     finally:
         candidate.file.close()
-@router.post(
-    "/{asset_id}/scan",
-    response_model=AssetScanRead,
-)
-def scan_asset(
-    asset_id: int,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
+
+
+def _execute_scan(
+    db: Session,
+    *,
+    asset: Asset,
+    user: User,
+    preference,
+    providers,
+) -> AssetScanRead:
     """
-    Run a monitoring scan for one owned artwork.
-
-    The discovery provider(s) are selected by VISUAL_SEARCH_PROVIDER
-    (see app.core.config) -- a single name, or several comma-separated
-    names run together per scan (e.g.
-    "google-vision,rainforest-amazon,etsy"). Defaults to a fake/demo
-    provider that does not scan the public web. Whichever provider(s)
-    are configured, every discovered candidate is still re-verified
-    through our own pHash/watermark/ORB pipeline before becoming a
-    match record -- see get_configured_providers() and
-    verify_candidate_image().
+    Run one scan with the given providers and build the response. Shared
+    by the ordinary scan and the deep scan: only the providers differ.
     """
-    asset = require_owned_asset(
-        db,
-        asset_id=asset_id,
-        user_id=user.id,
-    )
-
-    preference = get_or_create_monitoring_preference(
-        db,
-        asset_id=asset.id,
-    )
-
-    try:
-        providers = get_configured_providers()
-    except RuntimeError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=str(exc),
-        ) from exc
-
     reference_path = original_file_path(asset)
     watermarked_path = (
         reference_path.parent / "watermarked.png"
@@ -551,6 +529,129 @@ def scan_asset(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="The scan could not be completed.",
         ) from exc
+
+
+@router.post(
+    "/{asset_id}/scan",
+    response_model=AssetScanRead,
+)
+def scan_asset(
+    asset_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Run a monitoring scan for one owned artwork.
+
+    The discovery provider(s) are selected by VISUAL_SEARCH_PROVIDER
+    (see app.core.config) -- a single name, or several comma-separated
+    names run together per scan (e.g.
+    "google-vision,rainforest-amazon,etsy"). Defaults to a fake/demo
+    provider that does not scan the public web. Whichever provider(s)
+    are configured, every discovered candidate is still re-verified
+    through our own pHash/watermark/ORB pipeline before becoming a
+    match record -- see get_configured_providers() and
+    verify_candidate_image().
+    """
+    asset = require_owned_asset(
+        db,
+        asset_id=asset_id,
+        user_id=user.id,
+    )
+
+    preference = get_or_create_monitoring_preference(
+        db,
+        asset_id=asset.id,
+    )
+
+    try:
+        providers = get_configured_providers()
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        ) from exc
+
+    return _execute_scan(
+        db,
+        asset=asset,
+        user=user,
+        preference=preference,
+        providers=providers,
+    )
+
+@router.post(
+    "/{asset_id}/deep-scan",
+    response_model=AssetScanRead,
+)
+def deep_scan_asset(
+    asset_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Run a deep scan for one owned artwork: Google Lens exact matches
+    through SerpApi, on top of what the ordinary scans already cover.
+
+    It costs real money per search, so it is gated three ways before any
+    search is made: the plan must allow it, the provider must be
+    configured, and the daily / monthly allowance must have room (see
+    app.services.provider_budget). Every candidate it finds still goes
+    through our own pHash / watermark / ORB verification, exactly like an
+    ordinary scan.
+    """
+    asset = require_owned_asset(
+        db,
+        asset_id=asset_id,
+        user_id=user.id,
+    )
+
+    if not get_plan_limits(user.plan_type).allows_deep_scan:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Deep scan is not available on your plan yet.",
+        )
+
+    try:
+        providers = get_deep_scan_providers()
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        ) from exc
+
+    budget = get_budget_status(
+        db,
+        "serpapi",
+        daily_limit=settings.serpapi_daily_limit,
+        monthly_limit=settings.serpapi_monthly_limit,
+    )
+    blocked = budget.blocked_period()
+
+    if blocked is not None:
+        when = "today" if blocked == "daily" else "this month"
+
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=(
+                f"The deep scan allowance for {when} has been used up. "
+                "Please try again later."
+            ),
+        )
+
+    preference = get_or_create_monitoring_preference(
+        db,
+        asset_id=asset.id,
+    )
+
+    return _execute_scan(
+        db,
+        asset=asset,
+        user=user,
+        preference=preference,
+        providers=providers,
+    )
+
 
 @router.get(
     "/{asset_id}/monitoring",

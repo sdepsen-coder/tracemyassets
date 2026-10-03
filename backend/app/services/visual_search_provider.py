@@ -135,9 +135,43 @@ def _build_provider(provider_name: str) -> VisualSearchProvider:
                 f"Details: {exc}"
             ) from exc
 
+    if provider_name == "serpapi-lens":
+        # A paid, per-search provider. It must never join the ordinary
+        # scans (every scheduled scan would spend money), so listing it
+        # here is refused instead of silently honoured.
+        raise RuntimeError(
+            "serpapi-lens is only used for deep scans and cannot be listed "
+            "in VISUAL_SEARCH_PROVIDER. Set SERPAPI_API_KEY and "
+            "PUBLIC_BACKEND_URL instead."
+        )
+
     raise RuntimeError(
         f"Unknown VISUAL_SEARCH_PROVIDER value: {provider_name!r}"
     )
+
+
+def get_deep_scan_providers() -> list[VisualSearchProvider]:
+    """
+    The provider(s) a deep scan runs: Google Lens through SerpApi.
+
+    Raises RuntimeError (shown to the operator, never to the artist's
+    page content) when it is not configured, so a deep scan is refused
+    cleanly instead of failing half way.
+    """
+    from app.core.config import settings
+    from app.services.serpapi_lens_search import SerpApiLensProvider
+
+    if not settings.serpapi_api_key:
+        raise RuntimeError(
+            "Deep scan is not configured (SERPAPI_API_KEY is not set)."
+        )
+
+    if not settings.public_backend_url:
+        raise RuntimeError(
+            "Deep scan is not configured (PUBLIC_BACKEND_URL is not set)."
+        )
+
+    return [SerpApiLensProvider()]
 
 
 def get_configured_providers() -> list[VisualSearchProvider]:

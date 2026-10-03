@@ -52,6 +52,22 @@ class Settings:
         self.frontend_url = os.getenv(
             "FRONTEND_URL", "http://localhost:3000"
         ).strip().rstrip("/")
+        # Deep scan (Google Lens through SerpApi). The limits mirror the
+        # SerpApi plan and are counted by us (see provider_budget) so the
+        # app stops before the plan does. Calendar day / month in UTC.
+        self.serpapi_api_key = os.getenv("SERPAPI_API_KEY", "").strip()
+        self.serpapi_daily_limit = int(
+            os.getenv("SERPAPI_DAILY_LIMIT", "200")
+        )
+        self.serpapi_monthly_limit = int(
+            os.getenv("SERPAPI_MONTHLY_LIMIT", "1000")
+        )
+        # Public address of THIS backend (e.g. the Railway URL). Deep scan
+        # hands SerpApi a short-lived signed link under it so Google Lens
+        # can fetch the artwork's protected copy.
+        self.public_backend_url = os.getenv(
+            "PUBLIC_BACKEND_URL", ""
+        ).strip().rstrip("/")
 
 
 settings = Settings()
