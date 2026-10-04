@@ -10,6 +10,7 @@ def initialize_database() -> None:
         match,
         match_record,
         monitoring,
+        password_reset,
         provider_usage,
         scan_job,
         takedown,

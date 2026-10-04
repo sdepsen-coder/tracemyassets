@@ -302,6 +302,18 @@ export const api = {
       body: JSON.stringify(credentials),
     }),
 
+  forgotPassword: (email: string) =>
+    request<{ message: string }>("/api/v1/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+
+  resetPassword: (token: string, password: string) =>
+    request<{ message: string }>("/api/v1/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, password }),
+    }),
+
   me: (signal?: AbortSignal) =>
     request<User>("/api/v1/auth/me", { signal }),
 

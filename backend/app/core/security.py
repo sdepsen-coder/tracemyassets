@@ -10,7 +10,11 @@ from pwdlib.exceptions import UnknownHashError
 
 
 ALGORITHM = "HS256"
-TOKEN_TTL_SECONDS = 3600
+# A signed-in browser stays signed in for 30 days of use: the session is
+# renewed (see RENEW_AFTER_SECONDS) whenever the app checks it, so only a
+# month of not opening the app signs you out.
+TOKEN_TTL_SECONDS = 30 * 24 * 3600
+RENEW_AFTER_SECONDS = 24 * 3600
 TOKEN_ISSUER = "tracemyassets-api"
 TOKEN_AUDIENCE = "tracemyassets-client"
 
@@ -64,6 +68,22 @@ def create_access_token(user_id: int) -> str:
         get_auth_secret(),
         algorithm=ALGORITHM,
     )
+
+
+def token_age_seconds(token: str) -> float | None:
+    """Seconds since a (valid) token was issued, or None if unreadable."""
+    try:
+        payload = jwt.decode(
+            token,
+            get_auth_secret(),
+            algorithms=[ALGORITHM],
+            issuer=TOKEN_ISSUER,
+            audience=TOKEN_AUDIENCE,
+        )
+
+        return datetime.now(timezone.utc).timestamp() - float(payload["iat"])
+    except (jwt.InvalidTokenError, KeyError, TypeError, ValueError):
+        return None
 
 
 def decode_access_token(token: str) -> int:
