@@ -194,6 +194,9 @@ function MatchesContent() {
   const [error, setError] = useState("");
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [actionError, setActionError] = useState("");
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [pendingDelete, setPendingDelete] = useState<number[] | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -269,6 +272,60 @@ function MatchesContent() {
       );
     } finally {
       setUpdatingId((current) => (current === matchId ? null : current));
+    }
+  }
+
+  function toggleSelected(matchId: number) {
+    setSelected((current) => {
+      const next = new Set(current);
+
+      if (next.has(matchId)) {
+        next.delete(matchId);
+      } else {
+        next.add(matchId);
+      }
+
+      return next;
+    });
+  }
+
+  async function confirmDelete() {
+    if (!pendingDelete || deleting) {
+      return;
+    }
+
+    const ids = pendingDelete;
+
+    setDeleting(true);
+    setActionError("");
+
+    try {
+      await api.deleteMatches(ids);
+
+      const gone = new Set(ids);
+
+      setMatches((current) =>
+        current.filter((match) => !gone.has(match.id)),
+      );
+      setSelected((current) => {
+        const next = new Set(current);
+        ids.forEach((id) => next.delete(id));
+        return next;
+      });
+      setPendingDelete(null);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        await logout();
+        return;
+      }
+
+      setActionError(
+        err instanceof ApiError
+          ? err.message
+          : "These matches could not be deleted.",
+      );
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -417,6 +474,14 @@ function MatchesContent() {
     );
   }, [assetsById, filter, matches, search, strength]);
 
+  const selectedVisibleIds = useMemo(
+    () =>
+      visibleMatches
+        .filter((match) => selected.has(match.id))
+        .map((match) => match.id),
+    [visibleMatches, selected],
+  );
+
   return (
     <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--text)]">
       <Topbar />
@@ -558,6 +623,78 @@ function MatchesContent() {
           </section>
         ) : (
           <section className="space-y-4">
+            <div className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[13px]">
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={
+                    visibleMatches.length > 0 &&
+                    visibleMatches.every((match) => selected.has(match.id))
+                  }
+                  onChange={(event) =>
+                    setSelected(
+                      event.target.checked
+                        ? new Set(visibleMatches.map((match) => match.id))
+                        : new Set(),
+                    )
+                  }
+                  className="h-4 w-4 accent-[var(--primary-strong)]"
+                />
+                <span>Select all in this view</span>
+              </label>
+
+              {selectedVisibleIds.length > 0 ? (
+                <>
+                  <span className="text-[var(--text-muted)]">
+                    {selectedVisibleIds.length} selected
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setPendingDelete(selectedVisibleIds)}
+                    className="inline-flex h-9 items-center rounded-lg bg-[var(--danger-soft)] px-3 text-[12px] font-semibold text-[var(--danger)] transition hover:brightness-95"
+                  >
+                    Delete selected
+                  </button>
+                </>
+              ) : null}
+            </div>
+
+            {pendingDelete ? (
+              <div
+                role="alertdialog"
+                aria-label="Confirm delete"
+                className="rounded-xl border border-[var(--danger)]/40 bg-[var(--danger-soft)] p-4 text-[13px] text-[var(--text)]"
+              >
+                <p className="font-semibold">
+                  {pendingDelete.length === 1
+                    ? "Delete this match permanently?"
+                    : `Delete ${pendingDelete.length} matches permanently?`}
+                </p>
+                <p className="mt-1 text-[var(--text-muted)]">
+                  This only removes the match from your list. Your artwork
+                  stays protected, and a later scan may find it again.
+                </p>
+                <div className="mt-3 flex gap-2">
+                  <button
+                    type="button"
+                    disabled={deleting}
+                    onClick={() => void confirmDelete()}
+                    className="inline-flex h-9 items-center rounded-lg bg-[var(--danger)] px-3 text-[12px] font-semibold text-white disabled:opacity-60"
+                  >
+                    {deleting ? "Deleting..." : "Delete"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={deleting}
+                    onClick={() => setPendingDelete(null)}
+                    className="inline-flex h-9 items-center rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[12px] font-semibold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
             {visibleMatches.map((match) => {
               const asset = assetsById.get(match.asset_id);
 
@@ -566,6 +703,17 @@ function MatchesContent() {
                   key={match.id}
                   className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-card sm:p-5"
                 >
+                  <label className="mb-3 flex w-fit cursor-pointer items-center gap-2 text-[12px] text-[var(--text-muted)]">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(match.id)}
+                      onChange={() => toggleSelected(match.id)}
+                      aria-label={`Select match ${match.id}`}
+                      className="h-4 w-4 accent-[var(--primary-strong)]"
+                    />
+                    Select
+                  </label>
+
                   <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center">
                       <div className="flex shrink-0 items-center gap-2">
@@ -776,6 +924,15 @@ function MatchesContent() {
                             Archive
                           </button>
                         ) : null}
+
+                        <button
+                          type="button"
+                          disabled={updatingId === match.id}
+                          onClick={() => setPendingDelete([match.id])}
+                          className="inline-flex h-9 items-center rounded-lg border border-[var(--danger)]/40 bg-[var(--surface)] px-3 text-[12px] font-semibold text-[var(--danger)] transition hover:bg-[var(--danger-soft)] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          Delete
+                        </button>
                       </div>
 
                       <span className="text-[11px] text-[var(--text-muted)]">

@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthGate";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { api, type MatchSummary } from "@/lib/api";
-import { FeedbackDialog } from "./FeedbackDialog";
 import { Icon } from "./Icon";
 
 type NavItem = {
@@ -46,7 +45,6 @@ export function Topbar() {
   const pathname = usePathname() ?? "/";
 
   const [newMatchCount, setNewMatchCount] = useState(0);
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -125,17 +123,6 @@ export function Topbar() {
             <span className="hidden sm:inline">Upload artwork</span>
           </Link>
 
-          <button
-            type="button"
-            onClick={() => setFeedbackOpen(true)}
-            aria-label="Send feedback"
-            title="Send feedback"
-            className="inline-flex h-10 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-[var(--text-muted)] transition hover:bg-[var(--surface-muted)] hover:text-[var(--text)]"
-          >
-            <Icon name="chat_bubble" />
-            <span className="hidden md:inline">Feedback</span>
-          </button>
-
           <ThemeToggle />
 
           <Link
@@ -200,11 +187,6 @@ export function Topbar() {
           })}
         </div>
       </nav>
-
-      <FeedbackDialog
-        open={feedbackOpen}
-        onClose={() => setFeedbackOpen(false)}
-      />
     </header>
   );
 }

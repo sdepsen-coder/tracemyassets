@@ -245,3 +245,40 @@ def delete_match_records_for_asset(
     each match record may reference a scan job via scan_job_id.
     """
     db.execute(delete(MatchRecord).where(MatchRecord.asset_id == asset_id))
+
+def delete_match_records_for_user(
+    db: Session,
+    *,
+    user_id: int,
+    match_ids: list[int],
+) -> int:
+    """
+    Permanently delete the given matches, but only those that belong to
+    this user's artworks. Ids that do not exist or belong to someone else
+    are skipped silently (nothing about them is revealed). Returns how many
+    were deleted. Does not commit.
+
+    A verdict the user gave on a match is kept on purpose: feedback entries
+    carry their own snapshot and have no link to the match row.
+    """
+    if not match_ids:
+        return 0
+
+    owned_ids = list(
+        db.scalars(
+            select(MatchRecord.id)
+            .join(Asset, Asset.id == MatchRecord.asset_id)
+            .where(
+                Asset.user_id == user_id,
+                MatchRecord.id.in_(match_ids),
+            )
+        )
+    )
+
+    if not owned_ids:
+        return 0
+
+    db.execute(delete(MatchRecord).where(MatchRecord.id.in_(owned_ids)))
+    db.flush()
+
+    return len(owned_ids)

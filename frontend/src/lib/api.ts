@@ -492,6 +492,13 @@ export const api = {
       signal,
     }),
 
+  deleteMatches: (ids: number[], signal?: AbortSignal) =>
+    request<{ deleted: number }>("/api/v1/matches/delete", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+      signal,
+    }),
+
   setMatchFeedback: (
     matchId: number,
     verdict: MatchVerdict,

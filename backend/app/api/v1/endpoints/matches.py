@@ -1,6 +1,7 @@
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
@@ -11,6 +12,7 @@ from app.crud.feedback import (
 )
 from app.crud.match_record import (
     count_match_records_by_status,
+    delete_match_records_for_user,
     get_match_record_for_user,
     list_match_records,
     update_match_record,
@@ -175,4 +177,51 @@ def delete_match_feedback(
         )
 
     clear_match_verdict(db, user_id=user.id, match_id=match_id)
+    db.commit()
+
+
+class MatchBulkDelete(BaseModel):
+    ids: list[int] = Field(min_length=1, max_length=200)
+
+
+class MatchBulkDeleteResult(BaseModel):
+    deleted: int
+
+
+@router.post("/delete", response_model=MatchBulkDeleteResult)
+def delete_matches(
+    payload: MatchBulkDelete,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> MatchBulkDeleteResult:
+    """Permanently delete several of the signed-in user's matches."""
+    deleted = delete_match_records_for_user(
+        db,
+        user_id=user.id,
+        match_ids=list(set(payload.ids)),
+    )
+    db.commit()
+
+    return MatchBulkDeleteResult(deleted=deleted)
+
+
+@router.delete("/{match_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_match(
+    match_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> None:
+    """Permanently delete one of the signed-in user's matches."""
+    deleted = delete_match_records_for_user(
+        db,
+        user_id=user.id,
+        match_ids=[match_id],
+    )
+
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Match not found.",
+        )
+
     db.commit()

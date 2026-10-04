@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/components/AuthGate";
@@ -630,6 +631,18 @@ export function AssetMonitoringControls({
               <p>
                 Matches requiring review: {scanResult.scan_job.match_count}
               </p>
+
+              {scanResult.scan_job.match_count > 0 && (
+                <Link
+                  href="/matches"
+                  className="mt-3 inline-flex h-9 items-center gap-1.5 rounded-lg bg-[var(--primary-strong)] px-3 text-[13px] font-semibold text-white transition hover:brightness-110"
+                >
+                  Review matches
+                  <span className="material-symbols-outlined text-[18px]">
+                    arrow_forward
+                  </span>
+                </Link>
+              )}
 
               {scanDetails.length > 0 && (
                 <div className="mt-2 border-t border-[var(--border)] pt-2">

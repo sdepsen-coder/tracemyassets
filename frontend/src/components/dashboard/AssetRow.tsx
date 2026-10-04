@@ -33,6 +33,7 @@ export function AssetRow({ asset, onArchiveChange, onDeleted }: AssetRowProps) {
 
   const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [thumbnailError, setThumbnailError] = useState(false);
+  const [fileMissing, setFileMissing] = useState(false);
   const [downloading, setDownloading] = useState<DownloadKind | null>(null);
   const [downloadError, setDownloadError] = useState("");
   const [archiving, setArchiving] = useState(false);
@@ -49,6 +50,7 @@ export function AssetRow({ asset, onArchiveChange, onDeleted }: AssetRowProps) {
 
     setThumbnail(null);
     setThumbnailError(false);
+    setFileMissing(false);
     setDownloading(null);
     setDownloadError("");
 
@@ -72,6 +74,7 @@ export function AssetRow({ asset, onArchiveChange, onDeleted }: AssetRowProps) {
           return;
         }
 
+        setFileMissing(error instanceof ApiError && error.status === 404);
         setThumbnailError(true);
       }
     }
@@ -265,6 +268,13 @@ export function AssetRow({ asset, onArchiveChange, onDeleted }: AssetRowProps) {
               Uploaded {formatDate(asset.created_at)} · Asset #{asset.id}
             </p>
 
+            {fileMissing && (
+              <p className="mt-1 text-[12px] font-medium text-[var(--danger)]">
+                The image file is no longer on the server. Please delete this
+                entry and upload the artwork again.
+              </p>
+            )}
+
             <div className="mt-2 flex flex-wrap gap-2">
               {hasWatermark ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-[var(--success-soft)] px-2.5 py-1 text-[11px] font-semibold text-[var(--success)]">
@@ -355,7 +365,7 @@ export function AssetRow({ asset, onArchiveChange, onDeleted }: AssetRowProps) {
           {confirmingDelete && (
             <div className="flex items-center gap-2 rounded-lg bg-[var(--danger-soft)] px-2.5 py-1.5">
               <span className="text-[12px] font-semibold text-[var(--danger)]">
-                Delete permanently?
+                Delete permanently, including all its matches?
               </span>
 
               <button

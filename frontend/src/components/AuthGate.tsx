@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { FloatingFeedback } from "@/components/dashboard/FloatingFeedback";
 import { SiteFooter } from "@/components/SiteFooter";
 import { api, ApiError, type User } from "@/lib/api";
 
@@ -305,6 +306,8 @@ export function AuthGate({ children, landing }: AuthGateProps) {
         </div>
 
         {children}
+
+        <FloatingFeedback />
       </AuthContext.Provider>
     );
   }
