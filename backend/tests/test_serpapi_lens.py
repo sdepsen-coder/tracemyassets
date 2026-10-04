@@ -23,11 +23,14 @@ API_KEY = "sk-secret-serpapi-key-DO-NOT-LEAK"
 SECRET = "unit-test-secret-key-0123456789abcdef0123456789"
 
 
-def item(link, *, title="A title", image=None):
+def item(link, *, title="A title", image=None, thumbnail=None):
     result = {"link": link, "title": title}
 
     if image is not None:
         result["image"] = image
+
+    if thumbnail is not None:
+        result["thumbnail"] = thumbnail
 
     return result
 
@@ -85,6 +88,96 @@ class ParsingTests(unittest.TestCase):
             ["https://b.example/with", "https://a.example/no-image"],
         )
         self.assertIsNone(found[1].candidate_image_url)
+
+    def test_a_thumbnail_is_used_when_there_is_no_full_image(self) -> None:
+        found = lens.parse_exact_matches(
+            {
+                "exact_matches": [
+                    item(
+                        "https://a.example/p",
+                        thumbnail="https://encrypted-tbn0.gstatic.com/images?q=tbn:abc",
+                    )
+                ]
+            }
+        )
+
+        self.assertEqual(
+            found[0].candidate_image_url,
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:abc",
+        )
+
+    def test_the_full_image_wins_over_the_thumbnail(self) -> None:
+        found = lens.parse_exact_matches(
+            {
+                "exact_matches": [
+                    item(
+                        "https://a.example/p",
+                        image="https://a.example/full.jpg",
+                        thumbnail="https://t.example/small.jpg",
+                    )
+                ]
+            }
+        )
+
+        self.assertEqual(
+            found[0].candidate_image_url, "https://a.example/full.jpg"
+        )
+
+    def test_an_inline_thumbnail_becomes_the_pictures_own_bytes(self) -> None:
+        import base64
+
+        raw = b"\x89PNG\r\n\x1a\nfake-but-bytes"
+        inline = "data:image/png;base64," + base64.b64encode(raw).decode()
+
+        found = lens.parse_exact_matches(
+            {"exact_matches": [item("https://a.example/p", thumbnail=inline)]}
+        )
+
+        self.assertIsNone(found[0].candidate_image_url)
+        self.assertEqual(found[0].candidate_image_bytes, raw)
+
+    def test_a_result_with_only_an_inline_thumbnail_counts_as_having_a_picture(
+        self,
+    ) -> None:
+        import base64
+
+        inline = "data:image/jpeg;base64," + base64.b64encode(b"jpegbytes").decode()
+
+        found = lens.parse_exact_matches(
+            {
+                "exact_matches": [
+                    item("https://a.example/none"),
+                    item("https://b.example/inline", thumbnail=inline),
+                ]
+            }
+        )
+
+        self.assertEqual(
+            [c.candidate_page_url for c in found],
+            ["https://b.example/inline", "https://a.example/none"],
+        )
+
+    def test_unusable_thumbnails_are_ignored(self) -> None:
+        import base64
+
+        too_big = "data:image/png;base64," + base64.b64encode(
+            b"x" * (lens.MAX_INLINE_IMAGE_BYTES + 1)
+        ).decode()
+
+        for bad in (
+            "data:image/png;base64,!!!not base64!!!",
+            "data:text/html;base64,PGh0bWw+",
+            "data:image/png;base64,",
+            "javascript:alert(1)",
+            too_big,
+            12345,
+        ):
+            found = lens.parse_exact_matches(
+                {"exact_matches": [item("https://a.example/p", thumbnail=bad)]}
+            )
+
+            self.assertIsNone(found[0].candidate_image_url, bad)
+            self.assertIsNone(found[0].candidate_image_bytes, bad)
 
     def test_the_same_page_is_listed_once(self) -> None:
         found = lens.parse_exact_matches(
@@ -299,6 +392,29 @@ class ProviderTests(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0].provider, "serpapi")
         self.assertEqual(rows[0].asset_id, 7)
+
+    def test_it_logs_which_fields_the_results_carried_but_no_addresses(
+        self,
+    ) -> None:
+        self.reply = {
+            "exact_matches": [
+                item("https://a.example/p1", thumbnail="https://t.example/1.jpg"),
+                item("https://a.example/p2", image="https://a.example/2.jpg"),
+                item("https://a.example/p3"),
+            ]
+        }
+
+        with self.assertLogs("tracemyassets.serpapi_lens", "INFO") as logs:
+            self._find(self._provider())
+
+        line = "\n".join(logs.output)
+
+        self.assertIn("3 raw, 3 kept, 2 with a picture to compare", line)
+        self.assertIn("thumbnail:1", line)
+        self.assertIn("image:1", line)
+        self.assertIn("link:3", line)
+        self.assertNotIn("a.example", line)
+        self.assertNotIn("t.example", line)
 
     def test_a_search_with_no_results_is_not_an_error(self) -> None:
         self.reply = {"error": "Google hasn't returned any results for this query."}

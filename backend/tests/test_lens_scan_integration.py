@@ -149,6 +149,64 @@ class LensDeepScanIntegrationTests(unittest.TestCase):
 
         self.assertEqual(len(stored), 2)
 
+    def test_a_result_that_only_has_a_thumbnail_is_still_checked(self) -> None:
+        self.reply = {
+            "exact_matches": [
+                {
+                    "link": "https://www.etsy.com/listing/111/a-copy",
+                    "title": "A copy of my art",
+                    "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:abc",
+                }
+            ]
+        }
+
+        outcome = self._scan(self._provider())
+
+        self.assertEqual(outcome.diagnostics.no_image_address, 0)
+        self.assertEqual(len(outcome.matches), 1)
+        self.assertEqual(
+            outcome.matches[0].candidate_image_url,
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:abc",
+        )
+
+    def test_an_inline_thumbnail_is_checked_without_downloading_anything(
+        self,
+    ) -> None:
+        import base64
+
+        artwork = self.image_path.read_bytes()
+        self.reply = {
+            "exact_matches": [
+                {
+                    "link": "https://www.etsy.com/listing/111/a-copy",
+                    "title": "A copy of my art",
+                    "thumbnail": "data:image/png;base64,"
+                    + base64.b64encode(artwork).decode(),
+                }
+            ]
+        }
+
+        with mock.patch(
+            "app.services.scan_runner.fetch_candidate_bytes"
+        ) as download, mock.patch(
+            "app.services.scan_runner.check_candidate_page",
+            return_value=PageStatus.CONFIRMED,
+        ):
+            outcome = run_scan_for_asset(
+                self.db,
+                asset=self.asset,
+                user_id=self.user_id,
+                preference=self.preference,
+                reference_path=self.image_path,
+                watermarked_path=None,
+                watermark_secret=load_watermark_secret(),
+                providers=[self._provider()],
+            )
+
+        download.assert_not_called()
+        self.assertEqual(outcome.diagnostics.no_image_address, 0)
+        self.assertEqual(len(outcome.matches), 1)
+
     def test_the_search_is_counted_once(self) -> None:
         self._scan(self._provider())
 

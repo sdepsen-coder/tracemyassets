@@ -12,13 +12,19 @@ asked for (see get_deep_scan_providers) and every search is counted
 against the daily and monthly allowance first (see provider_budget).
 
 Field names of SerpApi's google_lens response (exact_matches[].link /
-title / image) were taken from its documentation and are read
-defensively; the first live run logs how many results carried an image
-address, which is the quickest way to confirm them.
+title / image / thumbnail) were taken from its documentation and are read
+defensively. The first live deep scan showed that most results carry no
+full-size "image", so the smaller "thumbnail" is used when that is all
+there is: it is the same picture at a lower resolution, which our hash
+comparison handles. Every search logs which fields the results carried
+(field names and counts only, never addresses), the quickest way to see
+if the response shape ever changes.
 """
 
 from __future__ import annotations
 
+import base64
+import binascii
 import logging
 import re
 from pathlib import Path
@@ -46,6 +52,13 @@ BUDGET_KEY = "serpapi"
 # them is slow and mostly noise, so only the most promising are kept
 # (those that already carry an image address come first).
 MAX_CANDIDATES = 40
+
+# A thumbnail may arrive inline as a data: address instead of a link.
+MAX_INLINE_IMAGE_BYTES = 2 * 1024 * 1024
+_DATA_IMAGE = re.compile(
+    r"^data:image/[a-z0-9.+-]+;base64,(?P<payload>[A-Za-z0-9+/=\s]+)$",
+    re.IGNORECASE,
+)
 
 _PINTEREST_HOST = re.compile(
     r"^(?:[a-z]{2,3}\.)?pinterest\.[a-z.]+$"
@@ -123,6 +136,29 @@ def _own_hosts() -> set[str]:
     return hosts
 
 
+def _inline_image_bytes(value: object) -> bytes | None:
+    """The picture inside a data:image/...;base64 address, if it is one."""
+    if not isinstance(value, str) or len(value) > MAX_INLINE_IMAGE_BYTES * 2:
+        return None
+
+    found = _DATA_IMAGE.match(value.strip())
+
+    if found is None:
+        return None
+
+    try:
+        content = base64.b64decode(
+            re.sub(r"\s+", "", found.group("payload")), validate=True
+        )
+    except (binascii.Error, ValueError):
+        return None
+
+    if not content or len(content) > MAX_INLINE_IMAGE_BYTES:
+        return None
+
+    return content
+
+
 def parse_exact_matches(data: dict) -> list[DiscoveredCandidate]:
     """
     Turn a SerpApi google_lens response into candidates: one per page,
@@ -155,7 +191,24 @@ def parse_exact_matches(data: dict) -> list[DiscoveredCandidate]:
 
         seen_pages.add(page_url)
 
-        image = item.get("image")
+        # The full-size image if there is one, else the thumbnail (a link,
+        # or a picture sent inline).
+        image_url = None
+        image_bytes = None
+
+        for field in ("image", "thumbnail"):
+            value = item.get(field)
+
+            if _is_http_url(value):
+                image_url = value
+                break
+
+            inline = _inline_image_bytes(value)
+
+            if inline is not None:
+                image_bytes = inline
+                break
+
         title = item.get("title")
 
         candidate = DiscoveredCandidate(
@@ -163,16 +216,20 @@ def parse_exact_matches(data: dict) -> list[DiscoveredCandidate]:
                 page_url, title if isinstance(title, str) else ""
             ),
             source_url=page_url,
-            candidate_image_url=image if _is_http_url(image) else None,
+            candidate_image_url=image_url,
+            candidate_image_bytes=image_bytes,
             candidate_page_url=page_url,
             # Lens reports pages from a search index, so the scan checks
             # the page is still there and really shows the image.
             page_may_be_stale=True,
         )
 
-        (with_image if candidate.candidate_image_url else without_image).append(
-            candidate
+        has_image = (
+            candidate.candidate_image_url is not None
+            or candidate.candidate_image_bytes is not None
         )
+
+        (with_image if has_image else without_image).append(candidate)
 
     return (with_image + without_image)[:MAX_CANDIDATES]
 
@@ -276,13 +333,29 @@ class SerpApiLensProvider:
 
         candidates = parse_exact_matches(data)
 
+        raw_items = [
+            item
+            for item in data.get("exact_matches") or []
+            if isinstance(item, dict)
+        ]
+        field_counts = sorted(
+            (name, sum(1 for item in raw_items if item.get(name)))
+            for name in {key for item in raw_items for key in item}
+        )
+
         logger.info(
             "Lens exact matches for asset_id=%s: %s raw, %s kept, "
-            "%s with an image address.",
+            "%s with a picture to compare. Fields present (name:count): %s",
             asset_id,
-            len(data.get("exact_matches") or []),
+            len(raw_items),
             len(candidates),
-            sum(1 for item in candidates if item.candidate_image_url),
+            sum(
+                1
+                for item in candidates
+                if item.candidate_image_url or item.candidate_image_bytes
+            ),
+            ", ".join(f"{name}:{count}" for name, count in field_counts)
+            or "none",
         )
 
         return candidates
