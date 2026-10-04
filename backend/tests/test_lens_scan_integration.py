@@ -123,6 +123,9 @@ class LensDeepScanIntegrationTests(unittest.TestCase):
 
         self.assertEqual(outcome.provider_name, "serpapi-lens")
         self.assertEqual(outcome.scan_job.provider, "serpapi-lens")
+        self.assertEqual(outcome.diagnostics.providers_asked, 1)
+        self.assertEqual(outcome.diagnostics.provider_failures, 0)
+        self.assertFalse(outcome.diagnostics.no_search_made)
         # The Etsy page and the one (de-duplicated) Pinterest pin.
         self.assertEqual(outcome.diagnostics.candidates, 2)
         self.assertEqual(len(outcome.matches), 2)
@@ -196,6 +199,11 @@ class LensDeepScanIntegrationTests(unittest.TestCase):
         self.assertEqual(outcome.matches, [])
         self.assertEqual(outcome.diagnostics.candidates, 0)
         self.assertEqual(outcome.scan_job.status, "completed")
+        # ...and it says no search was made, which is what earns the
+        # credit back (see app.services.credits).
+        self.assertEqual(outcome.diagnostics.providers_asked, 1)
+        self.assertEqual(outcome.diagnostics.provider_failures, 1)
+        self.assertTrue(outcome.diagnostics.no_search_made)
 
         everything = "\n".join(logs.output)
 
@@ -211,6 +219,8 @@ class LensDeepScanIntegrationTests(unittest.TestCase):
 
         self.assertEqual(outcome.matches, [])
         self.assertEqual(self._spent(), 0)
+        # A spent allowance means no search was made either.
+        self.assertTrue(outcome.diagnostics.no_search_made)
 
 
 if __name__ == "__main__":

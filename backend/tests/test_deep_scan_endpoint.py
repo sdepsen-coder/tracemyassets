@@ -17,6 +17,7 @@ from app.api.v1.endpoints import assets as assets_endpoints
 from app.api.v1.endpoints.assets import router as assets_router
 from app.api.v1.endpoints.public_images import router as public_router
 from app.core.config import settings
+from app.core.plan_limits import PlanLimits
 from app.models.asset import Asset
 from app.models.base import Base
 from app.models.provider_usage import ProviderUsage
@@ -308,8 +309,8 @@ class DeepScanEndpointTests(EndpointTestCase):
             self.execute.call_args.kwargs["providers"], [self.sentinel]
         )
 
-    def test_other_plans_are_refused_before_anything_is_spent(self) -> None:
-        for plan in ("Free", "Pro", "Something else"):
+    def test_every_plan_may_run_one_now_that_credits_gate_it(self) -> None:
+        for plan in ("Free", "Pro", "Internal", "Something else"):
             with self.subTest(plan=plan):
                 self.current_user = self._user(f"{plan}@example.com", plan)
                 asset = self._asset(user=self.current_user)
@@ -318,8 +319,26 @@ class DeepScanEndpointTests(EndpointTestCase):
                     f"/api/v1/assets/{asset.id}/deep-scan"
                 )
 
-                self.assertEqual(response.status_code, 403)
+                self.assertEqual(response.status_code, 200)
 
+    def test_a_plan_with_deep_scan_switched_off_is_refused(self) -> None:
+        asset = self._asset()
+
+        with mock.patch.object(
+            assets_endpoints,
+            "get_plan_limits",
+            return_value=PlanLimits(
+                max_monitored_assets=1,
+                allowed_scan_frequencies=frozenset({"weekly"}),
+                reveals_match_source=False,
+                allows_deep_scan=False,
+            ),
+        ):
+            response = self.client.post(
+                f"/api/v1/assets/{asset.id}/deep-scan"
+            )
+
+        self.assertEqual(response.status_code, 403)
         self.execute.assert_not_called()
         self.get_deep.assert_not_called()
 
@@ -338,10 +357,17 @@ class DeepScanEndpointTests(EndpointTestCase):
             "Deep scan is not configured (SERPAPI_API_KEY is not set)."
         )
 
-        response = self.client.post(f"/api/v1/assets/{asset.id}/deep-scan")
+        with self.assertLogs("tracemyassets.assets", "WARNING") as logs:
+            response = self.client.post(
+                f"/api/v1/assets/{asset.id}/deep-scan"
+            )
 
         self.assertEqual(response.status_code, 503)
-        self.assertIn("SERPAPI_API_KEY", response.json()["detail"])
+        # The user is told nothing about settings or providers...
+        self.assertNotIn("SERPAPI", response.text)
+        self.assertNotIn("serpapi", response.text.lower())
+        # ...the operator's log gets the real reason.
+        self.assertIn("SERPAPI_API_KEY", logs.output[0])
         self.execute.assert_not_called()
 
     def test_a_spent_daily_allowance_is_a_429_before_any_scan(self) -> None:

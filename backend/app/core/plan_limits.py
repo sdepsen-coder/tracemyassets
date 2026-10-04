@@ -23,9 +23,9 @@ a locked business decision:
   where this is False). This is a deliberate, honest upgrade prompt,
   not a fake claim -- see app.services.match_presentation.
 - allows_deep_scan: whether the plan may run a deep scan (Google Lens
-  through SerpApi), which costs real money per search. For now only the
-  Internal plan; once credits exist (see the roadmap) deep scans will be
-  paid for with credits instead of being switched on per plan.
+  through SerpApi), which costs real money per search. Every plan may;
+  what limits it is credits (see app.services.credits), not the plan.
+  The flag stays so a plan can still be switched off.
 - Internal: not a customer-facing plan -- there is no signup path
   that assigns it. It exists only so the founder's own account(s)
   can be tested against without tripping the Free plan's asset limit
@@ -56,7 +56,7 @@ PLAN_LIMITS: dict[str, PlanLimits] = {
         max_monitored_assets=3,
         allowed_scan_frequencies=frozenset({"weekly", "monthly"}),
         reveals_match_source=False,
-        allows_deep_scan=False,
+        allows_deep_scan=True,
     ),
     "Pro": PlanLimits(
         max_monitored_assets=25,
@@ -64,7 +64,7 @@ PLAN_LIMITS: dict[str, PlanLimits] = {
             {"daily", "weekly", "monthly"}
         ),
         reveals_match_source=True,
-        allows_deep_scan=False,
+        allows_deep_scan=True,
     ),
     "Internal": PlanLimits(
         max_monitored_assets=9999,

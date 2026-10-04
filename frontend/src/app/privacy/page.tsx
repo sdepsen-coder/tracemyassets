@@ -56,6 +56,7 @@ export default function PrivacyPage() {
           items={[
             "Hosting: our application, database and file storage run on Railway.",
             "Google Cloud Vision (Web Detection): when a scan runs, the image of the artwork being monitored is sent to Google to look for visually similar images on the web.",
+            "Deep scan (Google Lens, through the search data provider SerpApi): when you run a deep scan, a link to the watermarked copy of your artwork is sent to SerpApi, and through it to Google, so Google can find pages showing the same image. The link works for only ten minutes and can open nothing but that one image. We keep no copy of the results beyond the possible matches shown to you.",
             "Marketplace search: the title you give an artwork is sent as a search keyword to marketplace search services, including the Etsy API and a third-party Amazon search data provider. Only the title is sent, not the image. Any candidate images returned are downloaded by our servers for comparison and are not kept.",
             "Resend (email): if monitoring is on for an artwork, we email you when a scan finds new possible matches. To send it, your email address, the artwork's title and the number of new matches are passed to Resend. The email never contains where a match was found.",
             "Fonts and icons are loaded from Google Fonts by your browser.",

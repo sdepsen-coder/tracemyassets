@@ -170,6 +170,8 @@ class ScanDiagnosticsRead(BaseModel):
     page_unreadable: int = 0
     recorded: int
     best_similarity_percent: float | None = None
+    providers_asked: int = 0
+    provider_failures: int = 0
 
 
 class AssetScanRead(BaseModel):
@@ -179,6 +181,10 @@ class AssetScanRead(BaseModel):
     scan_job: ScanJobRead
     matches: list[MatchRecordRead]
     diagnostics: ScanDiagnosticsRead | None = None
+    # Deep scans only: what the scan cost and what is left. credit_refunded
+    # is true when no search could be made and the credit was given back.
+    credits_remaining: int | None = None
+    credit_refunded: bool = False
 
 class MatchRecordUpdate(BaseModel):
     review_status: Literal[

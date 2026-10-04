@@ -171,6 +171,19 @@ export type ScanDiagnostics = {
   page_unreadable?: number;
   recorded: number;
   best_similarity_percent: number | null;
+  providers_asked?: number;
+  provider_failures?: number;
+};
+
+export type CreditsInfo = {
+  balance: number;
+  deep_scan_cost: number;
+  recent: Array<{
+    id: number;
+    delta: number;
+    reason: "welcome" | "grant" | "deep_scan" | "refund";
+    created_at: string;
+  }>;
 };
 
 export type AssetScan = {
@@ -180,6 +193,9 @@ export type AssetScan = {
   scan_job: ScanJob;
   matches: MatchRecord[];
   diagnostics?: ScanDiagnostics | null;
+  // Deep scans only.
+  credits_remaining?: number | null;
+  credit_refunded?: boolean;
 };
 
 export class ApiError extends Error {
@@ -426,6 +442,21 @@ export const api = {
         signal,
       },
     ),
+  runDeepScan: (
+    assetId: number,
+    signal?: AbortSignal,
+  ) =>
+    request<AssetScan>(
+      `/api/v1/assets/${assetId}/deep-scan`,
+      {
+        method: "POST",
+        signal,
+      },
+    ),
+
+  getCredits: (signal?: AbortSignal) =>
+    request<CreditsInfo>("/api/v1/credits", { signal }),
+
   getMatchSummary: (signal?: AbortSignal) =>
     request<MatchSummary>("/api/v1/matches/summary", { signal }),
 

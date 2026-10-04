@@ -1,5 +1,6 @@
 import dataclasses
 import json
+import logging
 import shutil
 from dataclasses import asdict
 from typing import Literal
@@ -60,6 +61,12 @@ from app.services.asset_paths import (
     load_watermark_secret,
     original_file_path,
 )
+from app.services.credits import (
+    InsufficientCredits,
+    charge_for_deep_scan,
+    get_balance,
+    refund_charge,
+)
 from app.services.provider_budget import get_budget_status
 from app.services.visual_search_provider import (
     get_configured_providers,
@@ -83,6 +90,8 @@ from app.services.watermark_metadata import (
 
 
 router = APIRouter(prefix="/assets", tags=["assets"])
+
+logger = logging.getLogger("tracemyassets.assets")
 
 
 PRIVATE_FILE_HEADERS = {
@@ -615,9 +624,13 @@ def deep_scan_asset(
     try:
         providers = get_deep_scan_providers()
     except RuntimeError as exc:
+        # The reason names a setting and a provider: for the operator's
+        # log, not for the user.
+        logger.warning("Deep scan unavailable: %s", exc)
+
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=str(exc),
+            detail="Deep scan is not available right now. Please try again later.",
         ) from exc
 
     budget = get_budget_status(
@@ -644,13 +657,52 @@ def deep_scan_asset(
         asset_id=asset.id,
     )
 
-    return _execute_scan(
-        db,
-        asset=asset,
-        user=user,
-        preference=preference,
-        providers=providers,
-    )
+    # Last gate: the credit. It is taken (and committed) before the search,
+    # so a crash can never give a free scan, and given back below if no
+    # search could be made.
+    try:
+        charge = charge_for_deep_scan(
+            db,
+            user_id=user.id,
+            asset_id=asset.id,
+        )
+    except InsufficientCredits as exc:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail=(
+                "You have no deep scan credits left. "
+                "Contact support to get more."
+            ),
+        ) from exc
+
+    try:
+        response = _execute_scan(
+            db,
+            asset=asset,
+            user=user,
+            preference=preference,
+            providers=providers,
+        )
+    except Exception:
+        # The scan itself broke before it could report anything.
+        refund_charge(db, charge, note="The scan failed")
+
+        raise
+
+    diagnostics = response.diagnostics
+    refunded = False
+
+    if (
+        diagnostics is not None
+        and diagnostics.providers_asked > 0
+        and diagnostics.provider_failures >= diagnostics.providers_asked
+    ):
+        refunded = refund_charge(db, charge)
+
+    response.credit_refunded = refunded
+    response.credits_remaining = get_balance(db, user.id)
+
+    return response
 
 
 @router.get(

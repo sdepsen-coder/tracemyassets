@@ -7,6 +7,7 @@ import {
   api,
   ApiError,
   type AssetScan,
+  type CreditsInfo,
   type MonitoringPreference,
   type ScanDiagnostics,
 } from "@/lib/api";
@@ -173,6 +174,9 @@ export function AssetMonitoringControls({
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [scanResult, setScanResult] = useState<AssetScan | null>(null);
+  const [scanKind, setScanKind] = useState<"standard" | "deep">("standard");
+  const [credits, setCredits] = useState<CreditsInfo | null>(null);
+  const [confirmingDeep, setConfirmingDeep] = useState(false);
 
   const requestController = useRef<AbortController | null>(null);
 
@@ -225,6 +229,26 @@ export function AssetMonitoringControls({
       }
     };
   }, [assetId, logout]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadCredits() {
+      try {
+        const result = await api.getCredits(controller.signal);
+
+        if (!controller.signal.aborted) {
+          setCredits(result);
+        }
+      } catch {
+        // Non-critical: the deep scan button simply stays unavailable.
+      }
+    }
+
+    void loadCredits();
+
+    return () => controller.abort();
+  }, [assetId]);
 
   async function saveMonitoring() {
     if (saving || scanning) return;
@@ -292,8 +316,10 @@ export function AssetMonitoringControls({
       preference.enabled !== enabled ||
       preference.scan_frequency !== frequency);
 
-  async function runScanNow() {
+  async function runScan(kind: "standard" | "deep") {
     if (saving || scanning) return;
+
+    setConfirmingDeep(false);
 
     if (hasUnsavedChanges) {
       // The scan uses the saved settings, not the values in the form.
@@ -309,13 +335,29 @@ export function AssetMonitoringControls({
     setError("");
     setMessage("");
     setScanResult(null);
+    setScanKind(kind);
 
     try {
-      const result = await api.runScan(assetId, controller.signal);
+      const result =
+        kind === "deep"
+          ? await api.runDeepScan(assetId, controller.signal)
+          : await api.runScan(assetId, controller.signal);
 
       if (controller.signal.aborted) return;
 
-      setScanResult(result);
+      if (kind === "deep" && typeof result.credits_remaining === "number") {
+        const remaining = result.credits_remaining;
+
+        setCredits((current) =>
+          current ? { ...current, balance: remaining } : current,
+        );
+      }
+
+      // A scan that could not run has nothing honest to report ("0
+      // candidates checked" would read as "searched, found nothing").
+      setScanResult(
+        kind === "deep" && result.credit_refunded ? null : result,
+      );
       setPreference((current) =>
         current
           ? {
@@ -325,11 +367,26 @@ export function AssetMonitoringControls({
             }
           : current,
       );
-      setMessage(
-        result.matches.length === 1
-          ? "Scan complete: 1 match found requiring review."
-          : `Scan complete: ${result.matches.length} matches found requiring review.`,
-      );
+
+      if (kind === "deep" && result.credit_refunded) {
+        setMessage(
+          "The deep scan could not run just now, so your credit was returned. Please try again later.",
+        );
+      } else {
+        const label = kind === "deep" ? "Deep scan" : "Scan";
+        const found =
+          result.matches.length === 1
+            ? "1 match found requiring review"
+            : `${result.matches.length} matches found requiring review`;
+        const left =
+          kind === "deep" && typeof result.credits_remaining === "number"
+            ? ` ${result.credits_remaining} ${
+                result.credits_remaining === 1 ? "credit" : "credits"
+              } left.`
+            : "";
+
+        setMessage(`${label} complete: ${found}.${left}`);
+      }
     } catch (err) {
       if (controller.signal.aborted) return;
 
@@ -438,13 +495,80 @@ export function AssetMonitoringControls({
             <button
               type="button"
               disabled={saving || scanning}
-              onClick={() => void runScanNow()}
-              title="Trigger a scan immediately instead of waiting for the next scheduled check."
+              onClick={() => void runScan("standard")}
+              title="Check the usual sources now instead of waiting for the next scheduled check."
               className="inline-flex h-9 items-center rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[12px] font-semibold text-[var(--text)] transition hover:bg-[var(--surface-raised)] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {scanning ? "Scanning..." : "Run scan now"}
+              {scanning && scanKind === "standard"
+                ? "Scanning..."
+                : "Standard scan"}
+            </button>
+
+            <button
+              type="button"
+              disabled={saving || scanning || credits === null}
+              onClick={() => setConfirmingDeep((value) => !value)}
+              title="Search more widely across the web. Uses a credit."
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--primary)]/40 bg-[var(--primary-soft)] px-3 text-[12px] font-semibold text-[var(--primary-strong)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {scanning && scanKind === "deep"
+                ? "Deep scanning..."
+                : `Deep scan (${credits?.deep_scan_cost ?? 1} credit)`}
             </button>
           </div>
+
+          {confirmingDeep && credits && (
+            <div
+              role="group"
+              aria-label="Confirm deep scan"
+              className="mt-3 rounded-lg border border-[var(--primary)]/30 bg-[var(--surface)] px-3 py-3 text-[12px] leading-5 text-[var(--text-muted)]"
+            >
+              <p className="font-semibold text-[var(--text)]">
+                Run a deep scan?
+              </p>
+              <p className="mt-1">
+                A deep scan searches more widely across the web than the
+                standard scan, so it can find copies the standard scan
+                misses. Every result is still checked against your artwork
+                the same way. It uses {credits.deep_scan_cost}{" "}
+                {credits.deep_scan_cost === 1 ? "credit" : "credits"}, and
+                the credit is returned if the search could not be made.
+              </p>
+              <p className="mt-1 font-semibold text-[var(--text)]">
+                {credits.balance === 1
+                  ? "You have 1 credit."
+                  : `You have ${credits.balance} credits.`}
+              </p>
+
+              {credits.balance < credits.deep_scan_cost ? (
+                <p className="mt-2 text-[var(--danger)]">
+                  You have no deep scan credits left. Contact support to
+                  get more.
+                </p>
+              ) : null}
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={
+                    scanning || credits.balance < credits.deep_scan_cost
+                  }
+                  onClick={() => void runScan("deep")}
+                  className="inline-flex h-8 items-center rounded-lg bg-[var(--primary-strong)] px-3 text-[12px] font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Run deep scan
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setConfirmingDeep(false)}
+                  className="inline-flex h-8 items-center rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[12px] font-semibold text-[var(--text)] transition hover:bg-[var(--surface-raised)]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <label className="text-[12px] font-semibold text-[var(--text)]">
@@ -498,7 +622,7 @@ export function AssetMonitoringControls({
           {scanResult && (
             <div className="mt-3 rounded-lg bg-[var(--surface)] px-3 py-3 text-[12px] text-[var(--text-muted)]">
               <p className="font-semibold text-[var(--text)]">
-                Scan completed ({scanResult.provider})
+                {scanKind === "deep" ? "Deep scan" : "Standard scan"} completed
               </p>
               <p className="mt-1">
                 Candidates checked: {scanResult.scan_job.candidate_count}

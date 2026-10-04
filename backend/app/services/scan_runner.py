@@ -70,6 +70,19 @@ class ScanDiagnostics:
     page_unreadable: int = 0
     recorded: int = 0
     best_similarity_percent: float | None = None
+    # How many discovery providers were asked, and how many of those
+    # failed to search at all (a timeout, an API error, a spent budget).
+    # When every one failed, no search was made -- see
+    # ScanDiagnostics.no_search_made.
+    providers_asked: int = 0
+    provider_failures: int = 0
+
+    @property
+    def no_search_made(self) -> bool:
+        return (
+            self.providers_asked > 0
+            and self.provider_failures >= self.providers_asked
+        )
 
 
 @dataclass
@@ -90,9 +103,11 @@ def _collect_candidates(
     asset_title: str,
     reference_path: Path,
     watermarked_path: Path | None,
+    failed: list[str] | None = None,
 ) -> list[DiscoveredCandidate]:
     """
-    Run every configured provider and pool their candidates.
+    Run every configured provider and pool their candidates. The names
+    of providers that failed are appended to `failed`, if given.
 
     One provider failing at *search* time (a timeout, a rate limit, an
     API error for this particular query) must not lose the candidates
@@ -122,6 +137,9 @@ def _collect_candidates(
                 provider.name,
                 asset_id,
             )
+
+            if failed is not None:
+                failed.append(provider.name)
 
     return candidates
 
@@ -330,17 +348,24 @@ def run_scan_for_asset(
     )
     scan_job = mark_scan_job_running(db, scan_job)
 
+    failed_providers: list[str] = []
+
     candidates = _collect_candidates(
         providers,
         asset_id=asset.id,
         asset_title=asset.title,
         reference_path=reference_path,
         watermarked_path=watermarked_path,
+        failed=failed_providers,
     )
 
     matches: list[MatchRecord] = []
     new_match_count = 0
-    diagnostics = ScanDiagnostics(candidates=len(candidates))
+    diagnostics = ScanDiagnostics(
+        candidates=len(candidates),
+        providers_asked=len(providers),
+        provider_failures=len(failed_providers),
+    )
 
     page_budget = PageReadBudget()
     candidates, expanded_pages = _expand_pages_without_images(
