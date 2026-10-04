@@ -12,6 +12,7 @@ import {
   type MonitoringPreference,
   type ScanDiagnostics,
 } from "@/lib/api";
+import { explainScan } from "@/lib/scanExplanation";
 
 /** Plain-language reasons why scan candidates did not become matches. */
 function describeScanDiagnostics(
@@ -175,6 +176,7 @@ export function AssetMonitoringControls({
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [scanResult, setScanResult] = useState<AssetScan | null>(null);
+  const [showExplanation, setShowExplanation] = useState(false);
   const [scanKind, setScanKind] = useState<"standard" | "deep">("standard");
   const [credits, setCredits] = useState<CreditsInfo | null>(null);
   const [confirmingDeep, setConfirmingDeep] = useState(false);
@@ -304,6 +306,7 @@ export function AssetMonitoringControls({
     }
   }
 
+  const explanation = scanResult ? explainScan(scanResult, scanKind) : null;
   const scanDetails = scanResult
     ? describeScanDiagnostics(
         scanResult.diagnostics,
@@ -356,6 +359,7 @@ export function AssetMonitoringControls({
 
       // A scan that could not run has nothing honest to report ("0
       // candidates checked" would read as "searched, found nothing").
+      setShowExplanation(false);
       setScanResult(
         kind === "deep" && result.credit_refunded ? null : result,
       );
@@ -642,6 +646,52 @@ export function AssetMonitoringControls({
                     arrow_forward
                   </span>
                 </Link>
+              )}
+
+              <button
+                type="button"
+                aria-expanded={showExplanation}
+                onClick={() => setShowExplanation((value) => !value)}
+                className="mt-3 inline-flex h-8 items-center gap-1 rounded-lg border border-[var(--border)] px-2.5 text-[12px] font-semibold text-[var(--text)] transition hover:bg-[var(--surface-muted)]"
+              >
+                {showExplanation ? "Hide explanation" : "What does this mean?"}
+              </button>
+
+              {showExplanation && explanation && (
+                <div
+                  role="region"
+                  aria-label="Scan explanation"
+                  className="mt-2 rounded-lg bg-[var(--surface-muted)] px-3 py-3"
+                >
+                  <p className="font-semibold text-[var(--text)]">
+                    {explanation.headline}
+                  </p>
+
+                  {explanation.points.length > 0 && (
+                    <ul className="mt-2 list-disc space-y-1 pl-4">
+                      {explanation.points.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {explanation.nextSteps.length > 0 && (
+                    <>
+                      <p className="mt-3 font-semibold text-[var(--text)]">
+                        What you can do
+                      </p>
+                      <ul className="mt-1 list-disc space-y-1 pl-4">
+                        {explanation.nextSteps.map((line) => (
+                          <li key={line}>{line}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+
+                  <p className="mt-3 text-[11px]">
+                    These are technical signals, not a legal finding.
+                  </p>
+                </div>
               )}
 
               {scanDetails.length > 0 && (
