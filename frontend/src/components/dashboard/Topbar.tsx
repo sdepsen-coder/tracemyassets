@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/components/AuthGate";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -45,6 +45,31 @@ export function Topbar() {
   const pathname = usePathname() ?? "/";
 
   const [newMatchCount, setNewMatchCount] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  // Close the account menu on outside click or Escape.
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    function onPointerDown(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setMenuOpen(false);
+    }
+
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [menuOpen]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -147,15 +172,46 @@ export function Topbar() {
             )}
           </Link>
 
-          <button
-            type="button"
-            onClick={logout}
-            aria-label="Sign out"
-            title={`Signed in as ${email}. Click to sign out.`}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--primary-soft)] text-[13px] font-semibold text-[var(--primary)] transition hover:brightness-95"
-          >
-            {initial}
-          </button>
+          <div ref={menuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setMenuOpen((open) => !open)}
+              aria-label="Account menu"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--primary-soft)] text-[13px] font-semibold text-[var(--primary)] transition hover:brightness-95"
+            >
+              {initial}
+            </button>
+
+            {menuOpen && (
+              <div
+                role="menu"
+                className="absolute right-0 top-11 z-50 w-64 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 shadow-card"
+              >
+                <div className="px-3 py-2">
+                  <p className="text-[11px] text-[var(--text-muted)]">
+                    Signed in as
+                  </p>
+                  <p className="truncate text-[13px] font-semibold text-[var(--text)]">
+                    {email}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    logout();
+                  }}
+                  className="mt-1 w-full rounded-lg px-3 py-2 text-left text-[13px] font-medium text-[var(--text)] transition hover:bg-[var(--surface-muted)]"
+                >
+                  Sign out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
