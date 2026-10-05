@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AuthGate, useAuth } from "@/components/AuthGate";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { SiteFooter } from "@/components/SiteFooter";
+import { cardKey, countCards } from "@/lib/matchGroups";
 import {
   api,
   ApiError,
@@ -416,23 +417,27 @@ function MatchesContent() {
     [assets],
   );
 
+  // Counted by card, like the list below: one picture on seven pages is
+  // one card, not seven.
   const counts = useMemo(() => {
     return {
-      all: matches.length,
-      needs_review: matches.filter(
-        (match) =>
-          match.review_status === "new" ||
-          match.review_status === "reviewing",
-      ).length,
-      confirmed: matches.filter(
-        (match) => match.review_status === "confirmed",
-      ).length,
-      dismissed: matches.filter(
-        (match) => match.review_status === "dismissed",
-      ).length,
-      archived: matches.filter(
-        (match) => match.review_status === "archived",
-      ).length,
+      all: countCards(matches),
+      needs_review: countCards(
+        matches.filter(
+          (match) =>
+            match.review_status === "new" ||
+            match.review_status === "reviewing",
+        ),
+      ),
+      confirmed: countCards(
+        matches.filter((match) => match.review_status === "confirmed"),
+      ),
+      dismissed: countCards(
+        matches.filter((match) => match.review_status === "dismissed"),
+      ),
+      archived: countCards(
+        matches.filter((match) => match.review_status === "archived"),
+      ),
     };
   }, [matches]);
 
@@ -522,10 +527,7 @@ function MatchesContent() {
     const byKey = new Map<string, MatchRecord>();
 
     for (const match of sorted) {
-      const imageKey = match.candidate_image_url ?? match.candidate_image_hash;
-      const key = imageKey
-        ? `${match.asset_id}|${match.review_status}|${imageKey}`
-        : `solo|${match.id}`;
+      const key = cardKey(match);
       const primary = byKey.get(key);
 
       if (primary) {

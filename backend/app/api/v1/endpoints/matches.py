@@ -17,6 +17,7 @@ from app.crud.match_record import (
     list_match_records,
     update_match_record,
 )
+from app.core.plan_limits import get_plan_limits
 from app.models.user import User
 from app.schemas.asset import MatchRecordRead, MatchRecordUpdate, MatchSummary
 from app.schemas.feedback import MatchFeedbackRead, MatchFeedbackUpdate
@@ -80,7 +81,11 @@ def read_match_summary(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> MatchSummary:
-    counts = count_match_records_by_status(db, user_id=user.id)
+    counts = count_match_records_by_status(
+        db,
+        user_id=user.id,
+        reveals_source=get_plan_limits(user.plan_type).reveals_match_source,
+    )
 
     return MatchSummary(**counts)
 

@@ -12,6 +12,7 @@ import {
   type MonitoringPreference,
   type ScanDiagnostics,
 } from "@/lib/api";
+import { countCards } from "@/lib/matchGroups";
 import { explainScan } from "@/lib/scanExplanation";
 
 /** Plain-language reasons why scan candidates did not become matches. */
@@ -307,6 +308,12 @@ export function AssetMonitoringControls({
   }
 
   const explanation = scanResult ? explainScan(scanResult, scanKind) : null;
+  // Matches to review, counted by card (one picture on several pages is one).
+  const scanCardCount = scanResult
+    ? scanResult.matches.length > 0
+      ? countCards(scanResult.matches)
+      : scanResult.scan_job.match_count
+    : 0;
   const scanDetails = scanResult
     ? describeScanDiagnostics(
         scanResult.diagnostics,
@@ -379,10 +386,11 @@ export function AssetMonitoringControls({
         );
       } else {
         const label = kind === "deep" ? "Deep scan" : "Scan";
+        const cards = countCards(result.matches);
         const found =
-          result.matches.length === 1
+          cards === 1
             ? "1 match found requiring review"
-            : `${result.matches.length} matches found requiring review`;
+            : `${cards} matches found requiring review`;
         const left =
           kind === "deep" && typeof result.credits_remaining === "number"
             ? ` ${result.credits_remaining} ${
@@ -633,10 +641,10 @@ export function AssetMonitoringControls({
                 Candidates checked: {scanResult.scan_job.candidate_count}
               </p>
               <p>
-                Matches requiring review: {scanResult.scan_job.match_count}
+                Matches requiring review: {scanCardCount}
               </p>
 
-              {scanResult.scan_job.match_count > 0 && (
+              {scanCardCount > 0 && (
                 <Link
                   href="/matches"
                   className="mt-3 inline-flex h-9 items-center gap-1.5 rounded-lg bg-[var(--primary-strong)] px-3 text-[13px] font-semibold text-white transition hover:brightness-110"

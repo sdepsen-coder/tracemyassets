@@ -141,20 +141,50 @@ def count_match_records_by_status(
     db: Session,
     *,
     user_id: int,
+    reveals_source: bool = True,
 ) -> dict[str, int]:
     """
-    How many of this user's matches sit in each review_status --
-    powers a lightweight dashboard summary (e.g. "3 new matches to
-    review") without fetching full match rows.
+    How many match *cards* sit in each review_status -- powers the
+    dashboard summary (e.g. "3 new matches to review") without fetching
+    full match rows.
+
+    Counts cards, not rows: the same picture found on several pages is
+    one card on the matches page (see the grouping there), so it is one
+    here too. A card is one artwork, one review status and one candidate
+    image (its address, else its hash); a match with neither stands alone.
+    On a plan that hides match sources the address is never shown, so
+    cards are told apart by hash only -- exactly what the page can see.
     """
     statement = (
-        select(MatchRecord.review_status, func.count())
+        select(
+            MatchRecord.id,
+            MatchRecord.asset_id,
+            MatchRecord.review_status,
+            MatchRecord.candidate_image_url,
+            MatchRecord.candidate_image_hash,
+        )
         .join(Asset, Asset.id == MatchRecord.asset_id)
         .where(Asset.user_id == user_id)
-        .group_by(MatchRecord.review_status)
     )
 
-    return {status: count for status, count in db.execute(statement)}
+    cards: set[tuple] = set()
+
+    for match_id, asset_id, status, image_url, image_hash in db.execute(
+        statement
+    ):
+        image_key = (image_url if reveals_source else None) or image_hash
+
+        if image_key:
+            cards.add((status, asset_id, image_key))
+        else:
+            cards.add((status, "solo", match_id))
+
+    counts: dict[str, int] = {}
+
+    for status, *_ in cards:
+        counts[status] = counts.get(status, 0) + 1
+
+    return counts
 
 
 def list_match_records(

@@ -1,4 +1,5 @@
 import type { AssetScan } from "@/lib/api";
+import { countCards } from "@/lib/matchGroups";
 
 export type ScanExplanation = {
   headline: string;
@@ -12,10 +13,16 @@ export type ScanExplanation = {
  * reported; it never claims more than they support.
  */
 export function explainScan(
-  scan: Pick<AssetScan, "scan_job" | "diagnostics">,
+  scan: Pick<AssetScan, "scan_job" | "diagnostics"> &
+    Partial<Pick<AssetScan, "matches">>,
   kind: "standard" | "deep",
 ): ScanExplanation {
-  const matches = scan.scan_job.match_count;
+  // Cards, not rows: one picture found on several pages is one match to
+  // look at (the matches page shows it as a single card).
+  const matches =
+    scan.matches && scan.matches.length > 0
+      ? countCards(scan.matches)
+      : scan.scan_job.match_count;
   const checked = scan.scan_job.candidate_count;
   const d = scan.diagnostics;
 
