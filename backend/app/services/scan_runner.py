@@ -11,6 +11,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, replace
+from enum import Enum
 from pathlib import Path
 
 from sqlalchemy.orm import Session
@@ -149,6 +150,11 @@ def _collect_candidates(
 # their main images. Bounded so a scan (which runs inside an HTTP request)
 # cannot be held up by slow third-party sites.
 MAX_PAGES_TO_READ = 6
+
+# Signals that already carry evidence beyond the perceptual hash.
+HASH_ONLY_EXEMPT_SIGNALS = frozenset(
+    {"WATERMARK_VERIFIED", "STRONG_VISUAL_MATCH"}
+)
 PAGE_READING_BUDGET_SECONDS = 45.0
 
 
@@ -178,7 +184,13 @@ class PageReadBudget:
         return True
 
 
-def _page_shows_reference(
+class PageVerdict(Enum):
+    SHOWS = "shows"      # one of the page's images is our artwork
+    ABSENT = "absent"    # the page was read and none of its images is
+    UNKNOWN = "unknown"  # could not be read or compared: no verdict
+
+
+def _page_verdict(
     page_url: str,
     *,
     reference_path: Path,
@@ -187,20 +199,29 @@ def _page_shows_reference(
     watermark_secret: bytes,
     threshold_percent: float,
     budget: PageReadBudget,
-) -> bool:
+    strict: bool = False,
+) -> PageVerdict:
     """
-    Content-based confirmation for a page whose HTML does not mention
-    the matched image address: read the page's own main images and keep
-    the page only if one of them is really our artwork. Unrelated pages
-    (search results, catalogue back-ends) show nothing that matches.
+    Read the page's own main images and compare them with the artwork.
+
+    Normally a whole-image similarity at the user's threshold is enough.
+    With strict=True only a watermark or geometric evidence counts: used
+    when the match so far rests on a perceptual hash alone, which small
+    previews of look-alike pictures can fool.
+
+    ABSENT is only returned when at least one image on the page could be
+    compared and none was our artwork, so a blocked or unreadable page
+    never counts against a match.
     """
     if not budget.take():
-        return False
+        return PageVerdict.UNKNOWN
 
     failure, image_urls = read_page_images(page_url)
 
-    if failure is not None:
-        return False
+    if failure is not None or not image_urls:
+        return PageVerdict.UNKNOWN
+
+    compared = 0
 
     for image_url in image_urls:
         content = fetch_candidate_bytes(image_url)
@@ -220,17 +241,52 @@ def _page_shows_reference(
         except (UploadValidationError, WatermarkError):
             continue
 
+        compared += 1
+
         if (
             result.watermark_matches_reference
-            or result.phash_similarity_percent >= threshold_percent
+            or (
+                not strict
+                and result.phash_similarity_percent >= threshold_percent
+            )
             or is_geometric_copy(
                 result.orb.homography_inliers,
                 result.orb.inlier_ratio_percent,
             )
         ):
-            return True
+            return PageVerdict.SHOWS
 
-    return False
+    return PageVerdict.ABSENT if compared else PageVerdict.UNKNOWN
+
+
+def _page_shows_reference(
+    page_url: str,
+    *,
+    reference_path: Path,
+    asset: Asset,
+    user_id: int,
+    watermark_secret: bytes,
+    threshold_percent: float,
+    budget: PageReadBudget,
+) -> bool:
+    """
+    Content-based confirmation for a page whose HTML does not mention
+    the matched image address: read the page's own main images and keep
+    the page only if one of them is really our artwork. Unrelated pages
+    (search results, catalogue back-ends) show nothing that matches.
+    """
+    return (
+        _page_verdict(
+            page_url,
+            reference_path=reference_path,
+            asset=asset,
+            user_id=user_id,
+            watermark_secret=watermark_secret,
+            threshold_percent=threshold_percent,
+            budget=budget,
+        )
+        is PageVerdict.SHOWS
+    )
 
 
 def _expand_pages_without_images(
@@ -494,7 +550,54 @@ def run_scan_for_asset(
             )
             continue
 
-        if candidate.page_may_be_stale and candidate.candidate_page_url:
+        # A match that rests on the perceptual hash alone (no watermark, no
+        # geometric evidence, not rated strong) is the shaky kind: small
+        # previews of different pictures with a similar layout can hash
+        # alike. When we know the page, read it and look for the artwork
+        # at full size. Only a page we could read and that clearly does not
+        # show the artwork drops the match; an unreadable page keeps it.
+        page_confirmed_by_content = False
+        hash_only = (
+            not result.watermark_matches_reference
+            and not is_geometric_copy(
+                result.orb.homography_inliers,
+                result.orb.inlier_ratio_percent,
+            )
+            and result.overall_signal not in HASH_ONLY_EXEMPT_SIGNALS
+        )
+
+        if hash_only and candidate.candidate_page_url:
+            verdict = _page_verdict(
+                candidate.candidate_page_url,
+                reference_path=reference_path,
+                asset=asset,
+                user_id=user_id,
+                watermark_secret=watermark_secret,
+                threshold_percent=preference.alert_threshold_percent,
+                budget=page_budget,
+                strict=True,
+            )
+
+            if verdict is PageVerdict.ABSENT:
+                diagnostics.page_unrelated += 1
+                logger.info(
+                    "asset_id=%s dropping hash-only match: page %s shows "
+                    "no image that is the artwork (similarity %.0f%%, "
+                    "orb inliers=%s)",
+                    asset.id,
+                    candidate.candidate_page_url,
+                    result.phash_similarity_percent,
+                    result.orb.homography_inliers,
+                )
+                continue
+
+            page_confirmed_by_content = verdict is PageVerdict.SHOWS
+
+        if (
+            candidate.page_may_be_stale
+            and candidate.candidate_page_url
+            and not page_confirmed_by_content
+        ):
             # The image matched, but is the page it was found on still
             # there, and does it really show the image? Dead pages and
             # unrelated ones (search-result pages, catalogue backends)
