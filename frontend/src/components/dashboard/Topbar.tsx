@@ -20,6 +20,11 @@ type NavItem = {
 // pages (e.g. /matches), not only from the dashboard itself.
 const NAV_ITEMS: NavItem[] = [
   {
+    label: "Home",
+    href: "/about",
+    isActive: (pathname) => pathname.startsWith("/about"),
+  },
+  {
     label: "Dashboard",
     href: "/",
     isActive: (pathname) => pathname === "/",
@@ -107,7 +112,7 @@ export function Topbar() {
       <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-6 xl:px-8">
         <div className="flex min-w-0 items-center gap-4">
           <Link
-            href="/"
+            href="/about"
             className="flex shrink-0 items-center gap-2 text-[var(--text)]"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--primary-soft)] text-[var(--primary)]">
@@ -121,7 +126,7 @@ export function Topbar() {
 
           <nav
             aria-label="Primary navigation"
-            className="hidden items-center gap-1 rounded-lg bg-[var(--surface-muted)] p-1 lg:flex"
+            className="hidden items-center gap-1 rounded-lg bg-[var(--surface-muted)] p-1 xl:flex"
           >
             {NAV_ITEMS.map((item) => {
               const active = item.isActive(pathname);
@@ -132,7 +137,7 @@ export function Topbar() {
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={[
-                    "rounded-md px-3 py-2 text-[12px] transition",
+                    "whitespace-nowrap rounded-md px-3.5 py-2 text-[14px] transition",
                     active
                       ? "bg-[var(--surface)] font-semibold text-[var(--primary)] shadow-sm hover:text-[var(--primary-strong)]"
                       : "font-medium text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]",
@@ -243,11 +248,11 @@ export function Topbar() {
         </div>
       </div>
 
-      {/* Below the lg breakpoint the pill navigation above is hidden, so
+      {/* Below the xl breakpoint the pill navigation above is hidden, so
           the same links are offered here as a scrollable row. */}
       <nav
         aria-label="Primary navigation (compact)"
-        className="border-t border-[var(--border)] lg:hidden"
+        className="border-t border-[var(--border)] xl:hidden"
       >
         <div className="mx-auto flex max-w-[1440px] gap-1 overflow-x-auto px-4 py-2 sm:px-6">
           {NAV_ITEMS.map((item) => {
@@ -259,7 +264,7 @@ export function Topbar() {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={[
-                  "shrink-0 rounded-md px-3 py-1.5 text-[12px] transition",
+                  "shrink-0 whitespace-nowrap rounded-md px-3.5 py-2 text-[14px] transition",
                   active
                     ? "bg-[var(--surface-muted)] font-semibold text-[var(--primary)]"
                     : "font-medium text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)]",
