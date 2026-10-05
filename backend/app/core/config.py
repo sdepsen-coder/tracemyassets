@@ -52,6 +52,11 @@ class Settings:
         self.frontend_url = os.getenv(
             "FRONTEND_URL", "http://localhost:3000"
         ).strip().rstrip("/")
+        # Sign in with Google. Both must be set for the button to appear.
+        self.google_client_id = os.getenv("GOOGLE_CLIENT_ID", "").strip()
+        self.google_client_secret = os.getenv(
+            "GOOGLE_CLIENT_SECRET", ""
+        ).strip()
         # Deep scan (Google Lens through SerpApi). The limits mirror the
         # SerpApi plan and are counted by us (see provider_budget) so the
         # app stops before the plan does. Calendar day / month in UTC.

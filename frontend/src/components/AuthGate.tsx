@@ -57,6 +57,14 @@ type AuthGateProps = {
   landing?: ReactNode;
 };
 
+const GOOGLE_ERRORS: Record<string, string> = {
+  google_failed: "Google sign-in could not be completed. Please try again.",
+  google_cancelled: "Google sign-in was cancelled.",
+  google_email:
+    "Google did not confirm your email address, so we could not sign you in.",
+  google_unavailable: "Google sign-in is not available right now.",
+};
+
 export function AuthGate({ children, landing }: AuthGateProps) {
   const [screen, setScreen] = useState<"landing" | "auth">("landing");
   const [session, setSession] = useState<User | null>(null);
@@ -72,6 +80,8 @@ export function AuthGate({ children, landing }: AuthGateProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+
+  const [googleEnabled, setGoogleEnabled] = useState(false);
 
   const authPending = useRef(false);
   const authEpoch = useRef(0);
@@ -110,6 +120,40 @@ export function AuthGate({ children, landing }: AuthGateProps) {
 
     return () => controller.abort();
   }, [restoreKey]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    api
+      .authProviders(controller.signal)
+      .then((providers) => setGoogleEnabled(providers.google))
+      .catch(() => {
+        // Without the list the Google button simply stays hidden.
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    // Google sends the browser back to "/?auth_error=..." when sign-in
+    // fails: show the sign-in form with the reason.
+    const params = new URLSearchParams(window.location.search);
+    const reason = params.get("auth_error");
+
+    if (!reason) return;
+
+    params.delete("auth_error");
+    const rest = params.toString();
+    window.history.replaceState(
+      null,
+      "",
+      window.location.pathname + (rest ? `?${rest}` : ""),
+    );
+
+    setMode("login");
+    setScreen("auth");
+    setError(GOOGLE_ERRORS[reason] ?? "Sign-in could not be completed.");
+  }, []);
 
   const sessionUserId = session?.id;
 
@@ -450,6 +494,23 @@ export function AuthGate({ children, landing }: AuthGateProps) {
                   : "Send reset link"}
           </button>
         </form>
+
+        {googleEnabled && mode !== "forgot" && (
+          <>
+            <div className="my-5 flex items-center gap-3 text-xs text-slate-500">
+              <span className="h-px flex-1 bg-white/10" />
+              or
+              <span className="h-px flex-1 bg-white/10" />
+            </div>
+
+            <a
+              href="/api/v1/auth/google/start"
+              className="flex w-full items-center justify-center rounded-xl border border-white/15 px-4 py-3 font-semibold text-slate-100 transition hover:bg-white/5"
+            >
+              Continue with Google
+            </a>
+          </>
+        )}
 
         {mode === "login" && (
           <button

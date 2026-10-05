@@ -302,6 +302,9 @@ export const api = {
       body: JSON.stringify(credentials),
     }),
 
+  authProviders: (signal?: AbortSignal) =>
+    request<{ google: boolean }>("/api/v1/auth/providers", { signal }),
+
   forgotPassword: (email: string) =>
     request<{ message: string }>("/api/v1/auth/forgot-password", {
       method: "POST",
