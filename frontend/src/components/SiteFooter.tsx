@@ -36,6 +36,12 @@ export function SiteFooter({ tone = "themed" }: SiteFooterProps) {
             aria-label="Legal and support"
             className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1"
           >
+            <Link href="/about" className={linkClass}>
+              About
+            </Link>
+            <Link href="/help" className={linkClass}>
+              Help
+            </Link>
             <Link href="/privacy" className={linkClass}>
               Privacy
             </Link>

@@ -40,6 +40,11 @@ export function useAuthEntry(): AuthEntryContextValue {
   return useContext(AuthEntryContext);
 }
 
+/** The signed-in session, or null when nobody is signed in (public pages). */
+export function useOptionalAuth(): AuthContextValue | null {
+  return useContext(AuthContext);
+}
+
 export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
 

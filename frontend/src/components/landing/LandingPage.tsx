@@ -278,6 +278,9 @@ export function LandingPage() {
             <a href="#limits" className="transition hover:text-[var(--text)]">
               Limits
             </a>
+            <Link href="/help" className="transition hover:text-[var(--text)]">
+              Help
+            </Link>
           </nav>
 
           <div className="flex items-center gap-2">

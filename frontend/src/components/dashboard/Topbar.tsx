@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/AuthGate";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { api, type MatchSummary } from "@/lib/api";
+import { SITE_NAME } from "@/lib/site";
 import { Icon } from "./Icon";
 
 type NavItem = {
@@ -37,6 +38,11 @@ const NAV_ITEMS: NavItem[] = [
     label: "Check an Image",
     href: "/check",
     isActive: (pathname) => pathname.startsWith("/check"),
+  },
+  {
+    label: "Help",
+    href: "/help",
+    isActive: (pathname) => pathname.startsWith("/help"),
   },
 ];
 
@@ -197,6 +203,15 @@ export function Topbar() {
                     {email}
                   </p>
                 </div>
+
+                <Link
+                  href="/about"
+                  role="menuitem"
+                  onClick={() => setMenuOpen(false)}
+                  className="block w-full rounded-lg px-3 py-2 text-left text-[13px] font-medium text-[var(--text)] transition hover:bg-[var(--surface-muted)]"
+                >
+                  About {SITE_NAME}
+                </Link>
 
                 <button
                   type="button"
