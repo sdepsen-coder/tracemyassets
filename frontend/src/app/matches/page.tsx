@@ -275,14 +275,53 @@ function MatchesContent() {
     }
   }
 
-  function toggleSelected(matchId: number) {
+  async function handleGroupStatus(
+    ids: number[],
+    reviewStatus: MatchRecordUpdate["review_status"],
+  ) {
+    const cardId = ids[0];
+
+    setUpdatingId(cardId);
+    setActionError("");
+
+    try {
+      const updated = await Promise.all(
+        ids.map((id) =>
+          api.updateMatch(id, { review_status: reviewStatus }),
+        ),
+      );
+      const byId = new Map(updated.map((match) => [match.id, match]));
+
+      setMatches((current) =>
+        current.map((match) => byId.get(match.id) ?? match),
+      );
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        await logout();
+        return;
+      }
+
+      setActionError(
+        err instanceof ApiError
+          ? err.message
+          : "This match could not be updated.",
+      );
+    } finally {
+      setUpdatingId((current) => (current === cardId ? null : current));
+    }
+  }
+
+  function toggleSelected(ids: number[]) {
     setSelected((current) => {
       const next = new Set(current);
+      const allSelected = ids.every((id) => next.has(id));
 
-      if (next.has(matchId)) {
-        next.delete(matchId);
-      } else {
-        next.add(matchId);
+      for (const id of ids) {
+        if (allSelected) {
+          next.delete(id);
+        } else {
+          next.add(id);
+        }
       }
 
       return next;
@@ -415,7 +454,7 @@ function MatchesContent() {
     }
   }
 
-  const visibleMatches = useMemo(() => {
+  const grouped = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
 
     const filtered = matches.filter((match) => {
@@ -467,19 +506,59 @@ function MatchesContent() {
     // Best evidence first: pages about the item, then other pages, then
     // search/category pages, then bare images. The sort is stable, so
     // within each group the order the server gave is kept.
-    return [...filtered].sort(
+    const sorted = [...filtered].sort(
       (a, b) =>
         pageKindInfo[a.page_kind ?? "page"].rank -
         pageKindInfo[b.page_kind ?? "page"].rank,
     );
+
+    // One card per picture: the same image found on several pages (for
+    // example one product photo on seven listings) becomes a single card
+    // that lists the other pages. The best page (first after sorting) is
+    // the card's main page. Matches with a different review status never
+    // share a card, and a match with no image information stands alone.
+    const primaries: MatchRecord[] = [];
+    const others = new Map<number, MatchRecord[]>();
+    const byKey = new Map<string, MatchRecord>();
+
+    for (const match of sorted) {
+      const imageKey = match.candidate_image_url ?? match.candidate_image_hash;
+      const key = imageKey
+        ? `${match.asset_id}|${match.review_status}|${imageKey}`
+        : `solo|${match.id}`;
+      const primary = byKey.get(key);
+
+      if (primary) {
+        others.get(primary.id)?.push(match);
+      } else {
+        byKey.set(key, match);
+        primaries.push(match);
+        others.set(match.id, []);
+      }
+    }
+
+    return { primaries, others };
   }, [assetsById, filter, matches, search, strength]);
+
+  const visibleMatches = grouped.primaries;
+
+  /** Every match id a card stands for: its own plus the duplicates. */
+  function idsOf(match: MatchRecord): number[] {
+    return [
+      match.id,
+      ...(grouped.others.get(match.id) ?? []).map((other) => other.id),
+    ];
+  }
 
   const selectedVisibleIds = useMemo(
     () =>
       visibleMatches
-        .filter((match) => selected.has(match.id))
-        .map((match) => match.id),
-    [visibleMatches, selected],
+        .flatMap((match) => [
+          match.id,
+          ...(grouped.others.get(match.id) ?? []).map((other) => other.id),
+        ])
+        .filter((id) => selected.has(id)),
+    [grouped, visibleMatches, selected],
   );
 
   return (
@@ -629,12 +708,14 @@ function MatchesContent() {
                   type="checkbox"
                   checked={
                     visibleMatches.length > 0 &&
-                    visibleMatches.every((match) => selected.has(match.id))
+                    visibleMatches.every((match) =>
+                      idsOf(match).every((id) => selected.has(id)),
+                    )
                   }
                   onChange={(event) =>
                     setSelected(
                       event.target.checked
-                        ? new Set(visibleMatches.map((match) => match.id))
+                        ? new Set(visibleMatches.flatMap((match) => idsOf(match)))
                         : new Set(),
                     )
                   }
@@ -646,7 +727,9 @@ function MatchesContent() {
               {selectedVisibleIds.length > 0 ? (
                 <>
                   <span className="text-[var(--text-muted)]">
-                    {selectedVisibleIds.length} selected
+                    {selectedVisibleIds.length === 1
+                      ? "1 match selected"
+                      : `${selectedVisibleIds.length} matches selected`}
                   </span>
                   <button
                     type="button"
@@ -706,8 +789,8 @@ function MatchesContent() {
                   <label className="mb-3 flex w-fit cursor-pointer items-center gap-2 text-[12px] text-[var(--text-muted)]">
                     <input
                       type="checkbox"
-                      checked={selected.has(match.id)}
-                      onChange={() => toggleSelected(match.id)}
+                      checked={idsOf(match).every((id) => selected.has(id))}
+                      onChange={() => toggleSelected(idsOf(match))}
                       aria-label={`Select match ${match.id}`}
                       className="h-4 w-4 accent-[var(--primary-strong)]"
                     />
@@ -825,6 +908,48 @@ function MatchesContent() {
                           {pageKindInfo[match.page_kind ?? "page"].hint}
                         </p>
 
+                        {(grouped.others.get(match.id) ?? []).length > 0 ? (
+                          <details className="max-w-xl text-[12px] text-[var(--text-muted)]">
+                            <summary className="cursor-pointer font-semibold text-[var(--text)]">
+                              Same image also found on{" "}
+                              {(grouped.others.get(match.id) ?? []).length}{" "}
+                              other{" "}
+                              {(grouped.others.get(match.id) ?? []).length === 1
+                                ? "page"
+                                : "pages"}
+                            </summary>
+
+                            <ul className="mt-2 space-y-1">
+                              {(grouped.others.get(match.id) ?? []).map(
+                                (other) => (
+                                  <li
+                                    key={other.id}
+                                    className="flex flex-wrap items-center gap-x-2"
+                                  >
+                                    <span>
+                                      {pageKindInfo[other.page_kind ?? "page"]
+                                        .label}
+                                    </span>
+
+                                    {other.source_locked ? (
+                                      <span>Source hidden on your plan</span>
+                                    ) : other.source_url ? (
+                                      <a
+                                        href={other.source_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="break-all text-[var(--primary)] underline"
+                                      >
+                                        {other.source_name ?? other.source_url}
+                                      </a>
+                                    ) : null}
+                                  </li>
+                                ),
+                              )}
+                            </ul>
+                          </details>
+                        ) : null}
+
                         {match.watermark_matches_reference || showStrength ? (
                           <div className="flex flex-wrap items-center gap-3 text-[12px]">
                             {match.watermark_matches_reference ? (
@@ -877,7 +1002,7 @@ function MatchesContent() {
                             type="button"
                             disabled={updatingId === match.id}
                             onClick={() =>
-                              handleStatusChange(match.id, "reviewing")
+                              handleGroupStatus(idsOf(match), "reviewing")
                             }
                             className="inline-flex h-9 items-center rounded-lg bg-[var(--primary-soft)] px-3 text-[12px] font-semibold text-[var(--primary)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
                           >
@@ -890,7 +1015,7 @@ function MatchesContent() {
                             type="button"
                             disabled={updatingId === match.id}
                             onClick={() =>
-                              handleStatusChange(match.id, "confirmed")
+                              handleGroupStatus(idsOf(match), "confirmed")
                             }
                             className="inline-flex h-9 items-center rounded-lg bg-[var(--primary-soft)] px-3 text-[12px] font-semibold text-[var(--primary)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
                           >
@@ -904,7 +1029,7 @@ function MatchesContent() {
                             type="button"
                             disabled={updatingId === match.id}
                             onClick={() =>
-                              handleStatusChange(match.id, "dismissed")
+                              handleGroupStatus(idsOf(match), "dismissed")
                             }
                             className="inline-flex h-9 items-center rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[12px] font-semibold text-[var(--text-muted)] transition hover:text-[var(--text)] disabled:cursor-not-allowed disabled:opacity-60"
                           >
@@ -917,7 +1042,7 @@ function MatchesContent() {
                             type="button"
                             disabled={updatingId === match.id}
                             onClick={() =>
-                              handleStatusChange(match.id, "archived")
+                              handleGroupStatus(idsOf(match), "archived")
                             }
                             className="inline-flex h-9 items-center rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[12px] font-semibold text-[var(--text-muted)] transition hover:text-[var(--text)] disabled:cursor-not-allowed disabled:opacity-60"
                           >
@@ -928,7 +1053,7 @@ function MatchesContent() {
                         <button
                           type="button"
                           disabled={updatingId === match.id}
-                          onClick={() => setPendingDelete([match.id])}
+                          onClick={() => setPendingDelete(idsOf(match))}
                           className="inline-flex h-9 items-center rounded-lg border border-[var(--danger)]/40 bg-[var(--surface)] px-3 text-[12px] font-semibold text-[var(--danger)] transition hover:bg-[var(--danger-soft)] disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           Delete
