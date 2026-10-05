@@ -326,6 +326,11 @@ export const api = {
       method: "POST",
     }),
 
+  logoutEverywhere: () =>
+    request<void>("/api/v1/auth/logout-all", {
+      method: "POST",
+    }),
+
   listAssets: (
     skip = 0,
     limit = 100,

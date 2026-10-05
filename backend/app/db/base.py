@@ -13,6 +13,7 @@ def initialize_database() -> None:
         password_reset,
         provider_usage,
         scan_job,
+        session_cutoff,
         takedown,
         user,
     )

@@ -86,7 +86,8 @@ def token_age_seconds(token: str) -> float | None:
         return None
 
 
-def decode_access_token(token: str) -> int:
+def decode_access_token_claims(token: str) -> tuple[int, int]:
+    """The signed-in user's id and the second the token was issued."""
     try:
         payload = jwt.decode(
             token,
@@ -103,7 +104,7 @@ def decode_access_token(token: str) -> int:
         if user_id <= 0:
             raise ValueError("Invalid subject.")
 
-        return user_id
+        return user_id, int(payload["iat"])
 
     except (jwt.InvalidTokenError, ValueError, TypeError, KeyError) as exc:
         raise HTTPException(
@@ -111,3 +112,7 @@ def decode_access_token(token: str) -> int:
             detail="Invalid or expired access token.",
             headers={"WWW-Authenticate": "Bearer"},
         ) from exc
+
+
+def decode_access_token(token: str) -> int:
+    return decode_access_token_claims(token)[0]

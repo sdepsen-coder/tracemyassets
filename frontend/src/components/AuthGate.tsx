@@ -18,6 +18,8 @@ import { api, ApiError, type User } from "@/lib/api";
 type AuthContextValue = {
   user: User;
   logout: () => Promise<void>;
+  /** Ends the session on every device, not just this browser. */
+  logoutEverywhere: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -222,7 +224,7 @@ export function AuthGate({ children, landing }: AuthGateProps) {
     };
   }, [sessionUserId]);
 
-  const logout = useCallback(async () => {
+  const endSession = useCallback(async (call: () => Promise<void>) => {
     if (authPending.current) return;
 
     authPending.current = true;
@@ -231,7 +233,7 @@ export function AuthGate({ children, landing }: AuthGateProps) {
     setError("");
 
     try {
-      await api.logout();
+      await call();
 
       setSession(null);
       setPassword("");
@@ -247,6 +249,13 @@ export function AuthGate({ children, landing }: AuthGateProps) {
       setBusy(false);
     }
   }, []);
+
+  const logout = useCallback(() => endSession(api.logout), [endSession]);
+
+  const logoutEverywhere = useCallback(
+    () => endSession(api.logoutEverywhere),
+    [endSession],
+  );
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -321,7 +330,7 @@ export function AuthGate({ children, landing }: AuthGateProps) {
     return (
       <AuthContext.Provider
         key={session.id}
-        value={{ user: session, logout }}
+        value={{ user: session, logout, logoutEverywhere }}
       >
         <div className="border-b border-white/10 bg-[#161b29] px-4 py-3 text-slate-200">
           <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-3">

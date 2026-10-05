@@ -45,6 +45,7 @@ from app.core.security import (
 from app.models.password_reset import PasswordResetToken
 from app.models.user import User
 from app.services.email_service import send_email
+from app.services.session_cutoff import revoke_sessions
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -232,6 +233,25 @@ def end_browser_session() -> Response:
     return response
 
 
+@router.post(
+    "/logout-all",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+    dependencies=[Depends(require_trusted_origin)],
+)
+def end_all_sessions(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Response:
+    # Every session issued so far, on every device, including this one.
+    revoke_sessions(db, user.id)
+    db.commit()
+
+    response = Response(status_code=status.HTTP_204_NO_CONTENT)
+    clear_session_cookie(response)
+    return response
+
+
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr = Field(max_length=255)
 
@@ -385,6 +405,10 @@ def reset_password(
         )
 
     user.hashed_password = hash_password(payload.password)
+
+    # Whoever was signed in with the old password (a forgotten laptop, or
+    # someone who should not have had it) is signed out.
+    revoke_sessions(db, user.id)
 
     # The link works once, and any other open links die with it.
     for open_token in db.scalars(

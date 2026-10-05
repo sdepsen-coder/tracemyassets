@@ -41,7 +41,7 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export function Topbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, logoutEverywhere } = useAuth();
   const pathname = usePathname() ?? "/";
 
   const [newMatchCount, setNewMatchCount] = useState(0);
@@ -208,6 +208,19 @@ export function Topbar() {
                   className="mt-1 w-full rounded-lg px-3 py-2 text-left text-[13px] font-medium text-[var(--text)] transition hover:bg-[var(--surface-muted)]"
                 >
                   Sign out
+                </button>
+
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    logoutEverywhere();
+                  }}
+                  title="Ends your session in every browser and device, including this one."
+                  className="w-full rounded-lg px-3 py-2 text-left text-[13px] font-medium text-[var(--text-muted)] transition hover:bg-[var(--surface-muted)] hover:text-[var(--text)]"
+                >
+                  Sign out of all devices
                 </button>
               </div>
             )}

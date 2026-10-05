@@ -9,7 +9,8 @@ from app.core.browser_session import (
     SESSION_COOKIE_NAME,
     require_trusted_origin,
 )
-from app.core.security import decode_access_token
+from app.core.security import decode_access_token_claims
+from app.services.session_cutoff import session_is_revoked
 from app.db.session import SessionLocal
 from app.models.user import User
 
@@ -49,10 +50,11 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    user_id = decode_access_token(token)
+    user_id, issued_at = decode_access_token_claims(token)
     user = db.get(User, user_id)
 
-    if user is None:
+    # A password reset or "sign out of all devices" ends older sessions.
+    if user is None or session_is_revoked(db, user_id, issued_at):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired access token.",
