@@ -123,6 +123,7 @@ export type MatchRecord = {
   notes: string | null;
   source_locked: boolean;
   page_kind: MatchPageKind;
+  found_by_deep_scan?: boolean;
   feedback_verdict: MatchVerdict | null;
   created_at: string;
   updated_at: string;

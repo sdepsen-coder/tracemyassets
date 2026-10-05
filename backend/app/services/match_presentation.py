@@ -12,10 +12,43 @@ candidate_page_url, candidate_image_url) is locked behind a plan.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
 from app.core.plan_limits import get_plan_limits
 from app.models.match_record import MatchRecord
+from app.models.scan_job import ScanJob
 from app.schemas.asset import MatchRecordRead
 from app.services.page_kind import classify_page
+
+
+DEEP_SCAN_PROVIDER = "serpapi-lens"
+
+
+def is_deep_scan_provider(provider_name: str | None) -> bool:
+    """Does a ScanJob.provider value (comma separated) include Lens?"""
+    if not provider_name:
+        return False
+
+    return DEEP_SCAN_PROVIDER in provider_name.split(",")
+
+
+def deep_scan_job_ids(db: Session, job_ids: Iterable[int | None]) -> set[int]:
+    """Which of these scan jobs were deep scans."""
+    wanted = {job_id for job_id in job_ids if job_id is not None}
+
+    if not wanted:
+        return set()
+
+    rows = db.execute(
+        select(ScanJob.id, ScanJob.provider).where(ScanJob.id.in_(wanted))
+    ).all()
+
+    return {
+        job_id for job_id, provider in rows if is_deep_scan_provider(provider)
+    }
 
 
 def build_match_record_response(
@@ -23,6 +56,7 @@ def build_match_record_response(
     *,
     plan_type: str | None,
     feedback_verdict: str | None = None,
+    found_by_deep_scan: bool = False,
 ) -> MatchRecordRead:
     unlocked = get_plan_limits(plan_type).reveals_match_source
 
@@ -52,6 +86,7 @@ def build_match_record_response(
         notes=match_record.notes,
         source_locked=not unlocked,
         page_kind=classify_page(match_record.candidate_page_url),
+        found_by_deep_scan=found_by_deep_scan,
         feedback_verdict=feedback_verdict,
         created_at=match_record.created_at,
         updated_at=match_record.updated_at,

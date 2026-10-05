@@ -54,7 +54,10 @@ from app.schemas.asset import (
     ScanJobRead,
 )
 from app.services.scan_runner import run_scan_for_asset
-from app.services.match_presentation import build_match_record_response
+from app.services.match_presentation import (
+    build_match_record_response,
+    is_deep_scan_provider,
+)
 from app.services.scheduler import last_completed_scan_at
 from app.services.asset_paths import (
     asset_storage_directory,
@@ -504,7 +507,11 @@ def _execute_scan(
             scan_job=scan_job_response(outcome.scan_job),
             matches=[
                 build_match_record_response(
-                    match_record, plan_type=user.plan_type
+                    match_record,
+                    plan_type=user.plan_type,
+                    found_by_deep_scan=is_deep_scan_provider(
+                        outcome.provider_name
+                    ),
                 )
                 for match_record in outcome.matches
             ],

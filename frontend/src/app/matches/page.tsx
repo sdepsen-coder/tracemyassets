@@ -877,6 +877,18 @@ function MatchesContent() {
                           >
                             {formatStatus(match.review_status)}
                           </span>
+
+                          {match.found_by_deep_scan ||
+                          (grouped.others.get(match.id) ?? []).some(
+                            (other) => other.found_by_deep_scan,
+                          ) ? (
+                            <span
+                              title="Found by a deep scan, which looks beyond the standard scan."
+                              className="rounded-full bg-[var(--primary-soft)] px-2.5 py-1 text-[11px] font-semibold text-[var(--primary)]"
+                            >
+                              Deep scan
+                            </span>
+                          ) : null}
                         </div>
 
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-[var(--text-muted)]">

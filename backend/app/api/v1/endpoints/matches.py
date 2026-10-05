@@ -20,7 +20,10 @@ from app.crud.match_record import (
 from app.models.user import User
 from app.schemas.asset import MatchRecordRead, MatchRecordUpdate, MatchSummary
 from app.schemas.feedback import MatchFeedbackRead, MatchFeedbackUpdate
-from app.services.match_presentation import build_match_record_response
+from app.services.match_presentation import (
+    build_match_record_response,
+    deep_scan_job_ids,
+)
 
 
 router = APIRouter(prefix="/matches", tags=["matches"])
@@ -57,11 +60,16 @@ def read_matches(
         match_ids=[record.id for record in records],
     )
 
+    deep_jobs = deep_scan_job_ids(
+        db, (record.scan_job_id for record in records)
+    )
+
     return [
         build_match_record_response(
             record,
             plan_type=user.plan_type,
             feedback_verdict=verdicts.get(record.id),
+            found_by_deep_scan=record.scan_job_id in deep_jobs,
         )
         for record in records
     ]
@@ -113,10 +121,13 @@ def update_match(
         match_ids=[updated.id],
     )
 
+    deep_jobs = deep_scan_job_ids(db, [updated.scan_job_id])
+
     return build_match_record_response(
         updated,
         plan_type=user.plan_type,
         feedback_verdict=verdicts.get(updated.id),
+        found_by_deep_scan=updated.scan_job_id in deep_jobs,
     )
 
 

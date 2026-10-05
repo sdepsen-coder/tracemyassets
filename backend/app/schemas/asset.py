@@ -136,6 +136,9 @@ class MatchRecordRead(BaseModel):
     # shown even when the address itself is locked) -- see
     # app.services.page_kind.
     page_kind: Literal["item", "collection", "page", "image_only"] = "page"
+    # True when the scan that last recorded this match was a deep scan
+    # (Google Lens), so the page can say where the extra finds came from.
+    found_by_deep_scan: bool = False
     # This user's own verdict on the match ("useful", "irrelevant",
     # "unrelated" or "different"), if they gave one -- see
     # app.models.feedback.
