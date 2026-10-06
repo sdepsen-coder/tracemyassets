@@ -1,0 +1,97 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+
+import { LegalPage, LegalSection } from "@/components/legal/LegalPage";
+import { PlanCards } from "@/components/pricing/PlanCards";
+import { PRICING_NOTE } from "@/lib/plans";
+import { CONTACT_EMAIL, SITE_NAME } from "@/lib/site";
+
+export const metadata: Metadata = {
+  title: `Pricing — ${SITE_NAME}`,
+  description: `Free, Pro and Extra plans for ${SITE_NAME}: how many artworks, scans and Deep scan credits each includes.`,
+  alternates: { canonical: "/pricing" },
+};
+
+const QUESTIONS: Array<{ question: string; answer: string }> = [
+  {
+    question: "Can I use it for free?",
+    answer:
+      "Yes. The Free plan needs no card. You can register up to 3 artworks, have them checked automatically every week or month, and start 5 Standard scans a month yourself.",
+  },
+  {
+    question: "When can I upgrade?",
+    answer:
+      "Paid plans are not open yet. Create a free account now; the upgrade will appear in the app when paid plans open. Nothing is charged until you choose a plan.",
+  },
+  {
+    question: "What is a Deep scan, and what are credits?",
+    answer:
+      "A Deep scan looks further than the Standard scan and costs real money to run, so it is paid for with credits: one credit for one artwork. Every new account gets 3 credits once. How many credits Pro and Extra include will be announced when paid plans open.",
+  },
+  {
+    question: "Why is the source hidden on Free?",
+    answer:
+      "On Free you still see that a possible copy exists and how strong the signal is, so you can judge whether it matters. The page where it was found is shown on Pro and Extra.",
+  },
+  {
+    question: "What about cancelling and refunds?",
+    answer:
+      "The cancellation and refund terms will be published on this site, and in the Terms, before paid plans open.",
+  },
+];
+
+export default function PricingPage() {
+  return (
+    <LegalPage title="Pricing" wide>
+      <p className="max-w-2xl text-[15px] leading-relaxed text-[var(--text-muted)]">
+        Start free and see what {SITE_NAME} finds for your work. Paid plans
+        add room for more artworks, more scans and the exact pages where your
+        images appear.
+      </p>
+
+      <PlanCards />
+
+      <p
+        data-testid="pricing-note"
+        className="rounded-xl bg-[var(--surface-muted)] p-4 text-[13px] leading-relaxed text-[var(--text-muted)]"
+      >
+        {PRICING_NOTE}
+      </p>
+
+      <LegalSection heading="Questions about plans">
+        <div className="divide-y divide-[var(--border)] rounded-xl border border-[var(--border)] bg-[var(--surface)]">
+          {QUESTIONS.map((item) => (
+            <div key={item.question} className="px-4 py-4">
+              <h3 className="text-[15px] font-semibold text-[var(--text)]">
+                {item.question}
+              </h3>
+              <p className="mt-1 text-[14px] leading-relaxed text-[var(--text-muted)]">
+                {item.answer}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-[14px]">
+          More answers are on the{" "}
+          <Link href="/help" className="text-[var(--primary)] underline">
+            Help
+          </Link>{" "}
+          page
+          {CONTACT_EMAIL ? (
+            <>
+              , or write to{" "}
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                className="text-[var(--primary)] underline"
+              >
+                {CONTACT_EMAIL}
+              </a>
+            </>
+          ) : null}
+          .
+        </p>
+      </LegalSection>
+    </LegalPage>
+  );
+}

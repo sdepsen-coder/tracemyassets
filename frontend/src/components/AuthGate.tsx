@@ -168,6 +168,22 @@ export function AuthGate({ children, landing }: AuthGateProps) {
       return;
     }
 
+    const wanted = params.get("auth");
+
+    if (wanted === "register" || wanted === "login") {
+      params.delete("auth");
+      const rest = params.toString();
+      window.history.replaceState(
+        null,
+        "",
+        window.location.pathname + (rest ? `?${rest}` : ""),
+      );
+
+      setMode(wanted);
+      setScreen("auth");
+      return;
+    }
+
     const reason = params.get("auth_error");
 
     if (!reason) return;

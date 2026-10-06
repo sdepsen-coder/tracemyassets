@@ -7,6 +7,8 @@ import { SITE_NAME } from "@/lib/site";
 type LegalPageProps = {
   title: string;
   updated?: string;
+  /** Wider column, for pages with cards side by side. */
+  wide?: boolean;
   children: ReactNode;
 };
 
@@ -14,11 +16,18 @@ type LegalPageProps = {
  * Shared shell for the public Privacy / Terms / Support pages. These pages
  * are deliberately reachable without signing in (no AuthGate).
  */
-export function LegalPage({ title, updated, children }: LegalPageProps) {
+export function LegalPage({
+  title,
+  updated,
+  wide = false,
+  children,
+}: LegalPageProps) {
+  const width = wide ? "max-w-5xl" : "max-w-3xl";
+
   return (
     <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--text)]">
       <header className="border-b border-[var(--border)]">
-        <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-4 sm:px-6">
+        <div className={`mx-auto flex h-16 ${width} items-center justify-between px-4 sm:px-6`}>
           <Link
             href="/"
             className="font-heading text-[18px] font-semibold tracking-[-0.03em]"
@@ -35,7 +44,7 @@ export function LegalPage({ title, updated, children }: LegalPageProps) {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6">
+      <main className={`mx-auto w-full ${width} flex-1 px-4 py-10 sm:px-6`}>
         <h1 className="font-heading text-3xl font-bold tracking-[-0.03em]">
           {title}
         </h1>

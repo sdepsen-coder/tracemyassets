@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { PlanCards } from "@/components/pricing/PlanCards";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Icon } from "@/components/dashboard/Icon";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -275,6 +276,9 @@ export function LandingPage() {
             <a href="#sources" className="transition hover:text-[var(--text)]">
               Sources
             </a>
+            <a href="#pricing" className="transition hover:text-[var(--text)]">
+              Pricing
+            </a>
             <a href="#limits" className="transition hover:text-[var(--text)]">
               Limits
             </a>
@@ -451,6 +455,30 @@ export function LandingPage() {
                 </article>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Pricing */}
+        <section id="pricing" className="scroll-mt-20 py-20 sm:py-24">
+          <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
+            <SectionHeading
+              eyebrow="Plans"
+              title="Start free. Upgrade when you need more."
+              body="The Free plan needs no card. Paid plans are not open yet."
+            />
+
+            <div className="mt-12">
+              <PlanCards compact />
+            </div>
+
+            <p className="mt-6 text-center text-[14px]">
+              <Link
+                href="/pricing"
+                className="font-semibold text-[var(--primary)] underline"
+              >
+                See the full comparison
+              </Link>
+            </p>
           </div>
         </section>
 
