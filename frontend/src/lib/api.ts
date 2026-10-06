@@ -3,7 +3,94 @@ export type User = {
   email: string;
   plan_type: string;
   created_at: string;
+  /** Only the sign-in check ("/auth/me") says; the server enforces it. */
+  is_admin?: boolean;
 };
+
+export type AdminOverview = {
+  users_total: number;
+  users_new_24h: number;
+  users_new_7d: number;
+  users_active_24h: number;
+  users_active_7d: number;
+  suspended_users: number;
+  assets_total: number;
+  scans_24h: number;
+  scans_7d: number;
+  deep_scans_24h: number;
+  deep_scans_7d: number;
+  feedback_total: number;
+  feedback_7d: number;
+  failed_sign_ins_24h: number;
+  sign_ups_by_day: Array<[string, number]>;
+  serpapi: {
+    used_today: number;
+    used_this_month: number;
+    daily_limit: number;
+    monthly_limit: number;
+  };
+  event_retention_days: number;
+};
+
+export type AdminEvent = {
+  id: number;
+  event_type: string;
+  user_id: number | null;
+  email: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  detail: string | null;
+  created_at: string;
+};
+
+export type AdminUserRow = {
+  id: number;
+  email: string;
+  plan_type: string;
+  created_at: string;
+  credits: number;
+  assets: number;
+  last_sign_in: string | null;
+  suspended: boolean;
+  is_admin: boolean;
+};
+
+export type AdminFeedbackRow = {
+  id: number;
+  user_id: number;
+  email: string | null;
+  kind: string;
+  verdict: string | null;
+  similarity_percent: number | null;
+  overall_signal: string | null;
+  source_kind: string | null;
+  message: string | null;
+  answers: Record<string, unknown> | null;
+  created_at: string;
+};
+
+export type AdminUserDetail = {
+  user: AdminUserRow;
+  suspension_reason: string | null;
+  assets_list: Array<{
+    id: number;
+    title: string;
+    status: string;
+    created_at: string;
+  }>;
+  credit_entries: Array<{
+    id: number;
+    delta: number;
+    reason: string;
+    note: string | null;
+    created_at: string;
+  }>;
+  ips: Array<{ ip_address: string; events: number; last_seen: string }>;
+  events: AdminEvent[];
+  feedback: AdminFeedbackRow[];
+};
+
+export type AdminPage<T> = { total: number; items: T[] };
 
 export type Credentials = {
   email: string;
@@ -549,4 +636,61 @@ export const api = {
       body: JSON.stringify(feedback),
       signal,
     }),
+
+  admin: {
+    me: (signal?: AbortSignal) =>
+      request<{ email: string }>("/api/v1/admin/me", { signal }),
+
+    overview: (signal?: AbortSignal) =>
+      request<AdminOverview>("/api/v1/admin/overview", { signal }),
+
+    users: (
+      params: { q?: string; offset?: number },
+      signal?: AbortSignal,
+    ) =>
+      request<AdminPage<AdminUserRow>>(
+        `/api/v1/admin/users?${new URLSearchParams({
+          ...(params.q ? { q: params.q } : {}),
+          offset: String(params.offset ?? 0),
+          limit: "50",
+        })}`,
+        { signal },
+      ),
+
+    user: (userId: number, signal?: AbortSignal) =>
+      request<AdminUserDetail>(`/api/v1/admin/users/${userId}`, { signal }),
+
+    feedback: (
+      params: { kind?: string; offset?: number },
+      signal?: AbortSignal,
+    ) =>
+      request<AdminPage<AdminFeedbackRow>>(
+        `/api/v1/admin/feedback?${new URLSearchParams({
+          ...(params.kind ? { kind: params.kind } : {}),
+          offset: String(params.offset ?? 0),
+          limit: "50",
+        })}`,
+        { signal },
+      ),
+
+    events: (
+      params: { q?: string; event_type?: string; offset?: number },
+      signal?: AbortSignal,
+    ) =>
+      request<AdminPage<AdminEvent>>(
+        `/api/v1/admin/events?${new URLSearchParams({
+          ...(params.q ? { q: params.q } : {}),
+          ...(params.event_type ? { event_type: params.event_type } : {}),
+          offset: String(params.offset ?? 0),
+          limit: "100",
+        })}`,
+        { signal },
+      ),
+
+    act: (userId: number, action: string, body: object = {}) =>
+      request<{ ok: true }>(`/api/v1/admin/users/${userId}/${action}`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+  },
 };

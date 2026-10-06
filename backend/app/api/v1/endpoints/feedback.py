@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
@@ -11,6 +11,7 @@ from app.crud.feedback import (
 )
 from app.models.user import User
 from app.schemas.feedback import FeedbackCreate, FeedbackRead
+from app.services import user_events
 
 
 router = APIRouter(prefix="/feedback", tags=["feedback"])
@@ -23,6 +24,7 @@ router = APIRouter(prefix="/feedback", tags=["feedback"])
 )
 def submit_feedback(
     request: FeedbackCreate,
+    http_request: Request,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> FeedbackRead:
@@ -53,5 +55,14 @@ def submit_feedback(
     )
 
     db.commit()
+
+    user_events.record_event(
+        db,
+        http_request,
+        user_events.FEEDBACK,
+        user_id=user.id,
+        email=user.email,
+        detail=f"{request.kind} #{entry.id}",
+    )
 
     return FeedbackRead(id=entry.id)

@@ -19,7 +19,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_user, get_db, is_admin_email
 from app.core.browser_session import (
     SESSION_COOKIE_NAME,
     clear_session_cookie,
@@ -44,6 +44,8 @@ from app.core.security import (
 )
 from app.models.password_reset import PasswordResetToken
 from app.models.user import User
+from app.models.user_suspension import UserSuspension
+from app.services import user_events
 from app.services.email_service import send_email
 from app.services.session_cutoff import revoke_sessions
 
@@ -75,6 +77,12 @@ class UserRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class MeRead(UserRead):
+    # Lets the app show the "Admin" link; the admin pages themselves are
+    # protected on the server whatever this says.
+    is_admin: bool = False
+
+
 class TokenRead(BaseModel):
     access_token: str
     token_type: Literal["bearer"] = "bearer"
@@ -92,6 +100,7 @@ def normalize_email(email: str) -> str:
 )
 def register(
     payload: RegisterRequest,
+    request: Request,
     db: Session = Depends(get_db),
 ) -> User:
     # Avoid creating accounts while authentication is misconfigured.
@@ -135,12 +144,22 @@ def register(
         ) from exc
 
     db.refresh(user)
+
+    user_events.record_event(
+        db,
+        request,
+        user_events.REGISTER,
+        user_id=user.id,
+        email=user.email,
+    )
+
     return user
 
 
 @router.post("/login", response_model=TokenRead)
 def login(
     payload: LoginRequest,
+    request: Request,
     db: Session = Depends(get_db),
 ) -> TokenRead:
     get_auth_secret()
@@ -163,23 +182,45 @@ def login(
     )
 
     if user is None or not valid_password:
+        user_events.record_event(
+            db,
+            request,
+            user_events.LOGIN_FAILED,
+            user_id=user.id if user is not None else None,
+            email=email,
+        )
+
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    if db.get(UserSuspension, user.id) is not None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This account is suspended.",
+        )
+
+    user_events.record_event(
+        db,
+        request,
+        user_events.LOGIN,
+        user_id=user.id,
+        email=user.email,
+    )
+
     return TokenRead(
         access_token=create_access_token(user.id)
     )
 
 
-@router.get("/me", response_model=UserRead)
+@router.get("/me", response_model=MeRead)
 def read_current_user(
     request: Request,
     response: Response,
     user: User = Depends(get_current_user),
-) -> User:
+) -> MeRead:
     # Sliding session: the app asks "who am I" every minute while open, so
     # an older browser session is quietly renewed here. Cookie sessions
     # only; bearer-token callers manage their own tokens.
@@ -191,7 +232,9 @@ def read_current_user(
         if age is not None and age > RENEW_AFTER_SECONDS:
             set_session_cookie(response, create_access_token(user.id))
 
-    return user
+    return MeRead.model_validate(user).model_copy(
+        update={"is_admin": is_admin_email(user.email)}
+    )
 
 
 @router.post(
@@ -201,11 +244,12 @@ def read_current_user(
 )
 def create_browser_session(
     payload: LoginRequest,
+    request: Request,
     response: Response,
     db: Session = Depends(get_db),
 ) -> User:
     # Reuse the existing credential verification and token generation.
-    result = login(payload=payload, db=db)
+    result = login(payload=payload, request=request, db=db)
 
     user_id = decode_access_token(result.access_token)
     user = db.get(User, user_id)
@@ -240,12 +284,21 @@ def end_browser_session() -> Response:
     dependencies=[Depends(require_trusted_origin)],
 )
 def end_all_sessions(
+    request: Request,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Response:
     # Every session issued so far, on every device, including this one.
     revoke_sessions(db, user.id)
     db.commit()
+
+    user_events.record_event(
+        db,
+        request,
+        user_events.LOGOUT_ALL,
+        user_id=user.id,
+        email=user.email,
+    )
 
     response = Response(status_code=status.HTTP_204_NO_CONTENT)
     clear_session_cookie(response)
@@ -305,6 +358,7 @@ def _send_reset_email(to_email: str, token: str) -> None:
 )
 def forgot_password(
     payload: ForgotPasswordRequest,
+    request: Request,
     background: BackgroundTasks,
     db: Session = Depends(get_db),
 ) -> MessageRead:
@@ -316,6 +370,14 @@ def forgot_password(
 
     email = normalize_email(str(payload.email))
     user = db.scalar(select(User).where(User.email == email))
+
+    user_events.record_event(
+        db,
+        request,
+        user_events.PASSWORD_RESET_REQUESTED,
+        user_id=user.id if user is not None else None,
+        email=email,
+    )
 
     if user is not None:
         now = datetime.now(timezone.utc)
@@ -356,6 +418,7 @@ def forgot_password(
 )
 def reset_password(
     payload: ResetPasswordRequest,
+    request: Request,
     db: Session = Depends(get_db),
 ) -> MessageRead:
     get_auth_secret()
@@ -422,6 +485,14 @@ def reset_password(
     db.commit()
 
     logger.info("Password reset completed for user_id=%s", user.id)
+
+    user_events.record_event(
+        db,
+        request,
+        user_events.PASSWORD_RESET_DONE,
+        user_id=user.id,
+        email=user.email,
+    )
 
     return MessageRead(
         message="Your password has been changed. You can now sign in."

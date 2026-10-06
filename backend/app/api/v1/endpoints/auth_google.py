@@ -37,6 +37,8 @@ from app.core.browser_session import COOKIE_SECURE, set_session_cookie
 from app.core.config import settings
 from app.core.security import create_access_token, hash_password
 from app.models.user import User
+from app.models.user_suspension import UserSuspension
+from app.services import user_events
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -133,11 +135,12 @@ def google_start() -> RedirectResponse:
     return response
 
 
-def _find_or_create_user(db: Session, email: str) -> User:
+def _find_or_create_user(db: Session, email: str) -> tuple[User, bool]:
+    """The account for this email, and whether it was just created."""
     user = db.scalar(select(User).where(User.email == email))
 
     if user is not None:
-        return user
+        return user, False
 
     # Google accounts have no password here. The stored hash is of a
     # random value nobody knows, so password sign-in is impossible until
@@ -149,18 +152,21 @@ def _find_or_create_user(db: Session, email: str) -> User:
     )
     db.add(user)
 
+    created = True
+
     try:
         db.commit()
     except IntegrityError:
         # Created by a simultaneous request: use that one.
         db.rollback()
+        created = False
         user = db.scalar(select(User).where(User.email == email))
 
         if user is None:
             raise
 
     db.refresh(user)
-    return user
+    return user, created
 
 
 @router.get("/google/callback")
@@ -243,10 +249,23 @@ def google_callback(
     ):
         return _failure("google_email")
 
-    user = _find_or_create_user(db, email.strip().lower())
+    user, created = _find_or_create_user(db, email.strip().lower())
+
+    if db.get(UserSuspension, user.id) is not None:
+        return _failure("account_suspended")
+
+    user_events.record_event(
+        db,
+        request,
+        user_events.GOOGLE_SIGNUP if created else user_events.GOOGLE_LOGIN,
+        user_id=user.id,
+        email=user.email,
+    )
 
     response = RedirectResponse("/", status_code=302)
-    set_session_cookie(response, create_access_token(user.id))
+    set_session_cookie(
+        response, create_access_token(user.id, via="google")
+    )
     _clear_flow_cookies(response)
 
     logger.info("Google sign-in for user_id=%s", user.id)

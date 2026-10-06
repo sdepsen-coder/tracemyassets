@@ -12,6 +12,7 @@ from fastapi import (
     Form,
     HTTPException,
     Query,
+    Request,
     UploadFile,
     status,
 )
@@ -70,6 +71,7 @@ from app.services.credits import (
     get_balance,
     refund_charge,
 )
+from app.services import user_events
 from app.services.provider_budget import get_budget_status
 from app.services.visual_search_provider import (
     get_configured_providers,
@@ -300,6 +302,7 @@ def delete_asset_permanently(
     status_code=status.HTTP_201_CREATED,
 )
 def upload_asset(
+    request: Request,
     title: str = Form(min_length=1, max_length=255),
     file: UploadFile = File(),
     user: User = Depends(get_current_user),
@@ -374,6 +377,15 @@ def upload_asset(
 
         response = asset_response(asset)
         db.commit()
+
+        user_events.record_event(
+            db,
+            request,
+            user_events.ASSET_UPLOADED,
+            user_id=user.id,
+            email=user.email,
+            detail=f"asset {response.id}",
+        )
 
         return response
 
@@ -553,6 +565,7 @@ def _execute_scan(
 )
 def scan_asset(
     asset_id: int,
+    request: Request,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -588,7 +601,7 @@ def scan_asset(
             detail=str(exc),
         ) from exc
 
-    return _execute_scan(
+    response = _execute_scan(
         db,
         asset=asset,
         user=user,
@@ -596,12 +609,24 @@ def scan_asset(
         providers=providers,
     )
 
+    user_events.record_event(
+        db,
+        request,
+        user_events.SCAN,
+        user_id=user.id,
+        email=user.email,
+        detail=f"asset {asset_id}",
+    )
+
+    return response
+
 @router.post(
     "/{asset_id}/deep-scan",
     response_model=AssetScanRead,
 )
 def deep_scan_asset(
     asset_id: int,
+    request: Request,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -708,6 +733,15 @@ def deep_scan_asset(
 
     response.credit_refunded = refunded
     response.credits_remaining = get_balance(db, user.id)
+
+    user_events.record_event(
+        db,
+        request,
+        user_events.DEEP_SCAN,
+        user_id=user.id,
+        email=user.email,
+        detail=f"asset {asset_id}" + (", credit refunded" if refunded else ""),
+    )
 
     return response
 

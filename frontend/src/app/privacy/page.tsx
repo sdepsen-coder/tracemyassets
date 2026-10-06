@@ -33,6 +33,7 @@ export default function PrivacyPage() {
             "Artwork you upload: the original file, a thumbnail, a protected watermarked copy, and a visual fingerprint (perceptual hash) computed from it, plus the title you give it.",
             "Monitoring data: your scan settings, scan history, and the possible matches found for your artwork (including the address of the page and image where a possible copy was found, and similarity results).",
             "Feedback you choose to send: your verdicts on matches (useful, irrelevant, unrelated, different) and any answers or messages you submit through the feedback form. A verdict keeps only a small technical snapshot of the match (its similarity result and source type), not the address where it was found, and it is kept even if you later delete the artwork, so we can improve how matches are judged.",
+            "A security and activity log: when you sign up, sign in (or fail to), reset your password, upload an artwork, run a scan or send feedback, we record the time, your IP address and your browser type. We use it to keep accounts safe, to spot abuse (for example many accounts created from one address) and to help when you contact support. It is deleted automatically after 90 days.",
             "A session cookie that keeps you signed in. We do not use advertising or analytics trackers.",
           ]}
         />
@@ -44,6 +45,9 @@ export default function PrivacyPage() {
           scanning supported online sources for visually similar images, and
           showing you the results. We do not sell your data, and we do not
           use your artwork to train models.
+          The activity log described above is used only for security,
+          preventing abuse and support, and can be seen only by the
+          service's administrator.
         </p>
       </LegalSection>
 

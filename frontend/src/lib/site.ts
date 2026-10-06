@@ -20,4 +20,4 @@ export const CONTACT_EMAIL: string =
 export const ETSY_TRADEMARK_NOTICE =
   "The term 'Etsy' is a trademark of Etsy, Inc. This application uses the Etsy API but is not endorsed or certified by Etsy, Inc.";
 
-export const LEGAL_LAST_UPDATED = "4 October 2026";
+export const LEGAL_LAST_UPDATED = "6 October 2026";

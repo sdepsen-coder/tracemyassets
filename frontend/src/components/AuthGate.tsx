@@ -70,6 +70,7 @@ const GOOGLE_ERRORS: Record<string, string> = {
   google_email:
     "Google did not confirm your email address, so we could not sign you in.",
   google_unavailable: "Google sign-in is not available right now.",
+  account_suspended: "This account is suspended.",
 };
 
 export function AuthGate({ children, landing }: AuthGateProps) {
@@ -109,7 +110,10 @@ export function AuthGate({ children, landing }: AuthGateProps) {
       } catch (err) {
         if (controller.signal.aborted) return;
 
-        if (err instanceof ApiError && err.status === 401) {
+        if (
+          err instanceof ApiError &&
+          (err.status === 401 || err.status === 403)
+        ) {
           setSession(null);
         } else {
           setRestoreError(
@@ -199,14 +203,21 @@ export function AuthGate({ children, landing }: AuthGateProps) {
           return;
         }
 
-        if (err instanceof ApiError && err.status === 401) {
+        if (
+          err instanceof ApiError &&
+          (err.status === 401 || err.status === 403)
+        ) {
           authEpoch.current += 1;
           setSession(null);
           setPassword("");
           setMode("login");
-          setError("");
+          setError(err.status === 403 ? err.message : "");
           setScreen("auth");
-          setMessage("Your session has expired. Please sign in again.");
+          setMessage(
+            err.status === 403
+              ? ""
+              : "Your session has expired. Please sign in again.",
+          );
         }
 
         // Network failures must not be treated as expired sessions.

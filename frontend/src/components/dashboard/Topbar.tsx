@@ -218,6 +218,17 @@ export function Topbar() {
                   About {SITE_NAME}
                 </Link>
 
+                {user.is_admin && (
+                  <Link
+                    href="/admin"
+                    role="menuitem"
+                    onClick={() => setMenuOpen(false)}
+                    className="block w-full rounded-lg px-3 py-2 text-left text-[13px] font-medium text-[var(--text)] transition hover:bg-[var(--surface-muted)]"
+                  >
+                    Admin
+                  </Link>
+                )}
+
                 <button
                   type="button"
                   role="menuitem"

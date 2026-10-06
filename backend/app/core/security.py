@@ -54,17 +54,28 @@ def verify_password(password: str, hashed_password: str) -> bool:
         return False
 
 
-def create_access_token(user_id: int) -> str:
+def create_access_token(user_id: int, *, via: str | None = None) -> str:
+    """
+    A signed session token. `via` records how the person signed in
+    ("google"); the admin pages ask for it. It is deliberately not carried
+    over when a session is renewed, so a renewed session never counts as a
+    fresh Google sign-in.
+    """
     now = datetime.now(timezone.utc)
 
+    claims = {
+        "sub": str(user_id),
+        "iat": now,
+        "exp": now + timedelta(seconds=TOKEN_TTL_SECONDS),
+        "iss": TOKEN_ISSUER,
+        "aud": TOKEN_AUDIENCE,
+    }
+
+    if via:
+        claims["via"] = via
+
     return jwt.encode(
-        {
-            "sub": str(user_id),
-            "iat": now,
-            "exp": now + timedelta(seconds=TOKEN_TTL_SECONDS),
-            "iss": TOKEN_ISSUER,
-            "aud": TOKEN_AUDIENCE,
-        },
+        claims,
         get_auth_secret(),
         algorithm=ALGORITHM,
     )
@@ -86,8 +97,8 @@ def token_age_seconds(token: str) -> float | None:
         return None
 
 
-def decode_access_token_claims(token: str) -> tuple[int, int]:
-    """The signed-in user's id and the second the token was issued."""
+def decode_access_token_details(token: str) -> tuple[int, int, str | None]:
+    """The user's id, the second the token was issued, and how they signed in."""
     try:
         payload = jwt.decode(
             token,
@@ -104,7 +115,13 @@ def decode_access_token_claims(token: str) -> tuple[int, int]:
         if user_id <= 0:
             raise ValueError("Invalid subject.")
 
-        return user_id, int(payload["iat"])
+        via = payload.get("via")
+
+        return (
+            user_id,
+            int(payload["iat"]),
+            via if isinstance(via, str) else None,
+        )
 
     except (jwt.InvalidTokenError, ValueError, TypeError, KeyError) as exc:
         raise HTTPException(
@@ -112,6 +129,13 @@ def decode_access_token_claims(token: str) -> tuple[int, int]:
             detail="Invalid or expired access token.",
             headers={"WWW-Authenticate": "Bearer"},
         ) from exc
+
+
+def decode_access_token_claims(token: str) -> tuple[int, int]:
+    """The signed-in user's id and the second the token was issued."""
+    user_id, issued_at, _via = decode_access_token_details(token)
+
+    return user_id, issued_at
 
 
 def decode_access_token(token: str) -> int:

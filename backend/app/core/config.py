@@ -73,6 +73,32 @@ class Settings:
         self.public_backend_url = os.getenv(
             "PUBLIC_BACKEND_URL", ""
         ).strip().rstrip("/")
+        # Admin pages. ADMIN_EMAILS is a comma-separated list of the
+        # addresses allowed in; anyone else gets "not found". An admin
+        # must have signed in with Google within the last
+        # ADMIN_SESSION_MINUTES (set ADMIN_REQUIRE_GOOGLE=false only for
+        # local development).
+        self.admin_emails = {
+            item.strip().lower()
+            for item in os.getenv("ADMIN_EMAILS", "").split(",")
+            if item.strip()
+        }
+        self.admin_session_minutes = int(
+            os.getenv("ADMIN_SESSION_MINUTES", "120")
+        )
+        self.admin_require_google = os.getenv(
+            "ADMIN_REQUIRE_GOOGLE", "true"
+        ).strip().lower() not in {"false", "0", "no"}
+        # Activity log (IP addresses, browser strings): how long it is
+        # kept, and how many reverse proxies sit in front of the backend
+        # (Railway's edge, then the frontend's rewrite), so the visitor's
+        # address can be read from the right end of X-Forwarded-For.
+        self.event_retention_days = int(
+            os.getenv("EVENT_RETENTION_DAYS", "90")
+        )
+        self.trusted_proxy_hops = int(
+            os.getenv("TRUSTED_PROXY_HOPS", "2")
+        )
 
 
 settings = Settings()

@@ -16,6 +16,8 @@ def initialize_database() -> None:
         session_cutoff,
         takedown,
         user,
+        user_event,
+        user_suspension,
     )
 
     Base.metadata.create_all(bind=engine)

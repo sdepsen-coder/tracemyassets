@@ -176,6 +176,22 @@ def run_due_scans(db: Session | None = None) -> None:
             db.close()
 
 
+def purge_old_events_job() -> None:
+    """Daily clean-up: the activity log keeps IP addresses, so it is short-lived."""
+    from app.services.user_events import purge_old_events
+
+    db = SessionLocal()
+
+    try:
+        removed = purge_old_events(db)
+        logger.info("Activity log clean-up removed %s old event(s).", removed)
+    except Exception:
+        db.rollback()
+        logger.exception("Activity log clean-up failed.")
+    finally:
+        db.close()
+
+
 _scheduler: BackgroundScheduler | None = None
 
 
@@ -202,6 +218,13 @@ def start_scheduler() -> None:
         minutes=settings.scan_scheduler_interval_minutes,
         id="run_due_scans",
         next_run_time=datetime.now(timezone.utc),  # also run once at startup
+    )
+    _scheduler.add_job(
+        purge_old_events_job,
+        "interval",
+        hours=24,
+        id="purge_old_events",
+        next_run_time=datetime.now(timezone.utc) + timedelta(minutes=5),
     )
     _scheduler.start()
 
