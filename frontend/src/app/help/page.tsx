@@ -234,12 +234,22 @@ const GROUPS: Group[] = [
       {
         question: "Someone is using my work. What now?",
         answer: (
+          <>
           <p>
             Report it directly to the marketplace or website concerned; each
             has its own copyright or intellectual-property process.{" "}
             {SITE_NAME} does not send notices or contact anyone for you.
             Keep the match card and the comparison as a record.
           </p>
+          <p>
+            Open <strong>What can I do about this?</strong> at the bottom of
+            a match card for a short step-by-step guide and three letters you
+            can copy: a polite message to the poster, a report to the
+            platform, and a notice to the website&apos;s host. Fill in the
+            brackets and send only what is true. They are starting points,
+            not legal advice.
+          </p>
+          </>
         ),
       },
     ],

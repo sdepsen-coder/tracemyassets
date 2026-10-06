@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { AuthGate, useAuth } from "@/components/AuthGate";
 import { Topbar } from "@/components/dashboard/Topbar";
+import { NextSteps } from "@/components/matches/NextSteps";
 import { SiteFooter } from "@/components/SiteFooter";
 import { cardKey, countCards } from "@/lib/matchGroups";
 import {
@@ -1079,6 +1080,11 @@ function MatchesContent() {
                       </span>
                     </div>
                   </div>
+
+                  <NextSteps
+                    match={match}
+                    artworkTitle={asset?.title ?? `Artwork #${match.asset_id}`}
+                  />
 
                   <div
                     role="group"
