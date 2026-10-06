@@ -121,6 +121,10 @@ class Settings:
         # When true, the free welcome credits wait for a confirmed email
         # address. Switch on only once the sending domain is verified at
         # Resend, otherwise the confirmation emails never arrive.
+        # Free accounts that have not opened the app for this many days
+        # stop being scanned automatically (they resume the moment the
+        # person is active again). 0 switches this off.
+        self.free_dormant_days = int(os.getenv("FREE_DORMANT_DAYS", "60"))
         self.email_verification_required = os.getenv(
             "EMAIL_VERIFICATION_REQUIRED", "false"
         ).strip().lower() in {"true", "1", "yes"}

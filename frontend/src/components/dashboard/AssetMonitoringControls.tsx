@@ -9,6 +9,7 @@ import {
   ApiError,
   type AssetScan,
   type CreditsInfo,
+  type UsageInfo,
   type MonitoringPreference,
   type ScanDiagnostics,
 } from "@/lib/api";
@@ -180,6 +181,7 @@ export function AssetMonitoringControls({
   const [showExplanation, setShowExplanation] = useState(false);
   const [scanKind, setScanKind] = useState<"standard" | "deep">("standard");
   const [credits, setCredits] = useState<CreditsInfo | null>(null);
+  const [usage, setUsage] = useState<UsageInfo | null>(null);
   const [confirmingDeep, setConfirmingDeep] = useState(false);
 
   const requestController = useRef<AbortController | null>(null);
@@ -249,7 +251,20 @@ export function AssetMonitoringControls({
       }
     }
 
+    async function loadUsage() {
+      try {
+        const result = await api.getUsage(controller.signal);
+
+        if (!controller.signal.aborted) {
+          setUsage(result);
+        }
+      } catch {
+        // Non-critical: the allowance line is simply not shown.
+      }
+    }
+
     void loadCredits();
+    void loadUsage();
 
     return () => controller.abort();
   }, [assetId]);
@@ -308,6 +323,12 @@ export function AssetMonitoringControls({
   }
 
   const explanation = scanResult ? explainScan(scanResult, scanKind) : null;
+
+  const allowance = usage?.manual_scans ?? null;
+  const standardScansUsedUp =
+    allowance !== null &&
+    allowance.limit !== null &&
+    (allowance.remaining ?? 0) <= 0;
   // Matches to review, counted by card (one picture on several pages is one).
   const scanCardCount = scanResult
     ? scanResult.matches.length > 0
@@ -355,6 +376,25 @@ export function AssetMonitoringControls({
           : await api.runScan(assetId, controller.signal);
 
       if (controller.signal.aborted) return;
+
+      if (kind === "standard") {
+        // One more hand-started scan used this month.
+        setUsage((current) =>
+          current && current.manual_scans.limit !== null
+            ? {
+                ...current,
+                manual_scans: {
+                  ...current.manual_scans,
+                  used: current.manual_scans.used + 1,
+                  remaining: Math.max(
+                    0,
+                    (current.manual_scans.remaining ?? 0) - 1,
+                  ),
+                },
+              }
+            : current,
+        );
+      }
 
       if (kind === "deep" && typeof result.credits_remaining === "number") {
         const remaining = result.credits_remaining;
@@ -507,9 +547,13 @@ export function AssetMonitoringControls({
 
             <button
               type="button"
-              disabled={saving || scanning}
+              disabled={saving || scanning || standardScansUsedUp}
               onClick={() => void runScan("standard")}
-              title="Check the usual sources now instead of waiting for the next scheduled check."
+              title={
+                standardScansUsedUp
+                  ? "You have used this month's Standard scans."
+                  : "Check the usual sources now instead of waiting for the next scheduled check."
+              }
               className="inline-flex h-9 items-center rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 text-[12px] font-semibold text-[var(--text)] transition hover:bg-[var(--surface-raised)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {scanning && scanKind === "standard"
@@ -529,6 +573,23 @@ export function AssetMonitoringControls({
                 : `Deep scan (${credits?.deep_scan_cost ?? 1} credit)`}
             </button>
           </div>
+
+          {allowance !== null && allowance.limit !== null && (
+            <p
+              className="mt-2 text-[12px] text-[var(--text-muted)]"
+              data-testid="standard-scan-allowance"
+            >
+              {standardScansUsedUp
+                ? `You have used all ${allowance.limit} Standard scans this month. `
+                : `${allowance.remaining} of ${allowance.limit} Standard scans left this month. `}
+              Resets on{" "}
+              {new Date(`${allowance.resets_on}T00:00:00`).toLocaleDateString(
+                undefined,
+                { day: "numeric", month: "long" },
+              )}
+              . Scheduled scans do not count.
+            </p>
+          )}
 
           {confirmingDeep && credits && (
             <div

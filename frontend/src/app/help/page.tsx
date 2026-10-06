@@ -72,7 +72,9 @@ const GROUPS: Group[] = [
           <>
             <p>
               A <strong>Standard scan</strong> is free and also runs on the
-              schedule you choose for each artwork. A{" "}
+              schedule you choose for each artwork. You can also start one
+              by hand; a Free account has 5 of those a month (the count
+              resets on the 1st, and scheduled scans do not use it). A{" "}
               <strong>Deep scan</strong> looks further, using an additional
               image-search source, and uses 1 credit. Matches a deep scan
               recorded carry a small <strong>Deep scan</strong> tag.
@@ -89,7 +91,8 @@ const GROUPS: Group[] = [
         answer: (
           <p>
             Credits pay for Deep scans: one credit per scan. During the
-            private beta every account starts with a few free credits. If a
+            private beta every account starts with a few free credits, given
+            once your email address is confirmed. If a
             Deep scan could not run at all (for example the search service
             was unavailable), the credit is returned automatically. If you
             run out, contact us.
@@ -103,7 +106,10 @@ const GROUPS: Group[] = [
             Each artwork has its own monitoring settings: you choose the
             frequency (Free accounts: weekly or monthly) and the similarity
             level at which a result is worth flagging. You can also run a
-            scan yourself at any time.
+            scan yourself (within your monthly allowance of hand-started
+            Standard scans). To save resources, automatic scans of a Free
+            account pause after 60 days without opening the app, and resume
+            as soon as you sign in again.
           </p>
         ),
       },

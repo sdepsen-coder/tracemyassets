@@ -275,6 +275,14 @@ def read_current_user(
         if age is not None and age > RENEW_AFTER_SECONDS:
             set_session_cookie(response, create_access_token(user.id))
 
+            user_events.record_event(
+                db,
+                request,
+                user_events.SESSION_RENEWED,
+                user_id=user.id,
+                email=user.email,
+            )
+
     return MeRead.model_validate(user).model_copy(
         update={
             "is_admin": is_admin_email(user.email),

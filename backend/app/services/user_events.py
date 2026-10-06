@@ -35,9 +35,25 @@ DEEP_SCAN = "deep_scan"
 FEEDBACK = "feedback"
 ADMIN_ACTION = "admin_action"
 EMAIL_VERIFIED = "email_verified"
+SESSION_RENEWED = "session_renewed"
 
 # Events that mean "this person just got in".
 SIGN_IN_EVENTS = (LOGIN, GOOGLE_LOGIN, GOOGLE_SIGNUP, REGISTER)
+
+# Events that show a person is using the app (as opposed to things done
+# to or about their account).
+ACTIVITY_EVENTS = (
+    LOGIN,
+    GOOGLE_LOGIN,
+    GOOGLE_SIGNUP,
+    REGISTER,
+    SESSION_RENEWED,
+    ASSET_UPLOADED,
+    SCAN,
+    DEEP_SCAN,
+    FEEDBACK,
+    PASSWORD_RESET_DONE,
+)
 
 MAX_USER_AGENT = 300
 MAX_DETAIL = 500

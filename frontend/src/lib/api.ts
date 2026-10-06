@@ -277,6 +277,17 @@ export type CreditsInfo = {
   }>;
 };
 
+export type UsageInfo = {
+  plan_type: string;
+  manual_scans: {
+    used: number;
+    /** null = the plan has no monthly limit */
+    limit: number | null;
+    remaining: number | null;
+    resets_on: string;
+  };
+};
+
 export type AssetScan = {
   asset_id: number;
   provider: string;
@@ -567,6 +578,9 @@ export const api = {
 
   getCredits: (signal?: AbortSignal) =>
     request<CreditsInfo>("/api/v1/credits", { signal }),
+
+  getUsage: (signal?: AbortSignal) =>
+    request<UsageInfo>("/api/v1/usage", { signal }),
 
   getMatchSummary: (signal?: AbortSignal) =>
     request<MatchSummary>("/api/v1/matches/summary", { signal }),

@@ -25,6 +25,7 @@ from app.models.scan_job import ScanJob
 from app.models.user import User
 from app.services.alert_emails import send_new_match_alert
 from app.services.asset_paths import load_watermark_secret, original_file_path
+from app.services.scan_quota import is_dormant
 from app.services.scan_runner import run_scan_for_asset
 
 logger = logging.getLogger("tracemyassets.scheduler")
@@ -109,11 +110,21 @@ def run_due_scans(db: Session | None = None) -> None:
         )
 
         due_count = 0
+        dormant_count = 0
 
         for preference in preferences:
             asset = db.get(Asset, preference.asset_id)
 
             if asset is None or asset.status != "active":
+                continue
+
+            owner = db.get(User, asset.user_id)
+
+            # A Free account nobody has opened for a long time is not
+            # scanned (each scan costs money). It resumes by itself the
+            # moment the person is active again.
+            if owner is not None and is_dormant(db, owner):
+                dormant_count += 1
                 continue
 
             last_scan_at = last_completed_scan_at(db, asset.id)
@@ -167,9 +178,11 @@ def run_due_scans(db: Session | None = None) -> None:
                     )
 
         logger.info(
-            "Scheduler tick: %s of %s enabled asset(s) were due.",
+            "Scheduler tick: %s of %s enabled asset(s) were due "
+            "(%s skipped: inactive Free account).",
             due_count,
             len(preferences),
+            dormant_count,
         )
     finally:
         if owns_session:

@@ -73,6 +73,7 @@ from app.services.credits import (
 )
 from app.services import email_verification, user_events
 from app.services.provider_budget import get_budget_status
+from app.services.scan_quota import get_manual_scan_usage
 from app.services.visual_search_provider import (
     get_configured_providers,
     get_deep_scan_providers,
@@ -587,6 +588,18 @@ def scan_asset(
         asset_id=asset_id,
         user_id=user.id,
     )
+
+    usage = get_manual_scan_usage(db, user)
+
+    if usage.exhausted:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=(
+                f"You have used your {usage.limit} Standard scans for this "
+                f"month. They reset on {usage.resets_on:%d %B}. Scheduled "
+                "scans keep running, and a Deep scan uses its own credits."
+            ),
+        )
 
     preference = get_or_create_monitoring_preference(
         db,

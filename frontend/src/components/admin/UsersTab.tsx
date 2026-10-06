@@ -22,7 +22,7 @@ import {
 
 const PAGE_SIZE = 50;
 // Plan names the server accepts (see PLAN_LIMITS on the backend).
-const PLANS = ["Free", "Pro", "Internal"];
+const PLANS = ["Free", "Pro", "Extra", "Internal"];
 
 function UserDetailView({
   userId,

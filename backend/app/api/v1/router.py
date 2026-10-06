@@ -8,6 +8,7 @@ from app.api.v1.endpoints.credits import router as credits_router
 from app.api.v1.endpoints.feedback import router as feedback_router
 from app.api.v1.endpoints.matches import router as matches_router
 from app.api.v1.endpoints.public_images import router as public_images_router
+from app.api.v1.endpoints.usage import router as usage_router
 
 
 api_router = APIRouter()
@@ -20,6 +21,7 @@ api_router.include_router(assets_router)
 api_router.include_router(credits_router)
 api_router.include_router(feedback_router)
 api_router.include_router(public_images_router)
+api_router.include_router(usage_router)
 
 
 @api_router.get("/status")

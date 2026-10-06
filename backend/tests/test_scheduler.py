@@ -146,6 +146,49 @@ class RunDueScansTests(unittest.TestCase):
         self.assertEqual(len(scan_jobs), 1)
         self.assertEqual(scan_jobs[0].status, "completed")
 
+    def _enable(self, asset: Asset) -> None:
+        self.db.add(
+            MonitoringPreference(
+                asset_id=asset.id,
+                enabled=True,
+                alert_threshold_percent=80.0,
+                scan_frequency="weekly",
+            )
+        )
+        self.db.commit()
+
+    def _age_account(self, plan: str) -> None:
+        user = self.db.get(User, self.user_id)
+        user.plan_type = plan
+        user.created_at = datetime.now(timezone.utc) - timedelta(days=120)
+        self.db.commit()
+
+    def test_inactive_free_account_is_not_scanned_until_it_returns(self) -> None:
+        from app.models.user_event import UserEvent
+
+        self._enable(self._make_asset())
+        self._age_account("Free")
+
+        run_due_scans(self.db)
+        self.assertEqual(list(self.db.scalars(select(ScanJob))), [])
+
+        # The owner comes back: scanning resumes by itself.
+        self.db.add(
+            UserEvent(event_type="session_renewed", user_id=self.user_id)
+        )
+        self.db.commit()
+
+        run_due_scans(self.db)
+        self.assertEqual(len(list(self.db.scalars(select(ScanJob)))), 1)
+
+    def test_inactive_paying_account_is_still_scanned(self) -> None:
+        self._enable(self._make_asset())
+        self._age_account("Pro")
+
+        run_due_scans(self.db)
+
+        self.assertEqual(len(list(self.db.scalars(select(ScanJob)))), 1)
+
     def test_disabled_asset_is_skipped(self) -> None:
         asset = self._make_asset()
         preference = MonitoringPreference(

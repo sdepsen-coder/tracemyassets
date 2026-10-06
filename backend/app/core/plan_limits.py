@@ -26,6 +26,10 @@ a locked business decision:
   through SerpApi), which costs real money per search. Every plan may;
   what limits it is credits (see app.services.credits), not the plan.
   The flag stays so a plan can still be switched off.
+- Extra: the top paid plan. Daily scans, up to 100 monitored assets.
+- manual_scans_per_month: how many times a month the owner may press
+  "Standard scan" by hand (None = no limit). Scheduled scans never count
+  against it, and a Deep scan is paid for with credits instead.
 - Internal: not a customer-facing plan -- there is no signup path
   that assigns it. It exists only so the founder's own account(s)
   can be tested against without tripping the Free plan's asset limit
@@ -47,6 +51,7 @@ class PlanLimits:
     allowed_scan_frequencies: frozenset[str]
     reveals_match_source: bool
     allows_deep_scan: bool = False
+    manual_scans_per_month: int | None = None
 
 
 DEFAULT_PLAN = "Free"
@@ -57,6 +62,7 @@ PLAN_LIMITS: dict[str, PlanLimits] = {
         allowed_scan_frequencies=frozenset({"weekly", "monthly"}),
         reveals_match_source=False,
         allows_deep_scan=True,
+        manual_scans_per_month=5,
     ),
     "Pro": PlanLimits(
         max_monitored_assets=25,
@@ -65,6 +71,16 @@ PLAN_LIMITS: dict[str, PlanLimits] = {
         ),
         reveals_match_source=True,
         allows_deep_scan=True,
+        manual_scans_per_month=30,
+    ),
+    "Extra": PlanLimits(
+        max_monitored_assets=100,
+        allowed_scan_frequencies=frozenset(
+            {"daily", "weekly", "monthly"}
+        ),
+        reveals_match_source=True,
+        allows_deep_scan=True,
+        manual_scans_per_month=100,
     ),
     "Internal": PlanLimits(
         max_monitored_assets=9999,
