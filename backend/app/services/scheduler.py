@@ -196,8 +196,11 @@ def purge_old_events_job() -> None:
     db = SessionLocal()
 
     try:
+        from app.services.account_deletion import purge_old_fingerprints
+
         removed = purge_old_events(db)
         logger.info("Activity log clean-up removed %s old event(s).", removed)
+        purge_old_fingerprints(db)
     except Exception:
         db.rollback()
         logger.exception("Activity log clean-up failed.")

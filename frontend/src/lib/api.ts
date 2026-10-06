@@ -427,6 +427,15 @@ export const api = {
       method: "POST",
     }),
 
+  downloadMyData: async () =>
+    (await send("/api/v1/account/export")).blob(),
+
+  deleteMyAccount: (confirmEmail: string, password: string) =>
+    request<void>("/api/v1/account/delete", {
+      method: "POST",
+      body: JSON.stringify({ confirm_email: confirmEmail, password }),
+    }),
+
   logoutEverywhere: () =>
     request<void>("/api/v1/auth/logout-all", {
       method: "POST",

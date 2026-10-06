@@ -332,7 +332,12 @@ const GROUPS: Group[] = [
           <p>
             Use <strong>Delete</strong> on the artwork in your dashboard: it
             permanently removes the artwork, its files, scans and matches.
-            To delete your whole account, contact us.
+            To delete your whole account, open the menu at the top right,
+            choose <strong>Account and data</strong> and use{" "}
+            <strong>Delete my account permanently</strong>. Your artworks,
+            files, scan history, matches, credits and feedback are removed
+            straight away. On the same page you can first download a ZIP
+            with a copy of all your data.
           </p>
         ),
       },

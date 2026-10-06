@@ -153,6 +153,21 @@ export function AuthGate({ children, landing }: AuthGateProps) {
     // Google sends the browser back to "/?auth_error=..." when sign-in
     // fails: show the sign-in form with the reason.
     const params = new URLSearchParams(window.location.search);
+    if (params.get("account_deleted")) {
+      params.delete("account_deleted");
+      const rest = params.toString();
+      window.history.replaceState(
+        null,
+        "",
+        window.location.pathname + (rest ? `?${rest}` : ""),
+      );
+
+      setMode("login");
+      setScreen("auth");
+      setMessage("Your account and its data have been deleted.");
+      return;
+    }
+
     const reason = params.get("auth_error");
 
     if (!reason) return;

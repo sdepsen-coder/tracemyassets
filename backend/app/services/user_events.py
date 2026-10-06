@@ -36,6 +36,8 @@ FEEDBACK = "feedback"
 ADMIN_ACTION = "admin_action"
 EMAIL_VERIFIED = "email_verified"
 SESSION_RENEWED = "session_renewed"
+DATA_EXPORT = "data_export"
+ACCOUNT_DELETED = "account_deleted"
 
 # Events that mean "this person just got in".
 SIGN_IN_EVENTS = (LOGIN, GOOGLE_LOGIN, GOOGLE_SIGNUP, REGISTER)

@@ -37,6 +37,7 @@ from app.core.browser_session import COOKIE_SECURE, set_session_cookie
 from app.core.config import settings
 from app.core.security import create_access_token, hash_password
 from app.models.signup_key import SignupKey
+from app.services.account_deletion import withhold_welcome_if_returning
 from app.models.user import User
 from app.models.user_suspension import UserSuspension
 from app.services import email_verification, user_events
@@ -169,6 +170,7 @@ def _find_or_create_user(db: Session, email: str) -> tuple[User, bool]:
     try:
         db.flush()
         db.add(SignupKey(canonical_email=mailbox, user_id=user.id))
+        withhold_welcome_if_returning(db, user.id, mailbox)
         db.commit()
     except IntegrityError:
         # Created by a simultaneous request: use that one.

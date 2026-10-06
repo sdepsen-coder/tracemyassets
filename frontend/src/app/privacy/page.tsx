@@ -33,7 +33,7 @@ export default function PrivacyPage() {
             "Account data: your email address and a password hash (we never store your password itself).",
             "Artwork you upload: the original file, a thumbnail, a protected watermarked copy, and a visual fingerprint (perceptual hash) computed from it, plus the title you give it.",
             "Monitoring data: your scan settings, scan history, and the possible matches found for your artwork (including the address of the page and image where a possible copy was found, and similarity results).",
-            "Feedback you choose to send: your verdicts on matches (useful, irrelevant, unrelated, different) and any answers or messages you submit through the feedback form. A verdict keeps only a small technical snapshot of the match (its similarity result and source type), not the address where it was found, and it is kept even if you later delete the artwork, so we can improve how matches are judged.",
+            "Feedback you choose to send: your verdicts on matches (useful, irrelevant, unrelated, different) and any answers or messages you submit through the feedback form. A verdict keeps only a small technical snapshot of the match (its similarity result and source type), not the address where it was found, and it is kept even if you later delete the artwork, so we can improve how matches are judged. It is deleted if you delete your account.",
             "A security and activity log: when you sign up, sign in (or fail to), reset your password, upload an artwork, run a scan or send feedback, we record the time, your IP address and your browser type. We use it to keep accounts safe, to spot abuse (for example many accounts created from one address) and to help when you contact support. It is deleted automatically after 90 days.",
             "A session cookie that keeps you signed in. It is always on because signing in needs it.",
             "Optional analytics: if you accept the cookie banner, we use Google Analytics 4 to count page views and see which pages are useful. It sets cookies (_ga, _ga_*) and sends your page visits and a shortened IP address to Google. Nothing from Google is loaded, and no analytics cookie is set, unless you press Accept. You can change your mind at any time with \"Cookie settings\" in the footer; declining removes the cookies. We do not use advertising trackers, and the signed-in admin area is never measured.",
@@ -83,16 +83,27 @@ export default function PrivacyPage() {
       <LegalSection heading="Retention and deletion">
         <p>
           You can permanently delete any artwork from the dashboard; this
-          removes its files, scan history and matches. To delete your whole
-          account and its data, contact us using the address below and we
-          will do so.
+          removes its files, scan history and matches.
+        </p>
+        <p>
+          You can delete your whole account yourself: open the menu and
+          choose Account and data. Your account, artworks and their files,
+          scan history, matches, credits, feedback and sign-in records are
+          removed straight away. Entries in the security and activity log
+          stay until their 90 days are over, but they are no longer linked
+          to you. So that deleting and re-registering cannot be used to
+          collect the free welcome credits twice, we keep for one year a
+          one-way fingerprint of your mailbox (it is not your address and
+          cannot be turned back into it). Copies in our hosting
+          provider&apos;s backups disappear when those backups expire.
         </p>
       </LegalSection>
 
       <LegalSection heading="Your rights">
         <p>
-          You can ask us for a copy of your data, to correct it, or to delete
-          it. Contact us using the address below.
+          You can download a copy of your data and delete your account
+          yourself from Account and data in the menu. To correct your data
+          or to use any other right, contact us using the address below.
         </p>
       </LegalSection>
 

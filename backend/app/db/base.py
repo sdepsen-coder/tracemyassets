@@ -6,6 +6,7 @@ def initialize_database() -> None:
     from app.models import (  # noqa: F401
         asset,
         credit_entry,
+        deleted_signup,
         email_verification,
         feedback,
         match,

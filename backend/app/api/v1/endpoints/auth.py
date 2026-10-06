@@ -44,6 +44,7 @@ from app.core.security import (
 )
 from app.models.password_reset import PasswordResetToken
 from app.models.signup_key import SignupKey
+from app.services.account_deletion import withhold_welcome_if_returning
 from app.models.user import User
 from app.models.user_suspension import UserSuspension
 from app.services import email_verification, user_events
@@ -165,6 +166,7 @@ def register(
     try:
         db.flush()
         db.add(SignupKey(canonical_email=mailbox, user_id=user.id))
+        withhold_welcome_if_returning(db, user.id, mailbox)
         db.commit()
     except IntegrityError as exc:
         db.rollback()
