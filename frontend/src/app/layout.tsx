@@ -5,7 +5,14 @@ import {
   Plus_Jakarta_Sans,
 } from "next/font/google";
 
+import { Analytics } from "@/components/Analytics";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import {
+  SEARCH_CONSOLE_TOKEN,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_URL,
+} from "@/lib/site";
 import "./globals.css";
 
 const inter = Inter({
@@ -24,9 +31,27 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TraceMyAssets",
-  description:
-    "Register artwork, create protected copies, and review technical image verification signals.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME} — find possible online copies of your artwork`,
+    template: "%s",
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} — find possible online copies of your artwork`,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} — find possible online copies of your artwork`,
+    description: SITE_DESCRIPTION,
+  },
+  ...(SEARCH_CONSOLE_TOKEN
+    ? { verification: { google: SEARCH_CONSOLE_TOKEN } }
+    : {}),
 };
 
 export default function RootLayout({
@@ -52,6 +77,7 @@ export default function RootLayout({
         ].join(" ")}
       >
         <ThemeProvider>{children}</ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );

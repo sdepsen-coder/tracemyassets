@@ -21,3 +21,21 @@ export const ETSY_TRADEMARK_NOTICE =
   "The term 'Etsy' is a trademark of Etsy, Inc. This application uses the Etsy API but is not endorsed or certified by Etsy, Inc.";
 
 export const LEGAL_LAST_UPDATED = "6 October 2026";
+
+/**
+ * Public address of the site, used for canonical links, the sitemap and
+ * social previews. NEXT_PUBLIC_* values are inlined at build time.
+ */
+export const SITE_URL: string = (
+  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://tracemyassets.com"
+).replace(/\/+$/, "");
+
+export const SITE_DESCRIPTION =
+  "Register your artwork, create protected copies with an invisible watermark, and review possible online copies. You decide what to do; we never contact anyone for you.";
+
+/** Google Analytics 4 measurement ID (G-XXXX). Empty = analytics is off. */
+export const GA_ID: string = process.env.NEXT_PUBLIC_GA_ID?.trim() ?? "";
+
+/** Optional Google Search Console HTML-tag verification token. */
+export const SEARCH_CONSOLE_TOKEN: string =
+  process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim() ?? "";

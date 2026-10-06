@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { JsonLd } from "@/components/JsonLd";
 import { LegalPage } from "@/components/legal/LegalPage";
+import { cleanText, nodeToText } from "@/lib/reactText";
 import { CONTACT_EMAIL, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Help — ${SITE_NAME}`,
   description: `Answers to common questions about ${SITE_NAME}.`,
+  alternates: { canonical: "/help" },
 };
 
 type Faq = { question: string; answer: ReactNode };
@@ -336,9 +339,25 @@ const GROUPS: Group[] = [
   },
 ];
 
+function faqStructuredData() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: GROUPS.flatMap((group) => group.items).map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: cleanText(nodeToText(item.answer)),
+      },
+    })),
+  };
+}
+
 export default function HelpPage() {
   return (
     <LegalPage title="Help and FAQ">
+      <JsonLd data={faqStructuredData()} />
       <p className="text-[15px] leading-relaxed text-[var(--text-muted)]">
         Quick answers about {SITE_NAME}. Can&apos;t find yours? See the{" "}
         <Link href="/support" className="text-[var(--primary)] underline">

@@ -10,6 +10,7 @@ import { CONTACT_EMAIL, SITE_NAME } from "@/lib/site";
 export const metadata: Metadata = {
   title: `Support — ${SITE_NAME}`,
   description: `Get help with ${SITE_NAME}.`,
+  alternates: { canonical: "/support" },
 };
 
 export default function SupportPage() {

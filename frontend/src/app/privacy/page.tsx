@@ -10,6 +10,7 @@ import { CONTACT_EMAIL, LEGAL_LAST_UPDATED, SITE_NAME } from "@/lib/site";
 export const metadata: Metadata = {
   title: `Privacy — ${SITE_NAME}`,
   description: `How ${SITE_NAME} handles your account and artwork data.`,
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {
@@ -34,7 +35,8 @@ export default function PrivacyPage() {
             "Monitoring data: your scan settings, scan history, and the possible matches found for your artwork (including the address of the page and image where a possible copy was found, and similarity results).",
             "Feedback you choose to send: your verdicts on matches (useful, irrelevant, unrelated, different) and any answers or messages you submit through the feedback form. A verdict keeps only a small technical snapshot of the match (its similarity result and source type), not the address where it was found, and it is kept even if you later delete the artwork, so we can improve how matches are judged.",
             "A security and activity log: when you sign up, sign in (or fail to), reset your password, upload an artwork, run a scan or send feedback, we record the time, your IP address and your browser type. We use it to keep accounts safe, to spot abuse (for example many accounts created from one address) and to help when you contact support. It is deleted automatically after 90 days.",
-            "A session cookie that keeps you signed in. We do not use advertising or analytics trackers.",
+            "A session cookie that keeps you signed in. It is always on because signing in needs it.",
+            "Optional analytics: if you accept the cookie banner, we use Google Analytics 4 to count page views and see which pages are useful. It sets cookies (_ga, _ga_*) and sends your page visits and a shortened IP address to Google. Nothing from Google is loaded, and no analytics cookie is set, unless you press Accept. You can change your mind at any time with \"Cookie settings\" in the footer; declining removes the cookies. We do not use advertising trackers, and the signed-in admin area is never measured.",
           ]}
         />
       </LegalSection>

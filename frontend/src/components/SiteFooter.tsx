@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { CookieSettingsLink } from "@/components/CookieSettingsLink";
 import {
   CONTACT_EMAIL,
   ETSY_TRADEMARK_NOTICE,
@@ -51,6 +52,7 @@ export function SiteFooter({ tone = "themed" }: SiteFooterProps) {
             <Link href="/support" className={linkClass}>
               Support
             </Link>
+            <CookieSettingsLink className={linkClass} />
             {CONTACT_EMAIL && (
               <a href={`mailto:${CONTACT_EMAIL}`} className={linkClass}>
                 {CONTACT_EMAIL}

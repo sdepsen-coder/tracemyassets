@@ -15,6 +15,7 @@ import {
 export const metadata: Metadata = {
   title: `Terms — ${SITE_NAME}`,
   description: `Terms of use for the ${SITE_NAME} beta.`,
+  alternates: { canonical: "/terms" },
 };
 
 export default function TermsPage() {
