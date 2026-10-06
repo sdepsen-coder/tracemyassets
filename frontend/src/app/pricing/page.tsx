@@ -16,7 +16,7 @@ const QUESTIONS: Array<{ question: string; answer: string }> = [
   {
     question: "Can I use it for free?",
     answer:
-      "Yes. The Free plan needs no card. You can register up to 3 artworks, have them checked automatically every week or month, and start 5 Standard scans a month yourself.",
+      "Yes. The Free plan needs no card. You can register up to 3 artworks and start 5 Standard scans a month yourself.",
   },
   {
     question: "When can I upgrade?",

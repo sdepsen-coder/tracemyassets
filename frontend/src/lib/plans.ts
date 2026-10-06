@@ -27,11 +27,9 @@ export const PLANS: PlanCard[] = [
     tagline: "Try it on your own work.",
     features: [
       "Up to 3 artworks",
-      "Automatic checks weekly or monthly",
       "5 hand-started Standard scans a month",
       "3 Deep scan credits when you sign up (once)",
       "You see that a match exists and how strong it is; the page it was found on is hidden",
-      "Step-by-step guide and copyable letters",
     ],
   },
   {
@@ -47,7 +45,7 @@ export const PLANS: PlanCard[] = [
       "30 hand-started Standard scans a month",
       "Deep scan credits included (amount announced when paid plans open)",
       "See exactly where each match was found, with a link",
-      "Step-by-step guide and copyable letters",
+      "Step-by-step guide and copyable letters for reporting a copy",
     ],
   },
   {
@@ -62,7 +60,7 @@ export const PLANS: PlanCard[] = [
       "100 hand-started Standard scans a month",
       "More Deep scan credits included (amount announced when paid plans open)",
       "See exactly where each match was found, with a link",
-      "Step-by-step guide and copyable letters",
+      "Step-by-step guide and copyable letters for reporting a copy",
     ],
   },
 ];

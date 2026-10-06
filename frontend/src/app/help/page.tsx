@@ -242,8 +242,9 @@ const GROUPS: Group[] = [
             Keep the match card and the comparison as a record.
           </p>
           <p>
-            Open <strong>What can I do about this?</strong> at the bottom of
-            a match card for a short step-by-step guide and three letters you
+            On plans that show where a match was found, open{" "}
+            <strong>What can I do about this?</strong> at the bottom of a
+            match card for a short step-by-step guide and three letters you
             can copy: a polite message to the poster, a report to the
             platform, and a notice to the website&apos;s host. Fill in the
             brackets and send only what is true. They are starting points,
