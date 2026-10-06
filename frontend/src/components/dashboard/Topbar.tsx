@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { api, type MatchSummary } from "@/lib/api";
 import { SITE_NAME } from "@/lib/site";
 import { Icon } from "./Icon";
+import { VerifyEmailBanner } from "./VerifyEmailBanner";
 
 type NavItem = {
   label: string;
@@ -258,6 +259,8 @@ export function Topbar() {
           </div>
         </div>
       </div>
+
+      <VerifyEmailBanner />
 
       {/* Below the xl breakpoint the pill navigation above is hidden, so
           the same links are offered here as a scrollable row. */}

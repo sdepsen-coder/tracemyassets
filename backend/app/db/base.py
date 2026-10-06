@@ -6,6 +6,7 @@ def initialize_database() -> None:
     from app.models import (  # noqa: F401
         asset,
         credit_entry,
+        email_verification,
         feedback,
         match,
         match_record,
@@ -14,6 +15,7 @@ def initialize_database() -> None:
         provider_usage,
         scan_job,
         session_cutoff,
+        signup_key,
         takedown,
         user,
         user_event,

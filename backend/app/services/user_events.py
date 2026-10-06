@@ -34,6 +34,7 @@ SCAN = "scan"
 DEEP_SCAN = "deep_scan"
 FEEDBACK = "feedback"
 ADMIN_ACTION = "admin_action"
+EMAIL_VERIFIED = "email_verified"
 
 # Events that mean "this person just got in".
 SIGN_IN_EVENTS = (LOGIN, GOOGLE_LOGIN, GOOGLE_SIGNUP, REGISTER)

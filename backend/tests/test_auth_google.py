@@ -96,6 +96,40 @@ class GoogleSignInTests(unittest.TestCase):
         with self.Session() as db:
             return list(db.scalars(select(User)))
 
+    def test_google_confirms_the_address_and_enforces_one_account_per_mailbox(
+        self,
+    ) -> None:
+        from app.models.email_verification import VerifiedUser
+
+        # A throw-away address is refused even through Google.
+        response, _ = self._callback(
+            info=_resp(
+                200, {"email": "x@mailinator.com", "email_verified": True}
+            )
+        )
+        self.assertIn("auth_error=google_email", response.headers["location"])
+        self.assertEqual(self._users(), [])
+
+        # A mailbox that already has an account under another spelling.
+        self.client.post(
+            "/api/v1/auth/register",
+            json={"email": "semsi+shop@example.com", "password": "correct-horse-battery"},
+            headers={"Origin": "http://localhost:3000"},
+        )
+        response, _ = self._callback()
+        self.assertIn("auth_error=account_exists", response.headers["location"])
+        self.assertEqual(len(self._users()), 1)
+
+        # A fresh one is created and counts as confirmed.
+        response, _ = self._callback(
+            info=_resp(200, {"email": "new@example.com", "email_verified": True})
+        )
+        self.assertEqual(response.headers["location"], "/")
+
+        with self.Session() as db:
+            user = db.scalar(select(User).where(User.email == "new@example.com"))
+            self.assertIsNotNone(db.get(VerifiedUser, user.id))
+
     def test_providers_reflect_configuration(self) -> None:
         self.assertEqual(
             self.client.get("/api/v1/auth/providers").json(), {"google": True}

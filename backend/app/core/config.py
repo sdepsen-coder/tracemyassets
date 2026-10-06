@@ -99,6 +99,31 @@ class Settings:
         self.trusted_proxy_hops = int(
             os.getenv("TRUSTED_PROXY_HOPS", "2")
         )
+        # Sign-up and sign-in protection. All of it can be loosened here
+        # without a code change. 0 switches a limit off.
+        self.block_disposable_emails = os.getenv(
+            "BLOCK_DISPOSABLE_EMAILS", "true"
+        ).strip().lower() not in {"false", "0", "no"}
+        self.blocked_email_domains = {
+            item.strip().lower()
+            for item in os.getenv("BLOCKED_EMAIL_DOMAINS", "").split(",")
+            if item.strip()
+        }
+        self.max_signups_per_ip_per_day = int(
+            os.getenv("MAX_SIGNUPS_PER_IP_PER_DAY", "5")
+        )
+        self.max_failed_logins_per_email = int(
+            os.getenv("MAX_FAILED_LOGINS_PER_EMAIL", "10")
+        )
+        self.max_failed_logins_per_ip = int(
+            os.getenv("MAX_FAILED_LOGINS_PER_IP", "30")
+        )
+        # When true, the free welcome credits wait for a confirmed email
+        # address. Switch on only once the sending domain is verified at
+        # Resend, otherwise the confirmation emails never arrive.
+        self.email_verification_required = os.getenv(
+            "EMAIL_VERIFICATION_REQUIRED", "false"
+        ).strip().lower() in {"true", "1", "yes"}
 
 
 settings = Settings()

@@ -71,6 +71,10 @@ const GOOGLE_ERRORS: Record<string, string> = {
     "Google did not confirm your email address, so we could not sign you in.",
   google_unavailable: "Google sign-in is not available right now.",
   account_suspended: "This account is suspended.",
+  account_exists:
+    "An account already exists for this email address. Please sign in with your password.",
+  too_many_signups:
+    "Too many accounts have been created from your network today. Please try again tomorrow.",
 };
 
 export function AuthGate({ children, landing }: AuthGateProps) {

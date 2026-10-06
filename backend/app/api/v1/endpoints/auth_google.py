@@ -25,7 +25,7 @@ import secrets
 from urllib.parse import urlencode
 
 import httpx
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -36,9 +36,12 @@ from app.api.deps import get_db
 from app.core.browser_session import COOKIE_SECURE, set_session_cookie
 from app.core.config import settings
 from app.core.security import create_access_token, hash_password
+from app.models.signup_key import SignupKey
 from app.models.user import User
 from app.models.user_suspension import UserSuspension
-from app.services import user_events
+from app.services import email_verification, user_events
+from app.services.abuse_limits import check_signup_allowed
+from app.services.email_identity import canonical_email, is_blocked_domain
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -135,12 +138,21 @@ def google_start() -> RedirectResponse:
     return response
 
 
+class AliasAccountExists(Exception):
+    """Another account already uses this mailbox under a different spelling."""
+
+
 def _find_or_create_user(db: Session, email: str) -> tuple[User, bool]:
     """The account for this email, and whether it was just created."""
     user = db.scalar(select(User).where(User.email == email))
 
     if user is not None:
         return user, False
+
+    mailbox = canonical_email(email)
+
+    if db.get(SignupKey, mailbox) is not None:
+        raise AliasAccountExists
 
     # Google accounts have no password here. The stored hash is of a
     # random value nobody knows, so password sign-in is impossible until
@@ -155,6 +167,8 @@ def _find_or_create_user(db: Session, email: str) -> tuple[User, bool]:
     created = True
 
     try:
+        db.flush()
+        db.add(SignupKey(canonical_email=mailbox, user_id=user.id))
         db.commit()
     except IntegrityError:
         # Created by a simultaneous request: use that one.
@@ -249,10 +263,29 @@ def google_callback(
     ):
         return _failure("google_email")
 
-    user, created = _find_or_create_user(db, email.strip().lower())
+    clean_email = email.strip().lower()
+
+    if is_blocked_domain(clean_email):
+        return _failure("google_email")
+
+    try:
+        known = db.scalar(select(User.id).where(User.email == clean_email))
+
+        if known is None:
+            check_signup_allowed(db, request)
+
+        user, created = _find_or_create_user(db, clean_email)
+    except AliasAccountExists:
+        return _failure("account_exists")
+    except HTTPException:
+        return _failure("too_many_signups")
 
     if db.get(UserSuspension, user.id) is not None:
         return _failure("account_suspended")
+
+    # Google has already checked that this person owns the address.
+    email_verification.mark_verified(db, user.id)
+    db.commit()
 
     user_events.record_event(
         db,

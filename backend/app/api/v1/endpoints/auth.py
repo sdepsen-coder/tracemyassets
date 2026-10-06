@@ -43,9 +43,16 @@ from app.core.security import (
     verify_password,
 )
 from app.models.password_reset import PasswordResetToken
+from app.models.signup_key import SignupKey
 from app.models.user import User
 from app.models.user_suspension import UserSuspension
-from app.services import user_events
+from app.services import email_verification, user_events
+from app.services.abuse_limits import (
+    check_login_allowed,
+    check_signup_allowed,
+    reset_requests_limited,
+)
+from app.services.email_identity import canonical_email, is_blocked_domain
 from app.services.email_service import send_email
 from app.services.session_cutoff import revoke_sessions
 
@@ -81,6 +88,13 @@ class MeRead(UserRead):
     # Lets the app show the "Admin" link; the admin pages themselves are
     # protected on the server whatever this says.
     is_admin: bool = False
+    # False only while EMAIL_VERIFICATION_REQUIRED is on and the address
+    # has not been confirmed yet.
+    email_verified: bool = True
+
+
+class MessageRead(BaseModel):
+    message: str
 
 
 class TokenRead(BaseModel):
@@ -101,12 +115,24 @@ def normalize_email(email: str) -> str:
 def register(
     payload: RegisterRequest,
     request: Request,
+    background: BackgroundTasks,
     db: Session = Depends(get_db),
 ) -> User:
     # Avoid creating accounts while authentication is misconfigured.
     get_auth_secret()
 
     email = normalize_email(str(payload.email))
+
+    if is_blocked_domain(email):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=(
+                "Please use a permanent email address. Temporary mail "
+                "services are not accepted."
+            ),
+        )
+
+    check_signup_allowed(db, request)
 
     refusal = check_password(payload.password, email=email)
 
@@ -120,7 +146,9 @@ def register(
         select(User).where(User.email == email)
     )
 
-    if existing is not None:
+    mailbox = canonical_email(email)
+
+    if existing is not None or db.get(SignupKey, mailbox) is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Email is already registered.",
@@ -135,6 +163,8 @@ def register(
     db.add(user)
 
     try:
+        db.flush()
+        db.add(SignupKey(canonical_email=mailbox, user_id=user.id))
         db.commit()
     except IntegrityError as exc:
         db.rollback()
@@ -153,6 +183,16 @@ def register(
         email=user.email,
     )
 
+    if settings.email_verification_required:
+        token = email_verification.issue_token(db, user)
+
+        if token is not None:
+            background.add_task(
+                email_verification.send_verification_email,
+                user.email,
+                token,
+            )
+
     return user
 
 
@@ -165,6 +205,8 @@ def login(
     get_auth_secret()
 
     email = normalize_email(str(payload.email))
+
+    check_login_allowed(db, request, email)
 
     user = db.scalar(
         select(User).where(User.email == email)
@@ -220,6 +262,7 @@ def read_current_user(
     request: Request,
     response: Response,
     user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ) -> MeRead:
     # Sliding session: the app asks "who am I" every minute while open, so
     # an older browser session is quietly renewed here. Cookie sessions
@@ -233,7 +276,10 @@ def read_current_user(
             set_session_cookie(response, create_access_token(user.id))
 
     return MeRead.model_validate(user).model_copy(
-        update={"is_admin": is_admin_email(user.email)}
+        update={
+            "is_admin": is_admin_email(user.email),
+            "email_verified": email_verification.is_verified(db, user.id),
+        }
     )
 
 
@@ -305,6 +351,75 @@ def end_all_sessions(
     return response
 
 
+class VerifyEmailRequest(BaseModel):
+    token: str = Field(min_length=20, max_length=200)
+
+
+@router.post(
+    "/send-verification",
+    response_model=MessageRead,
+    dependencies=[Depends(require_trusted_origin)],
+)
+def send_verification(
+    background: BackgroundTasks,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> MessageRead:
+    """Send (or re-send) the email-confirmation link."""
+    if email_verification.is_verified(db, user.id):
+        return MessageRead(message="Your email address is already confirmed.")
+
+    token = email_verification.issue_token(db, user)
+
+    if token is None:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=(
+                "We have already sent several emails. Please check your "
+                "inbox and spam folder, or try again in an hour."
+            ),
+        )
+
+    background.add_task(
+        email_verification.send_verification_email, user.email, token
+    )
+
+    return MessageRead(message="We have sent you a confirmation email.")
+
+
+@router.post(
+    "/verify-email",
+    response_model=MessageRead,
+    dependencies=[Depends(require_trusted_origin)],
+)
+def verify_email(
+    payload: VerifyEmailRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> MessageRead:
+    """Works from any browser: the link itself is the proof."""
+    user = email_verification.confirm_token(db, payload.token)
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "This confirmation link is invalid or has expired. Sign "
+                "in and ask for a new one."
+            ),
+        )
+
+    user_events.record_event(
+        db,
+        request,
+        user_events.EMAIL_VERIFIED,
+        user_id=user.id,
+        email=user.email,
+    )
+
+    return MessageRead(message="Your email address is confirmed.")
+
+
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr = Field(max_length=255)
 
@@ -312,10 +427,6 @@ class ForgotPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     token: str = Field(min_length=20, max_length=200)
     password: str = Field(min_length=1, max_length=MAX_PASSWORD_LENGTH)
-
-
-class MessageRead(BaseModel):
-    message: str
 
 
 def _hash_reset_token(token: str) -> str:
@@ -371,6 +482,9 @@ def forgot_password(
     email = normalize_email(str(payload.email))
     user = db.scalar(select(User).where(User.email == email))
 
+    # Counted before this request is logged, so the limit is exact.
+    too_many_from_here = reset_requests_limited(db, request)
+
     user_events.record_event(
         db,
         request,
@@ -389,7 +503,9 @@ def forgot_password(
             )
         )
 
-        if (recent or 0) < MAX_RESET_REQUESTS_PER_HOUR:
+        if (recent or 0) < MAX_RESET_REQUESTS_PER_HOUR and not (
+            too_many_from_here
+        ):
             token = secrets.token_urlsafe(32)
 
             db.add(

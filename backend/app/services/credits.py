@@ -25,6 +25,7 @@ from sqlalchemy.orm import Session
 
 from app.models.credit_entry import CreditEntry
 from app.models.user import User
+from app.services.email_verification import is_verified
 
 WELCOME_CREDITS = 3
 WELCOME_GRANT_KEY = "welcome"
@@ -68,6 +69,10 @@ def ensure_welcome_grant(db: Session, user_id: int) -> None:
     )
 
     if already is not None:
+        return
+
+    # With email confirmation switched on, the credits wait for it.
+    if not is_verified(db, user_id):
         return
 
     try:

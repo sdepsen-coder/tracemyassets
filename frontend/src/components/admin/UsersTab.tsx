@@ -119,6 +119,11 @@ function UserDetailView({
               Suspended
             </Badge>
           )}
+          {!user.email_verified && (
+            <Badge className="bg-[var(--warning-soft)] text-[var(--warning)]">
+              Email not confirmed
+            </Badge>
+          )}
         </div>
 
         <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-[13px] sm:grid-cols-4">
@@ -223,6 +228,21 @@ function UserDetailView({
             Change plan
           </button>
         </form>
+
+        {!user.email_verified && (
+          <div className="flex flex-wrap items-end gap-2 border-t border-[var(--border)] pt-4">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() =>
+                void act("verify-email", {}, "Email marked as confirmed.")
+              }
+              className={smallButton}
+            >
+              Mark email as confirmed
+            </button>
+          </div>
+        )}
 
         <div className="flex flex-wrap items-end gap-2 border-t border-[var(--border)] pt-4">
           {confirming === "revoke" ? (
@@ -537,6 +557,11 @@ export function UsersTab() {
                     {user.is_admin && (
                       <Badge className="bg-[var(--primary-soft)] text-[var(--primary)]">
                         Admin
+                      </Badge>
+                    )}
+                    {!user.email_verified && (
+                      <Badge className="bg-[var(--warning-soft)] text-[var(--warning)]">
+                        Unconfirmed
                       </Badge>
                     )}
                   </td>

@@ -5,6 +5,8 @@ export type User = {
   created_at: string;
   /** Only the sign-in check ("/auth/me") says; the server enforces it. */
   is_admin?: boolean;
+  /** False only while the address still has to be confirmed. */
+  email_verified?: boolean;
 };
 
 export type AdminOverview = {
@@ -53,6 +55,7 @@ export type AdminUserRow = {
   last_sign_in: string | null;
   suspended: boolean;
   is_admin: boolean;
+  email_verified: boolean;
 };
 
 export type AdminFeedbackRow = {
@@ -635,6 +638,17 @@ export const api = {
       method: "POST",
       body: JSON.stringify(feedback),
       signal,
+    }),
+
+  sendVerification: () =>
+    request<{ message: string }>("/api/v1/auth/send-verification", {
+      method: "POST",
+    }),
+
+  verifyEmail: (token: string) =>
+    request<{ message: string }>("/api/v1/auth/verify-email", {
+      method: "POST",
+      body: JSON.stringify({ token }),
     }),
 
   admin: {

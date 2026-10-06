@@ -71,7 +71,7 @@ from app.services.credits import (
     get_balance,
     refund_charge,
 )
-from app.services import user_events
+from app.services import email_verification, user_events
 from app.services.provider_budget import get_budget_status
 from app.services.visual_search_provider import (
     get_configured_providers,
@@ -699,6 +699,16 @@ def deep_scan_asset(
             asset_id=asset.id,
         )
     except InsufficientCredits as exc:
+        if not email_verification.is_verified(db, user.id):
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail=(
+                    "Please confirm your email address to receive your "
+                    "free deep scan credits. We sent you a link; you can "
+                    "ask for a new one from the banner at the top."
+                ),
+            ) from exc
+
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
             detail=(

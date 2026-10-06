@@ -22,12 +22,13 @@ from app.core.config import settings
 from app.core.plan_limits import PLAN_LIMITS
 from app.models.asset import Asset
 from app.models.credit_entry import CreditEntry
+from app.models.email_verification import VerifiedUser
 from app.models.feedback import FeedbackEntry
 from app.models.scan_job import ScanJob
 from app.models.user import User
 from app.models.user_event import UserEvent
 from app.models.user_suspension import UserSuspension
-from app.services import user_events
+from app.services import email_verification, user_events
 from app.services.credits import get_balance, grant_credits
 from app.services.provider_budget import get_budget_status
 from app.services.session_cutoff import revoke_sessions
@@ -107,6 +108,7 @@ class UserRow(BaseModel):
     last_sign_in: datetime | None
     suspended: bool
     is_admin: bool
+    email_verified: bool = True
 
 
 class UserPage(BaseModel):
@@ -243,6 +245,11 @@ def _user_rows(db: Session, users: list[User]) -> list[UserRow]:
             )
         )
     )
+    confirmed = set(
+        db.scalars(
+            select(VerifiedUser.user_id).where(VerifiedUser.user_id.in_(ids))
+        )
+    )
 
     return [
         UserRow(
@@ -255,6 +262,10 @@ def _user_rows(db: Session, users: list[User]) -> list[UserRow]:
             last_sign_in=last_in.get(user.id),
             suspended=user.id in suspended,
             is_admin=is_admin_email(user.email),
+            email_verified=(
+                user.id in confirmed
+                or not settings.email_verification_required
+            ),
         )
         for user in users
     ]
@@ -724,6 +735,29 @@ def unsuspend_user(
         request,
         admin,
         f"lifted suspension of #{user.id} {user.email}",
+    )
+
+    return Done()
+
+
+@router.post("/users/{user_id}/verify-email", response_model=Done)
+def confirm_user_email(
+    user_id: int,
+    request: Request,
+    admin: User = Depends(get_admin_user),
+    db: Session = Depends(get_db),
+) -> Done:
+    """Mark an address confirmed by hand (for example after a support email)."""
+    user = _require_user(db, user_id)
+
+    email_verification.mark_verified(db, user.id)
+    db.commit()
+
+    _log_admin(
+        db,
+        request,
+        admin,
+        f"confirmed the email of #{user.id} {user.email}",
     )
 
     return Done()
