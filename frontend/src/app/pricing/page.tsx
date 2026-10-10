@@ -26,7 +26,7 @@ const QUESTIONS: Array<{ question: string; answer: string }> = [
   {
     question: "What is a Deep scan, and what are credits?",
     answer:
-      "A Deep scan looks further than the Standard scan and costs real money to run, so it is paid for with credits: one credit for one artwork. Every new account gets 3 credits once. How many credits Pro and Extra include will be announced when paid plans open.",
+      "A Deep scan looks further than the Standard scan and costs real money to run, so it is paid for with credits: one credit for one artwork. Every new account gets 3 credits once. Pro adds 10 credits every month and Extra adds 40; the monthly credits do not carry over to the next month. If you need more, you will be able to buy extra credits that never expire.",
   },
   {
     question: "Is there a yearly option?",

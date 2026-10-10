@@ -93,6 +93,7 @@ export default function TermsPage() {
             "Paid plans renew automatically every month, or every year if you choose a yearly plan, until you cancel. The price you agreed to does not change during a billing period.",
             "A Deep scan costs one credit for one artwork. Automatic checks and scans that fail do not use credits.",
             "Credits are a right to use the Deep scan feature of the service. They have no cash value, cannot be transferred or sold, and cannot be exchanged for money except as set out in the Refund Policy.",
+            "Paid plans add the number of Deep scan credits shown on the Pricing page at the start of each billing month (on a yearly plan too: monthly, not all at once). These monthly credits do not carry over to the next month.",
             "Free welcome credits are given once per person and expire only if the account is closed. Credits you buy do not expire while your account is open.",
           ]}
         />

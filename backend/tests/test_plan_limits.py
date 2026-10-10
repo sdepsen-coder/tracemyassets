@@ -36,6 +36,12 @@ class GetPlanLimitsTests(unittest.TestCase):
         self.assertEqual(get_plan_limits("Pro").max_monitored_assets, 40)
         self.assertEqual(get_plan_limits("Extra").max_monitored_assets, 100)
 
+    def test_monthly_deep_scan_credits_match_the_pricing_page(self) -> None:
+        # frontend/src/lib/plans.ts lists 10 (Pro) and 40 (Extra) a month.
+        self.assertEqual(get_plan_limits("Free").monthly_deep_scan_credits, 0)
+        self.assertEqual(get_plan_limits("Pro").monthly_deep_scan_credits, 10)
+        self.assertEqual(get_plan_limits("Extra").monthly_deep_scan_credits, 40)
+
     def test_pro_allows_more_assets_than_free(self) -> None:
         self.assertGreater(
             get_plan_limits("Pro").max_monitored_assets,

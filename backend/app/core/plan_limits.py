@@ -52,6 +52,10 @@ class PlanLimits:
     reveals_match_source: bool
     allows_deep_scan: bool = False
     manual_scans_per_month: int | None = None
+    # Deep scan credits a paid plan adds each billing month. NOT granted by
+    # anything yet: it is the figure the payment integration will use, kept
+    # here so the pricing page and the code say the same number.
+    monthly_deep_scan_credits: int = 0
 
 
 DEFAULT_PLAN = "Free"
@@ -72,6 +76,7 @@ PLAN_LIMITS: dict[str, PlanLimits] = {
         reveals_match_source=True,
         allows_deep_scan=True,
         manual_scans_per_month=30,
+        monthly_deep_scan_credits=10,
     ),
     "Extra": PlanLimits(
         max_monitored_assets=100,
@@ -81,6 +86,7 @@ PLAN_LIMITS: dict[str, PlanLimits] = {
         reveals_match_source=True,
         allows_deep_scan=True,
         manual_scans_per_month=100,
+        monthly_deep_scan_credits=40,
     ),
     "Internal": PlanLimits(
         max_monitored_assets=9999,
