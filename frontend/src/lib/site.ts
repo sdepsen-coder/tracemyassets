@@ -20,7 +20,19 @@ export const CONTACT_EMAIL: string =
 export const ETSY_TRADEMARK_NOTICE =
   "The term 'Etsy' is a trademark of Etsy, Inc. This application uses the Etsy API but is not endorsed or certified by Etsy, Inc.";
 
-export const LEGAL_LAST_UPDATED = "6 October 2026";
+export const LEGAL_LAST_UPDATED = "10 October 2026";
+
+/**
+ * Who runs the service. These are inlined at build time, so set them on
+ * the frontend service before the build. Paddle (and UK law for a sole
+ * trader using a trading name) expect the legal name and an address on the
+ * Terms. Nothing personal is kept in the repository: when both are unset
+ * the sentence is simply left out.
+ */
+export const LEGAL_NAME: string =
+  process.env.NEXT_PUBLIC_LEGAL_NAME?.trim() ?? "";
+export const LEGAL_ADDRESS: string =
+  process.env.NEXT_PUBLIC_LEGAL_ADDRESS?.trim() ?? "";
 
 /**
  * Public address of the site, used for canonical links, the sitemap and

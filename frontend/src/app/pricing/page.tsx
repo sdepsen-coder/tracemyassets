@@ -36,7 +36,7 @@ const QUESTIONS: Array<{ question: string; answer: string }> = [
   {
     question: "What about cancelling and refunds?",
     answer:
-      "The cancellation and refund terms will be published on this site, and in the Terms, before paid plans open.",
+      "You can cancel a paid plan at any time and it stays active until the end of the period you paid for. Within 14 days of a purchase you can get a refund for credits you have not used. The full details are in the Refund Policy.",
   },
 ];
 

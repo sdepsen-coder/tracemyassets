@@ -52,6 +52,9 @@ export function SiteFooter({ tone = "themed" }: SiteFooterProps) {
             <Link href="/terms" className={linkClass}>
               Terms
             </Link>
+            <Link href="/refunds" className={linkClass}>
+              Refunds
+            </Link>
             <Link href="/support" className={linkClass}>
               Support
             </Link>

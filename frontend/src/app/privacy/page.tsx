@@ -5,6 +5,7 @@ import {
   LegalPage,
   LegalSection,
 } from "@/components/legal/LegalPage";
+import { OperatorNotice } from "@/components/legal/OperatorNotice";
 import { CONTACT_EMAIL, LEGAL_LAST_UPDATED, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -17,6 +18,7 @@ export default function PrivacyPage() {
   return (
     <LegalPage title="Privacy Policy" updated={LEGAL_LAST_UPDATED}>
       <LegalSection heading="Overview">
+        <OperatorNotice />
         <p>
           {SITE_NAME} is a private beta service run by its founder in the
           United Kingdom. It helps artists register their artwork, create
