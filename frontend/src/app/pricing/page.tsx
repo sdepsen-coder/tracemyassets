@@ -29,6 +29,11 @@ const QUESTIONS: Array<{ question: string; answer: string }> = [
       "A Deep scan looks further than the Standard scan and costs real money to run, so it is paid for with credits: one credit for one artwork. Every new account gets 3 credits once. How many credits Pro and Extra include will be announced when paid plans open.",
   },
   {
+    question: "Is there a yearly option?",
+    answer:
+      "Yes. Pro is $120 a year and Extra is $240 a year, instead of paying month by month. Use the Monthly / Yearly switch above the plans to compare.",
+  },
+  {
     question: "Why is the source hidden on Free?",
     answer:
       "On Free you still see that a possible copy exists and how strong the signal is, so you can judge whether it matters. The page where it was found is shown on Pro and Extra.",

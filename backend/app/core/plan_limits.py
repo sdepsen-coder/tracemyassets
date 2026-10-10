@@ -11,10 +11,10 @@ a locked business decision:
   per free user per month -- comfortably inside Google Vision's free
   1,000/month tier even with a good number of free signups, per the
   cost discussion in the master prompt (Bolum 8C/8G).
-- Pro: daily scans allowed, up to 25 monitored assets. Even at daily
-  on all 25 (~750 queries/month), that's still inside the free Vision
-  tier per paying user -- so cost is not the constraint on this
-  number, it is whatever asset volume feels right to sell as "Pro".
+- Pro: daily scans allowed, up to 40 monitored assets. Daily on all 40
+  is ~1,200 Vision queries a month for one customer, so a few heavy Pro
+  users go past the free Vision tier (the paid rate is small next to the
+  Pro price). The number is whatever asset volume feels right to sell.
 - reveals_match_source: Free users see that a match was found and how
   strong it is (similarity, watermark/signal fields all stay visible
   -- see Bolum 3, we never hide the honest technical signal), but not
@@ -65,7 +65,7 @@ PLAN_LIMITS: dict[str, PlanLimits] = {
         manual_scans_per_month=5,
     ),
     "Pro": PlanLimits(
-        max_monitored_assets=25,
+        max_monitored_assets=40,
         allowed_scan_frequencies=frozenset(
             {"daily", "weekly", "monthly"}
         ),

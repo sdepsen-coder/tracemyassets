@@ -31,6 +31,11 @@ class GetPlanLimitsTests(unittest.TestCase):
     def test_none_falls_back_to_free(self) -> None:
         self.assertEqual(get_plan_limits(None), PLAN_LIMITS["Free"])
 
+    def test_paid_plan_artwork_limits_match_the_pricing_page(self) -> None:
+        # frontend/src/lib/plans.ts lists "Up to 40" / "Up to 100".
+        self.assertEqual(get_plan_limits("Pro").max_monitored_assets, 40)
+        self.assertEqual(get_plan_limits("Extra").max_monitored_assets, 100)
+
     def test_pro_allows_more_assets_than_free(self) -> None:
         self.assertGreater(
             get_plan_limits("Pro").max_monitored_assets,

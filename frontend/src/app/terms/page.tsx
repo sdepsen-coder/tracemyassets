@@ -90,7 +90,7 @@ export default function TermsPage() {
               page. Prices are in US dollars; taxes are added or included at
               checkout where required.
             </>,
-            "Paid plans renew every month until you cancel. The price you agreed to does not change during a billing period.",
+            "Paid plans renew automatically every month, or every year if you choose a yearly plan, until you cancel. The price you agreed to does not change during a billing period.",
             "A Deep scan costs one credit for one artwork. Automatic checks and scans that fail do not use credits.",
             "Credits are a right to use the Deep scan feature of the service. They have no cash value, cannot be transferred or sold, and cannot be exchanged for money except as set out in the Refund Policy.",
             "Free welcome credits are given once per person and expire only if the account is closed. Credits you buy do not expire while your account is open.",

@@ -14,7 +14,17 @@ export type PlanCard = {
   tagline: string;
   features: string[];
   highlight?: boolean;
+  /** Paid plans: US dollars a month and a year, to show both prices. */
+  monthlyUsd?: number;
+  yearlyUsd?: number;
 };
+
+/** "23%": how much cheaper a year is than twelve months. */
+export function yearlySavingPercent(plan: PlanCard): number | null {
+  if (!plan.monthlyUsd || !plan.yearlyUsd) return null;
+  const saving = 1 - plan.yearlyUsd / (plan.monthlyUsd * 12);
+  return saving > 0 ? Math.round(saving * 100) : null;
+}
 
 export const PAID_PLANS_OPEN = false;
 
@@ -37,10 +47,12 @@ export const PLANS: PlanCard[] = [
     name: "Pro",
     price: "$12.99",
     per: "per month",
+    monthlyUsd: 12.99,
+    yearlyUsd: 120,
     tagline: "For artists who sell their work.",
     highlight: true,
     features: [
-      "Up to 25 artworks",
+      "Up to 40 artworks",
       "Automatic checks daily, weekly or monthly",
       "30 hand-started Standard scans a month",
       "Deep scan credits included (amount announced when paid plans open)",
@@ -53,6 +65,8 @@ export const PLANS: PlanCard[] = [
     name: "Extra",
     price: "$29.99",
     per: "per month",
+    monthlyUsd: 29.99,
+    yearlyUsd: 240,
     tagline: "For large catalogues and studios.",
     features: [
       "Up to 100 artworks",
