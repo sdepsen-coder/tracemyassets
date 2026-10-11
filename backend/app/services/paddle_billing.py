@@ -517,20 +517,39 @@ def discover_prices() -> dict[str, tuple[str, str]]:
             )
 
             if not listed:
+                # Some accounts answer /prices with nothing; the products
+                # carry their prices too.
                 products = httpx.get(
                     f"{api_base()}/products",
                     headers=_api_headers(),
-                    params={"per_page": 200},
+                    params={"per_page": 200, "include": "prices"},
                     timeout=10.0,
                 ).json().get("data", [])
+                nested = 0
+
+                for product in products:
+                    for price in product.get("prices") or []:
+                        nested += 1
+                        kind = classify_price(price)
+
+                        if (
+                            kind
+                            and price.get("id")
+                            and price.get("status") != "archived"
+                        ):
+                            found[str(price["id"])] = kind
+
                 logger.warning(
-                    "Paddle account behind this key has %s product(s): %s",
+                    "Paddle account behind this key has %s product(s): %s; "
+                    "%s price(s) inside them, %s recognised.",
                     len(products),
                     ", ".join(
                         f"{item.get('name')} ({item.get('status')})"
                         for item in products
                     )
                     or "none",
+                    nested,
+                    len(found),
                 )
         except httpx.HTTPStatusError as error:
             # Paddle's own error text names the cause (bad key, missing

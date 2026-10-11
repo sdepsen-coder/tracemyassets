@@ -522,6 +522,34 @@ class PriceDiscoveryTests(PaddleCase):
         self.assertIn("HTTP 403", logs.output[0])
         self.assertIn("forbidden", logs.output[0])
 
+    def test_prices_are_read_from_the_products_when_the_list_is_empty(self) -> None:
+        empty = mock.Mock()
+        empty.json.return_value = {"data": []}
+        empty.raise_for_status.return_value = None
+        products = mock.Mock()
+        products.json.return_value = {
+            "data": [
+                {
+                    "name": "Pro",
+                    "status": "active",
+                    "prices": [price("pri_n1", "1299", "month")],
+                },
+                {
+                    "name": "Extra",
+                    "status": "active",
+                    "prices": [price("pri_n2", "24000", "year")],
+                },
+            ]
+        }
+
+        with mock.patch.object(
+            paddle_billing.httpx, "get", side_effect=[empty, products]
+        ):
+            table = paddle_billing.price_table()
+
+        self.assertEqual(table["Pro"], {"month": "pri_n1"})
+        self.assertEqual(table["Extra"], {"year": "pri_n2"})
+
     def test_the_list_is_cached(self) -> None:
         with self.listing([price("pri_a", "1299", "month")]) as get:
             paddle_billing.price_table()
