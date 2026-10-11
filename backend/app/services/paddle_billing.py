@@ -479,7 +479,7 @@ def discover_prices() -> dict[str, tuple[str, str]]:
             response = httpx.get(
                 f"{api_base()}/prices",
                 headers=_api_headers(),
-                params={"status": "active", "per_page": 200},
+                params={"per_page": 200},
                 timeout=10.0,
             )
             response.raise_for_status()
@@ -487,8 +487,15 @@ def discover_prices() -> dict[str, tuple[str, str]]:
             listed = response.json().get("data", [])
             skipped = []
 
+            statuses: dict[str, int] = {}
+
             for price in listed:
+                state = str(price.get("status"))
+                statuses[state] = statuses.get(state, 0) + 1
                 kind = classify_price(price)
+
+                if state == "archived":
+                    continue
 
                 if kind and price.get("id"):
                     found[str(price["id"])] = kind
@@ -501,12 +508,30 @@ def discover_prices() -> dict[str, tuple[str, str]]:
                     )
 
             logger.warning(
-                "Paddle lists %s active price(s); %s recognised. "
+                "Paddle lists %s price(s) %s; %s recognised. "
                 "Not recognised: %s",
                 len(listed),
+                statuses,
                 len(found),
                 ", ".join(skipped) or "none",
             )
+
+            if not listed:
+                products = httpx.get(
+                    f"{api_base()}/products",
+                    headers=_api_headers(),
+                    params={"per_page": 200},
+                    timeout=10.0,
+                ).json().get("data", [])
+                logger.warning(
+                    "Paddle account behind this key has %s product(s): %s",
+                    len(products),
+                    ", ".join(
+                        f"{item.get('name')} ({item.get('status')})"
+                        for item in products
+                    )
+                    or "none",
+                )
         except httpx.HTTPStatusError as error:
             # Paddle's own error text names the cause (bad key, missing
             # permission, wrong environment); it holds no secret.
