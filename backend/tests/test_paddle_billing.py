@@ -507,6 +507,21 @@ class PriceDiscoveryTests(PaddleCase):
         self.assertEqual(table["Extra"], {"month": "pri_c", "year": "pri_d"})
         self.assertNotIn("pri_other", str(table))
 
+    def test_the_reason_is_logged_when_paddle_refuses(self) -> None:
+        request = paddle_billing.httpx.Request("GET", "https://x/prices")
+        refusal = paddle_billing.httpx.Response(
+            403, request=request, text='{"error":{"code":"forbidden"}}'
+        )
+
+        with mock.patch.object(
+            paddle_billing.httpx, "get", return_value=refusal
+        ):
+            with self.assertLogs("tracemyassets.paddle", "WARNING") as logs:
+                self.assertEqual(paddle_billing.price_table(), {})
+
+        self.assertIn("HTTP 403", logs.output[0])
+        self.assertIn("forbidden", logs.output[0])
+
     def test_the_list_is_cached(self) -> None:
         with self.listing([price("pri_a", "1299", "month")]) as get:
             paddle_billing.price_table()

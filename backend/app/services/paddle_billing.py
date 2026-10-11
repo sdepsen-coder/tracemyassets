@@ -486,8 +486,21 @@ def discover_prices() -> dict[str, tuple[str, str]]:
 
                 if kind and price.get("id"):
                     found[str(price["id"])] = kind
-        except (httpx.HTTPError, ValueError, AttributeError):
-            logger.warning("Could not list prices from Paddle.")
+        except httpx.HTTPStatusError as error:
+            # Paddle's own error text names the cause (bad key, missing
+            # permission, wrong environment); it holds no secret.
+            logger.warning(
+                "Could not list prices from Paddle: HTTP %s from %s: %s",
+                error.response.status_code,
+                api_base(),
+                error.response.text[:300],
+            )
+        except (httpx.HTTPError, ValueError, AttributeError) as error:
+            logger.warning(
+                "Could not list prices from Paddle: %s: %s",
+                type(error).__name__,
+                error,
+            )
 
     _discovered, _discovered_at = found, now
 
