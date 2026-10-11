@@ -86,6 +86,15 @@ class PaddleCase(base.EndpointTestCase):
         patch.start()
         self.addCleanup(patch.stop)
 
+        # No real network, and no price list left over from another test.
+        paddle_billing.reset_price_cache()
+        self.addCleanup(paddle_billing.reset_price_cache)
+        listing = mock.patch.object(
+            paddle_billing.httpx, "get", side_effect=paddle_billing.httpx.ConnectError("offline")
+        )
+        listing.start()
+        self.addCleanup(listing.stop)
+
         self.user = self._user("buyer@example.com", "Free")
 
     def apply(self, payload: dict) -> str:
@@ -455,6 +464,74 @@ class EndpointTests(PaddleCase):
 
         self.assertEqual(response.json(), {"url": "https://portal/x"})
         portal.assert_called_once_with("ctm_1", ["sub_1"])
+
+
+def price(price_id: str, amount: str, interval: str, **extra) -> dict:
+    return {
+        "id": price_id,
+        "product_id": "pro_x",
+        "status": "active",
+        "unit_price": {"amount": amount, "currency_code": "USD"},
+        "billing_cycle": {"interval": interval, "frequency": 1},
+        **extra,
+    }
+
+
+class PriceDiscoveryTests(PaddleCase):
+    def setUp(self) -> None:
+        super().setUp()
+        patch = mock.patch.object(settings, "paddle_prices", {})
+        patch.start()
+        self.addCleanup(patch.stop)
+
+    def listing(self, prices: list[dict]):
+        response = mock.Mock()
+        response.json.return_value = {"data": prices}
+        response.raise_for_status.return_value = None
+
+        return mock.patch.object(paddle_billing.httpx, "get", return_value=response)
+
+    def test_prices_are_found_by_amount_and_interval(self) -> None:
+        with self.listing(
+            [
+                price("pri_a", "1299", "month"),
+                price("pri_b", "12000", "year"),
+                price("pri_c", "2999", "month"),
+                price("pri_d", "24000", "year"),
+                price("pri_other", "500", "month"),
+            ]
+        ):
+            table = paddle_billing.price_table()
+
+        self.assertEqual(table["Pro"], {"month": "pri_a", "year": "pri_b"})
+        self.assertEqual(table["Extra"], {"month": "pri_c", "year": "pri_d"})
+        self.assertNotIn("pri_other", str(table))
+
+    def test_the_list_is_cached(self) -> None:
+        with self.listing([price("pri_a", "1299", "month")]) as get:
+            paddle_billing.price_table()
+            paddle_billing.price_table()
+
+        self.assertEqual(get.call_count, 1)
+
+    def test_if_paddle_cannot_be_reached_there_are_no_prices(self) -> None:
+        self.assertEqual(paddle_billing.price_table(), {})
+        data = self._client(billing_router).get("/api/v1/billing/config").json()
+        self.assertFalse(data["enabled"])
+
+    def test_a_webhook_recognises_the_plan_from_the_price_itself(self) -> None:
+        payload = event("subscription.created", user_id=self.user.id)
+        payload["data"]["items"] = [{"price": price("pri_z", "24000", "year")}]
+        self.apply(payload)
+
+        row = self.db.get(PaddleSubscription, "sub_1")
+        self.assertEqual((row.plan, row.interval), ("Extra", "year"))
+
+    def test_other_currencies_or_amounts_are_not_ours(self) -> None:
+        other = price("pri_q", "1299", "month")
+        other["unit_price"]["currency_code"] = "EUR"
+        self.assertIsNone(paddle_billing.classify_price(other))
+        self.assertIsNone(paddle_billing.classify_price(price("pri_r", "1300", "month")))
 
 
 class DeletionTests(PaddleCase):

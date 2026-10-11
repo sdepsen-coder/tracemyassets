@@ -146,7 +146,8 @@ class Settings:
         self.paddle_signature_tolerance_seconds = int(
             os.getenv("PADDLE_SIGNATURE_TOLERANCE_SECONDS", "300")
         )
-        # price id -> (plan, interval). Missing ones are simply skipped.
+        # Optional: price id -> (plan, interval). When empty the app finds the
+        # four prices itself through the Paddle API (by amount and interval).
         self.paddle_prices = {
             price_id: plan_interval
             for price_id, plan_interval in (

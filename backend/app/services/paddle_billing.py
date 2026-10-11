@@ -124,6 +124,54 @@ def _aware(value: datetime | None) -> datetime | None:
     return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
 
 
+# What our four prices are, by amount (minor units, USD) and interval.
+# Lets the app recognise them without anyone copying price ids around.
+PRICE_CATALOG: dict[tuple[int, str], tuple[str, str]] = {
+    (1299, "month"): ("Pro", "month"),
+    (12000, "year"): ("Pro", "year"),
+    (2999, "month"): ("Extra", "month"),
+    (24000, "year"): ("Extra", "year"),
+}
+
+
+def classify_price(price: Any) -> tuple[str, str] | None:
+    """(plan, interval) of a Paddle price object, or None if not ours."""
+    if not isinstance(price, dict):
+        return None
+
+    cycle = price.get("billing_cycle")
+    unit = price.get("unit_price")
+
+    if isinstance(cycle, dict) and isinstance(unit, dict):
+        try:
+            amount = int(unit.get("amount"))
+        except (TypeError, ValueError):
+            amount = -1
+
+        interval = cycle.get("interval")
+
+        if (
+            unit.get("currency_code") == "USD"
+            and cycle.get("frequency") in (1, None)
+            and (amount, interval) in PRICE_CATALOG
+        ):
+            return PRICE_CATALOG[(amount, interval)]
+
+    custom = price.get("custom_data")
+    plan = custom.get("plan") if isinstance(custom, dict) else None
+
+    if plan in PAID_PLANS:
+        interval = custom.get("interval")
+
+        if interval not in ("month", "year") and isinstance(cycle, dict):
+            interval = cycle.get("interval")
+
+        if interval in ("month", "year"):
+            return plan, interval
+
+    return None
+
+
 def plan_from_items(items: Any) -> tuple[str | None, str | None, str | None]:
     """(plan, interval, price_id) of the first priced item we recognise."""
     if not isinstance(items, list):
@@ -136,22 +184,10 @@ def plan_from_items(items: Any) -> tuple[str | None, str | None, str | None]:
             continue
 
         price_id = price.get("id")
-        known = settings.paddle_prices.get(price_id)
+        known = settings.paddle_prices.get(price_id) or classify_price(price)
 
         if known:
             return known[0], known[1], price_id
-
-        custom = price.get("custom_data") or {}
-        plan = custom.get("plan") if isinstance(custom, dict) else None
-
-        if plan in PAID_PLANS:
-            interval = custom.get("interval")
-            cycle = price.get("billing_cycle") or {}
-
-            if interval not in ("month", "year"):
-                interval = cycle.get("interval") if isinstance(cycle, dict) else None
-
-            return plan, interval, price_id
 
     return None, None, None
 
@@ -408,11 +444,63 @@ def cancel_subscription_now(subscription_id: str) -> None:
         raise PaddleApiError("Could not cancel the subscription.") from error
 
 
+_discovered: dict[str, tuple[str, str]] = {}
+_discovered_at = 0.0
+_DISCOVERY_SECONDS = 300
+_DISCOVERY_RETRY_SECONDS = 30
+
+
+def reset_price_cache() -> None:
+    global _discovered, _discovered_at
+    _discovered, _discovered_at = {}, 0.0
+
+
+def discover_prices() -> dict[str, tuple[str, str]]:
+    """
+    Our prices as Paddle lists them, found by amount and interval (see
+    PRICE_CATALOG). Cached; a failure is retried after half a minute.
+    """
+    global _discovered, _discovered_at
+
+    now = time.time()
+
+    if _discovered_at and now - _discovered_at < (
+        _DISCOVERY_SECONDS if _discovered else _DISCOVERY_RETRY_SECONDS
+    ):
+        return _discovered
+
+    found: dict[str, tuple[str, str]] = {}
+
+    if settings.paddle_api_key:
+        try:
+            response = httpx.get(
+                f"{api_base()}/prices",
+                headers=_api_headers(),
+                params={"status": "active", "per_page": 200},
+                timeout=10.0,
+            )
+            response.raise_for_status()
+
+            for price in response.json().get("data", []):
+                kind = classify_price(price)
+
+                if kind and price.get("id"):
+                    found[str(price["id"])] = kind
+        except (httpx.HTTPError, ValueError, AttributeError):
+            logger.warning("Could not list prices from Paddle.")
+
+    _discovered, _discovered_at = found, now
+
+    return found
+
+
 def price_table() -> dict[str, dict[str, str]]:
+    """{"Pro": {"month": id, "year": id}, ...}: env settings win."""
     table: dict[str, dict[str, str]] = {}
 
-    for price_id, (plan, interval) in settings.paddle_prices.items():
-        table.setdefault(plan, {})[interval] = price_id
+    for source in (discover_prices(), settings.paddle_prices):
+        for price_id, (plan, interval) in source.items():
+            table.setdefault(plan, {})[interval] = price_id
 
     return table
 
