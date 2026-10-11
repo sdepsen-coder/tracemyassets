@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
+import { AccountMenu } from "@/components/dashboard/AccountMenu";
 import { useAuth } from "@/components/AuthGate";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { api, type MatchSummary } from "@/lib/api";
-import { SITE_NAME } from "@/lib/site";
 import { Icon } from "./Icon";
 import { VerifyEmailBanner } from "./VerifyEmailBanner";
 
@@ -53,37 +53,10 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export function Topbar() {
-  const { user, logout, logoutEverywhere } = useAuth();
+  const { user } = useAuth();
   const pathname = usePathname() ?? "/";
 
   const [newMatchCount, setNewMatchCount] = useState(0);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [menuCredits, setMenuCredits] = useState<number | null>(null);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-
-  // Close the account menu on outside click or Escape.
-  useEffect(() => {
-    if (!menuOpen) return;
-
-    function onPointerDown(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setMenuOpen(false);
-    }
-
-    document.addEventListener("mousedown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      document.removeEventListener("mousedown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [menuOpen]);
-
   useEffect(() => {
     const controller = new AbortController();
 
@@ -105,25 +78,6 @@ export function Topbar() {
 
     return () => controller.abort();
   }, [user.id]);
-
-  // The balance is read when the menu opens, so it is always current.
-  useEffect(() => {
-    if (!menuOpen) return;
-
-    const controller = new AbortController();
-
-    api
-      .getCredits(controller.signal)
-      .then((info) => setMenuCredits(info.balance))
-      .catch(() => {
-        /* The plan still shows without the balance. */
-      });
-
-    return () => controller.abort();
-  }, [menuOpen]);
-
-  const email = user.email ?? "";
-  const initial = email.trim().charAt(0).toUpperCase() || "U";
 
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[color:var(--background)]/90 backdrop-blur-xl">
@@ -201,101 +155,7 @@ export function Topbar() {
             )}
           </Link>
 
-          <div ref={menuRef} className="relative">
-            <button
-              type="button"
-              onClick={() => setMenuOpen((open) => !open)}
-              aria-label="Account menu"
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--primary-soft)] text-[13px] font-semibold text-[var(--primary)] transition hover:brightness-95"
-            >
-              {initial}
-            </button>
-
-            {menuOpen && (
-              <div
-                role="menu"
-                className="absolute right-0 top-11 z-50 w-64 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 shadow-card"
-              >
-                <div className="px-3 py-2">
-                  <p className="text-[11px] text-[var(--text-muted)]">
-                    Signed in as
-                  </p>
-                  <p className="truncate text-[13px] font-semibold text-[var(--text)]">
-                    {email}
-                  </p>
-                  <p
-                    data-testid="menu-plan"
-                    className="mt-1 text-[12px] text-[var(--text-muted)]"
-                  >
-                    <span className="rounded-md bg-[var(--primary-soft)] px-1.5 py-0.5 font-semibold text-[var(--primary)]">
-                      {user.plan_type}
-                    </span>
-                    {menuCredits !== null
-                      ? ` · ${menuCredits} Deep scan ${
-                          menuCredits === 1 ? "credit" : "credits"
-                        }`
-                      : ""}
-                  </p>
-                </div>
-
-                <Link
-                  href="/about"
-                  role="menuitem"
-                  onClick={() => setMenuOpen(false)}
-                  className="block w-full rounded-lg px-3 py-2 text-left text-[13px] font-medium text-[var(--text)] transition hover:bg-[var(--surface-muted)]"
-                >
-                  About {SITE_NAME}
-                </Link>
-
-                <Link
-                  href="/account"
-                  role="menuitem"
-                  onClick={() => setMenuOpen(false)}
-                  className="block w-full rounded-lg px-3 py-2 text-left text-[13px] font-medium text-[var(--text)] transition hover:bg-[var(--surface-muted)]"
-                >
-                  Account and data
-                </Link>
-
-                {user.is_admin && (
-                  <Link
-                    href="/admin"
-                    role="menuitem"
-                    onClick={() => setMenuOpen(false)}
-                    className="block w-full rounded-lg px-3 py-2 text-left text-[13px] font-medium text-[var(--text)] transition hover:bg-[var(--surface-muted)]"
-                  >
-                    Admin
-                  </Link>
-                )}
-
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    logout();
-                  }}
-                  className="mt-1 w-full rounded-lg px-3 py-2 text-left text-[13px] font-medium text-[var(--text)] transition hover:bg-[var(--surface-muted)]"
-                >
-                  Sign out
-                </button>
-
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    logoutEverywhere();
-                  }}
-                  title="Ends your session in every browser and device, including this one."
-                  className="w-full rounded-lg px-3 py-2 text-left text-[13px] font-medium text-[var(--text-muted)] transition hover:bg-[var(--surface-muted)] hover:text-[var(--text)]"
-                >
-                  Sign out of all devices
-                </button>
-              </div>
-            )}
-          </div>
+          <AccountMenu />
         </div>
       </div>
 

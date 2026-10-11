@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { PlanCards } from "@/components/pricing/PlanCards";
 import { SiteFooter } from "@/components/SiteFooter";
+import { LandingAccountMenu } from "@/components/dashboard/AccountMenu";
 import { Icon } from "@/components/dashboard/Icon";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { SITE_NAME } from "@/lib/site";
@@ -295,6 +296,7 @@ export function LandingPage() {
             <span className="hidden sm:inline-flex">
               <AuthEntryButton mode="register">Get started</AuthEntryButton>
             </span>
+            <LandingAccountMenu />
           </div>
         </div>
       </header>
