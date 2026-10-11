@@ -129,5 +129,34 @@ class Settings:
             "EMAIL_VERIFICATION_REQUIRED", "false"
         ).strip().lower() in {"true", "1", "yes"}
 
+        # Paddle Billing (payments). Everything comes from the environment:
+        # nothing here is a secret in the code. Payments stay switched off
+        # until PADDLE_WEBHOOK_SECRET is set.
+        self.paddle_environment = os.getenv(
+            "PADDLE_ENVIRONMENT", "sandbox"
+        ).strip().lower()
+        # Public by design (Paddle.js needs it in the browser).
+        self.paddle_client_token = os.getenv(
+            "PADDLE_CLIENT_TOKEN", ""
+        ).strip()
+        self.paddle_api_key = os.getenv("PADDLE_API_KEY", "").strip()
+        self.paddle_webhook_secret = os.getenv(
+            "PADDLE_WEBHOOK_SECRET", ""
+        ).strip()
+        self.paddle_signature_tolerance_seconds = int(
+            os.getenv("PADDLE_SIGNATURE_TOLERANCE_SECONDS", "300")
+        )
+        # price id -> (plan, interval). Missing ones are simply skipped.
+        self.paddle_prices = {
+            price_id: plan_interval
+            for price_id, plan_interval in (
+                (os.getenv("PADDLE_PRICE_PRO_MONTHLY", "").strip(), ("Pro", "month")),
+                (os.getenv("PADDLE_PRICE_PRO_YEARLY", "").strip(), ("Pro", "year")),
+                (os.getenv("PADDLE_PRICE_EXTRA_MONTHLY", "").strip(), ("Extra", "month")),
+                (os.getenv("PADDLE_PRICE_EXTRA_YEARLY", "").strip(), ("Extra", "year")),
+            )
+            if price_id
+        }
+
 
 settings = Settings()

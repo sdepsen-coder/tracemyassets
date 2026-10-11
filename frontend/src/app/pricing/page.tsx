@@ -21,7 +21,7 @@ const QUESTIONS: Array<{ question: string; answer: string }> = [
   {
     question: "When can I upgrade?",
     answer:
-      "Paid plans are not open yet. Create a free account now; the upgrade will appear in the app when paid plans open. Nothing is charged until you choose a plan.",
+      "Create a free account, then choose Pro or Extra on this page. While the buttons say \u201cOpens soon\u201d, paid plans are not open yet. Nothing is charged until you confirm in the payment window.",
   },
   {
     question: "What is a Deep scan, and what are credits?",

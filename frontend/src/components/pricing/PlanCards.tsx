@@ -1,10 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Icon } from "@/components/dashboard/Icon";
-import { PAID_PLANS_OPEN, PLANS, yearlySavingPercent } from "@/lib/plans";
+import {
+  api,
+  ApiError,
+  type BillingConfig,
+  type BillingStatus,
+} from "@/lib/api";
+import { startCheckout } from "@/lib/billing";
+import { PLANS, yearlySavingPercent } from "@/lib/plans";
 
 type PlanCardsProps = {
   /** Landing page summary: fewer lines per card. */
@@ -19,6 +26,64 @@ function dollars(amount: number): string {
 
 export function PlanCards({ compact = false }: PlanCardsProps) {
   const [billing, setBilling] = useState<Billing>("monthly");
+  const [config, setConfig] = useState<BillingConfig | null>(null);
+  // undefined = still asking, null = signed out.
+  const [account, setAccount] = useState<BillingStatus | null | undefined>(
+    undefined,
+  );
+  const [busyPlan, setBusyPlan] = useState<string | null>(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    api
+      .billingConfig(controller.signal)
+      .then((value) => {
+        setConfig(value);
+
+        if (!value.enabled) return;
+
+        return api
+          .billingStatus(controller.signal)
+          .then(setAccount)
+          .catch((err: unknown) => {
+            if (err instanceof ApiError && err.status === 401) {
+              setAccount(null);
+            }
+          });
+      })
+      .catch(() => {
+        /* Plans simply stay "Opens soon". */
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  async function choose(planId: "pro" | "extra") {
+    if (!config || !account) return;
+
+    setError("");
+    setBusyPlan(planId);
+
+    try {
+      await startCheckout(
+        config,
+        planId === "pro" ? "Pro" : "Extra",
+        billing === "yearly" ? "year" : "month",
+        { user_id: account.user_id, email: account.email },
+      );
+    } catch {
+      setError(
+        "The payment window could not be opened. Please try again in a moment.",
+      );
+    } finally {
+      setBusyPlan(null);
+    }
+  }
+
+  const open = Boolean(config?.enabled);
+  const subscribed = Boolean(account?.subscription);
 
   return (
     <div className="space-y-5">
@@ -113,18 +178,64 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
                 >
                   Create free account
                 </Link>
-              ) : (
+              ) : !open || account === undefined ? (
                 <span
                   data-testid={`plan-${plan.id}-status`}
                   className="mt-6 inline-flex h-11 items-center justify-center rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface-muted)] px-4 text-[14px] font-semibold text-[var(--text-muted)]"
                 >
-                  {PAID_PLANS_OPEN ? "Choose plan" : "Opens soon"}
+                  {open ? "Checking..." : "Opens soon"}
                 </span>
+              ) : account === null ? (
+                <Link
+                  href="/?auth=register"
+                  data-testid={`plan-${plan.id}-signup`}
+                  className="mt-6 inline-flex h-11 items-center justify-center rounded-xl bg-[var(--primary-strong)] px-4 text-[14px] font-semibold text-white shadow-floating transition hover:brightness-110"
+                >
+                  Sign up to choose
+                </Link>
+              ) : subscribed ? (
+                account.subscription?.plan.toLowerCase() === plan.id ? (
+                  <Link
+                    href="/account"
+                    data-testid={`plan-${plan.id}-current`}
+                    className="mt-6 inline-flex h-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 text-[14px] font-semibold"
+                  >
+                    Your plan · manage
+                  </Link>
+                ) : (
+                  <Link
+                    href="/account"
+                    data-testid={`plan-${plan.id}-change`}
+                    className="mt-6 inline-flex h-11 items-center justify-center rounded-xl border border-[var(--border)] px-4 text-[14px] font-semibold text-[var(--text-muted)]"
+                  >
+                    Change on your Account page
+                  </Link>
+                )
+              ) : (
+                <button
+                  type="button"
+                  data-testid={`plan-${plan.id}-choose`}
+                  disabled={busyPlan !== null}
+                  onClick={() => void choose(plan.id as "pro" | "extra")}
+                  className="mt-6 inline-flex h-11 items-center justify-center rounded-xl bg-[var(--primary-strong)] px-4 text-[14px] font-semibold text-white shadow-floating transition hover:brightness-110 disabled:opacity-60"
+                >
+                  {busyPlan === plan.id ? "Opening..." : "Choose plan"}
+                </button>
               )}
             </article>
           );
         })}
       </div>
+
+      {error ? (
+        <p
+          role="alert"
+          data-testid="checkout-error"
+          className="text-[13px] text-[var(--danger)]"
+        >
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -1,0 +1,432 @@
+"""
+Paddle Billing: webhook checking, subscriptions, and the user's plan.
+
+Paddle is the seller (it takes the payment and handles VAT). We only
+learn about a purchase from its signed webhooks, and everything else
+follows from the subscription it reports:
+
+  * the plan comes from the price (our PADDLE_PRICE_* settings, else the
+    price's own custom data `plan`);
+  * active, trialing and past_due keep the plan (past_due is a failed
+    renewal Paddle is still retrying); paused and canceled go back to
+    Free; a cancellation scheduled for the end of the period keeps the
+    plan until then;
+  * users with the Internal plan are never touched.
+
+Paddle delivers at least once and not in order, so every event id is
+recorded once, and an event older than the last one applied is ignored.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import hmac
+import logging
+import time
+from datetime import datetime, timezone
+from typing import Any
+
+import httpx
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from app.core.config import settings
+from app.core.plan_limits import DEFAULT_PLAN
+from app.models.paddle import PaddleEvent, PaddleSubscription
+from app.models.user import User
+from app.services.plan_credits import ACCESS_STATUSES, grant_due_plan_credits
+
+logger = logging.getLogger("tracemyassets.paddle")
+
+PAID_PLANS = ("Pro", "Extra")
+PLAN_RANK = {"Free": 0, "Pro": 1, "Extra": 2}
+
+
+def billing_enabled() -> bool:
+    return bool(settings.paddle_webhook_secret)
+
+
+def api_base() -> str:
+    if settings.paddle_environment == "live":
+        return "https://api.paddle.com"
+
+    return "https://sandbox-api.paddle.com"
+
+
+# ---------------------------------------------------------------- signature
+
+
+def verify_signature(
+    raw_body: bytes,
+    header: str | None,
+    secret: str,
+    *,
+    tolerance_seconds: int = 300,
+    now: float | None = None,
+) -> bool:
+    """
+    Check Paddle's `Paddle-Signature: ts=...;h1=...` header: HMAC-SHA256 of
+    `ts:` + the exact body, keyed by the endpoint secret. Several h1
+    values can be present while Paddle rotates a secret; one match is
+    enough. A timestamp too far from now is refused (replay).
+    """
+    if not header or not secret:
+        return False
+
+    timestamp = ""
+    signatures: list[str] = []
+
+    for part in header.split(";"):
+        key, _, value = part.strip().partition("=")
+
+        if key == "ts":
+            timestamp = value
+        elif key == "h1" and value:
+            signatures.append(value)
+
+    if not timestamp.isdigit() or not signatures:
+        return False
+
+    current = time.time() if now is None else now
+
+    if abs(current - int(timestamp)) > tolerance_seconds:
+        return False
+
+    expected = hmac.new(
+        secret.encode(),
+        timestamp.encode() + b":" + raw_body,
+        hashlib.sha256,
+    ).hexdigest()
+
+    return any(hmac.compare_digest(expected, item) for item in signatures)
+
+
+# ------------------------------------------------------------------ parsing
+
+
+def parse_time(value: Any) -> datetime | None:
+    if not isinstance(value, str) or not value:
+        return None
+
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+
+
+def _aware(value: datetime | None) -> datetime | None:
+    if value is None:
+        return None
+
+    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+
+
+def plan_from_items(items: Any) -> tuple[str | None, str | None, str | None]:
+    """(plan, interval, price_id) of the first priced item we recognise."""
+    if not isinstance(items, list):
+        return None, None, None
+
+    for item in items:
+        price = item.get("price") if isinstance(item, dict) else None
+
+        if not isinstance(price, dict):
+            continue
+
+        price_id = price.get("id")
+        known = settings.paddle_prices.get(price_id)
+
+        if known:
+            return known[0], known[1], price_id
+
+        custom = price.get("custom_data") or {}
+        plan = custom.get("plan") if isinstance(custom, dict) else None
+
+        if plan in PAID_PLANS:
+            interval = custom.get("interval")
+            cycle = price.get("billing_cycle") or {}
+
+            if interval not in ("month", "year"):
+                interval = cycle.get("interval") if isinstance(cycle, dict) else None
+
+            return plan, interval, price_id
+
+    return None, None, None
+
+
+def _user_id_from(data: dict[str, Any]) -> int | None:
+    custom = data.get("custom_data")
+
+    if isinstance(custom, dict):
+        try:
+            return int(custom.get("user_id"))
+        except (TypeError, ValueError):
+            return None
+
+    return None
+
+
+# ---------------------------------------------------------------- the plan
+
+
+def has_access(subscription: PaddleSubscription, now: datetime) -> bool:
+    if subscription.plan not in PAID_PLANS:
+        return False
+
+    if subscription.status not in ACCESS_STATUSES:
+        return False
+
+    scheduled = _aware(subscription.scheduled_at)
+
+    if (
+        subscription.scheduled_action == "cancel"
+        and scheduled is not None
+        and scheduled <= now
+    ):
+        return False
+
+    return True
+
+
+def recompute_plan(
+    db: Session, user: User, *, now: datetime | None = None
+) -> str:
+    """Set user.plan_type from the user's subscriptions. Does not commit."""
+    current = now or datetime.now(timezone.utc)
+
+    if user.plan_type == "Internal":
+        return user.plan_type
+
+    best = DEFAULT_PLAN
+
+    for subscription in db.scalars(
+        select(PaddleSubscription).where(
+            PaddleSubscription.user_id == user.id
+        )
+    ):
+        if (
+            has_access(subscription, current)
+            and PLAN_RANK[subscription.plan] > PLAN_RANK[best]
+        ):
+            best = subscription.plan
+
+    if user.plan_type != best:
+        logger.info("User %s plan %s -> %s", user.id, user.plan_type, best)
+        user.plan_type = best
+
+    return best
+
+
+# ------------------------------------------------------------------- events
+
+
+def apply_subscription_event(
+    db: Session, event: dict[str, Any]
+) -> str:
+    data = event.get("data")
+
+    if not isinstance(data, dict) or not data.get("id"):
+        return "ignored: no subscription"
+
+    subscription_id = str(data["id"])
+    occurred = parse_time(event.get("occurred_at"))
+
+    subscription = db.get(PaddleSubscription, subscription_id)
+
+    if subscription is None:
+        user_id = _user_id_from(data)
+        user = db.get(User, user_id) if user_id else None
+
+        if user is None:
+            logger.warning(
+                "Paddle subscription %s has no matching user", subscription_id
+            )
+            return "ignored: unknown user"
+
+        subscription = PaddleSubscription(
+            subscription_id=subscription_id,
+            user_id=user.id,
+            customer_id=str(data.get("customer_id") or ""),
+            status=str(data.get("status") or "active"),
+        )
+        db.add(subscription)
+    else:
+        user = db.get(User, subscription.user_id)
+
+        last = _aware(subscription.last_event_at)
+
+        if occurred is not None and last is not None and occurred < last:
+            return "ignored: older than the state we have"
+
+    subscription.customer_id = str(
+        data.get("customer_id") or subscription.customer_id or ""
+    )
+    subscription.status = str(data.get("status") or subscription.status)
+
+    plan, interval, price_id = plan_from_items(data.get("items"))
+
+    if plan:
+        subscription.plan = plan
+        subscription.interval = interval
+        subscription.price_id = price_id
+
+    started = parse_time(data.get("started_at")) or parse_time(
+        data.get("first_billed_at")
+    )
+
+    if started and subscription.started_at is None:
+        subscription.started_at = started
+
+    period = data.get("current_billing_period")
+
+    if isinstance(period, dict):
+        subscription.current_period_end = parse_time(period.get("ends_at"))
+
+    change = data.get("scheduled_change")
+
+    if isinstance(change, dict):
+        subscription.scheduled_action = str(change.get("action") or "")[:20] or None
+        subscription.scheduled_at = parse_time(change.get("effective_at"))
+    else:
+        subscription.scheduled_action = None
+        subscription.scheduled_at = None
+
+    if occurred is not None:
+        subscription.last_event_at = occurred
+
+    db.flush()
+
+    if user is not None:
+        recompute_plan(db, user)
+        grant_due_plan_credits(db, user.id)
+
+    return f"applied: {subscription.status} {subscription.plan}"
+
+
+HANDLED = {
+    "subscription.created",
+    "subscription.activated",
+    "subscription.updated",
+    "subscription.past_due",
+    "subscription.paused",
+    "subscription.resumed",
+    "subscription.canceled",
+    "subscription.trialing",
+}
+
+
+def handle_event(db: Session, event: dict[str, Any]) -> str:
+    """
+    Apply one verified webhook event, once. Commits. Returns a short note
+    for the log; never raises for events we simply do not care about.
+    """
+    event_id = str(event.get("event_id") or "")
+    event_type = str(event.get("event_type") or "")
+
+    if not event_id:
+        return "ignored: no event id"
+
+    if db.get(PaddleEvent, event_id) is not None:
+        return "duplicate"
+
+    try:
+        if event_type in HANDLED:
+            result = apply_subscription_event(db, event)
+        else:
+            result = "ignored: not needed"
+
+        db.add(PaddleEvent(event_id=event_id, event_type=event_type[:60]))
+        db.commit()
+    except IntegrityError:
+        # The same event arrived twice at the same moment.
+        db.rollback()
+        return "duplicate"
+    except Exception:
+        db.rollback()
+        raise
+
+    logger.info("Paddle %s %s -> %s", event_type, event_id, result)
+
+    return result
+
+
+# ------------------------------------------------------------ Paddle's API
+
+
+class PaddleApiError(Exception):
+    pass
+
+
+def _api_headers() -> dict[str, str]:
+    return {"Authorization": f"Bearer {settings.paddle_api_key}"}
+
+
+def create_portal_url(
+    customer_id: str, subscription_ids: list[str]
+) -> str:
+    """
+    A fresh link to Paddle's customer portal (change card, cancel, see
+    invoices). Links are short-lived, so one is made per click.
+    """
+    if not settings.paddle_api_key:
+        raise PaddleApiError("Paddle API key is not set.")
+
+    try:
+        response = httpx.post(
+            f"{api_base()}/customers/{customer_id}/portal-sessions",
+            headers=_api_headers(),
+            json={"subscription_ids": subscription_ids},
+            timeout=10.0,
+        )
+        response.raise_for_status()
+        url = response.json()["data"]["urls"]["general"]["overview"]
+    except (httpx.HTTPError, KeyError, ValueError) as error:
+        raise PaddleApiError("Could not open the customer portal.") from error
+
+    return str(url)
+
+
+def cancel_subscription_now(subscription_id: str) -> None:
+    """Cancel immediately (used when an account is deleted)."""
+    if not settings.paddle_api_key:
+        raise PaddleApiError("Paddle API key is not set.")
+
+    try:
+        response = httpx.post(
+            f"{api_base()}/subscriptions/{subscription_id}/cancel",
+            headers=_api_headers(),
+            json={"effective_from": "immediately"},
+            timeout=10.0,
+        )
+
+        # Already canceled counts as done.
+        if response.status_code not in (200, 404, 409):
+            response.raise_for_status()
+    except httpx.HTTPError as error:
+        raise PaddleApiError("Could not cancel the subscription.") from error
+
+
+def price_table() -> dict[str, dict[str, str]]:
+    table: dict[str, dict[str, str]] = {}
+
+    for price_id, (plan, interval) in settings.paddle_prices.items():
+        table.setdefault(plan, {})[interval] = price_id
+
+    return table
+
+
+def stop_subscriptions_for_deletion(db: Session, user_id: int) -> None:
+    """
+    Before an account is deleted, end any subscription that could still
+    bill. If Paddle cannot be reached, raise PaddleApiError so the account
+    is kept: deleting it would leave the person paying for nothing.
+    """
+    for subscription in db.scalars(
+        select(PaddleSubscription).where(
+            PaddleSubscription.user_id == user_id,
+            PaddleSubscription.status.in_(("active", "trialing", "past_due", "paused")),
+        )
+    ):
+        cancel_subscription_now(subscription.subscription_id)

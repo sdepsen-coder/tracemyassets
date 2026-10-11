@@ -3,7 +3,8 @@
  *
  * Only things the app really enforces are listed (see backend
  * core/plan_limits.py). If a number changes there, change it here.
- * Paid plans are not open yet, so there is no checkout link anywhere.
+ * Whether a paid plan can be bought is decided by the server
+ * (/billing/config), not here.
  */
 
 export type PlanCard = {
@@ -25,8 +26,6 @@ export function yearlySavingPercent(plan: PlanCard): number | null {
   const saving = 1 - plan.yearlyUsd / (plan.monthlyUsd * 12);
   return saving > 0 ? Math.round(saving * 100) : null;
 }
-
-export const PAID_PLANS_OPEN = false;
 
 export const PLANS: PlanCard[] = [
   {
@@ -80,4 +79,4 @@ export const PLANS: PlanCard[] = [
 ];
 
 export const PRICING_NOTE =
-  "Paid plans are not open yet. The limits above are the current beta values and may change before they open. Prices are in US dollars; local taxes may be added at checkout.";
+  "Prices are in US dollars; taxes such as VAT are added at checkout where they apply. A paid plan can be bought once its button says \u201cChoose plan\u201d; until then it says \u201cOpens soon\u201d and nothing is charged.";

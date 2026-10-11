@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session
 
 from app.models.asset import Asset
 from app.models.credit_entry import CreditEntry
+from app.models.paddle import PaddleSubscription
 from app.models.feedback import FeedbackEntry
 from app.models.match_record import MatchRecord
 from app.models.monitoring import MonitoringPreference
@@ -40,6 +41,7 @@ artworks.json    your artworks and their monitoring settings
 scans.json       scan history
 matches.json     possible matches found for your artworks
 credits.json     your credit entries
+subscriptions.json  your subscription (Paddle ids, plan, status)
 feedback.json    verdicts and messages you sent us
 activity.json    the security and activity log (kept for 90 days)
 files/           your original files and protected copies
@@ -150,6 +152,17 @@ def build_export(db: Session, user: User) -> Path:
                     CreditEntry,
                     CreditEntry.user_id == user.id,
                     order=CreditEntry.id,
+                )
+            ],
+        )
+        _write_json(
+            archive,
+            "subscriptions.json",
+            [
+                row_to_dict(r)
+                for r in rows(
+                    PaddleSubscription,
+                    PaddleSubscription.user_id == user.id,
                 )
             ],
         )

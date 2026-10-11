@@ -11,8 +11,8 @@ paid for with credits. The rules, kept deliberately simple:
     a free scan.
   * If no search could be made at all (the provider was down, or our own
     spending limit was reached), the credit is given back.
-  * Credits are added by hand for now (scripts/grant_credits.py); there is
-    no payment flow yet.
+  * Paid plans add their monthly credits (services.plan_credits); other
+    credits can be added by hand (scripts/grant_credits.py).
 
 The balance is the sum of an append-only ledger (models.credit_entry).
 """
@@ -26,6 +26,7 @@ from sqlalchemy.orm import Session
 from app.models.credit_entry import CreditEntry
 from app.models.user import User
 from app.services.email_verification import is_verified
+from app.services.plan_credits import grant_due_plan_credits
 
 WELCOME_CREDITS = 3
 WELCOME_GRANT_KEY = "welcome"
@@ -94,6 +95,7 @@ def ensure_welcome_grant(db: Session, user_id: int) -> None:
 def get_credit_summary(db: Session, user_id: int) -> int:
     """The balance, after making sure the welcome credits were given."""
     ensure_welcome_grant(db, user_id)
+    grant_due_plan_credits(db, user_id)
     db.commit()
 
     return get_balance(db, user_id)
@@ -119,6 +121,7 @@ def charge_for_deep_scan(
     )
 
     ensure_welcome_grant(db, user_id)
+    grant_due_plan_credits(db, user_id)
 
     balance = get_balance(db, user_id)
 

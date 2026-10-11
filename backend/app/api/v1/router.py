@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.v1.endpoints.account import router as account_router
 from app.api.v1.endpoints.admin import router as admin_router
 from app.api.v1.endpoints.assets import router as assets_router
+from app.api.v1.endpoints.billing import router as billing_router
 from app.api.v1.endpoints.auth import router as auth_router
 from app.api.v1.endpoints.auth_google import router as auth_google_router
 from app.api.v1.endpoints.credits import router as credits_router
@@ -20,6 +21,7 @@ api_router.include_router(auth_router)
 api_router.include_router(auth_google_router)
 api_router.include_router(matches_router)
 api_router.include_router(assets_router)
+api_router.include_router(billing_router)
 api_router.include_router(credits_router)
 api_router.include_router(feedback_router)
 api_router.include_router(public_images_router)

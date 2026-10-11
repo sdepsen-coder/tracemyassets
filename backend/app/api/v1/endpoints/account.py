@@ -16,7 +16,7 @@ from app.core.browser_session import clear_session_cookie, require_trusted_origi
 from app.core.security import decode_access_token_details, verify_password
 from app.models.user import User
 from app.models.user_event import UserEvent
-from app.services import user_events
+from app.services import paddle_billing, user_events
 from app.services.account_deletion import delete_account, remove_folders
 from app.services.account_export import build_export
 
@@ -133,6 +133,18 @@ def delete_my_account(
                     else "Wrong password."
                 ),
             )
+
+    try:
+        paddle_billing.stop_subscriptions_for_deletion(db, user.id)
+    except paddle_billing.PaddleApiError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "We could not end your subscription just now, so the account "
+                "was not deleted. Please cancel it under Manage subscription "
+                "or try again in a few minutes."
+            ),
+        )
 
     folders = delete_account(db, user)
     remove_folders(folders)

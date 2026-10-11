@@ -31,6 +31,7 @@ from app.models.email_verification import (
 )
 from app.models.feedback import FeedbackEntry
 from app.models.match import Match
+from app.models.paddle import PaddleSubscription
 from app.models.password_reset import PasswordResetToken
 from app.models.session_cutoff import SessionCutoff
 from app.models.signup_key import SignupKey
@@ -121,6 +122,9 @@ def delete_account(db: Session, user: User) -> list[Path]:
     for asset in assets:
         delete_asset(db, asset=asset)
 
+    db.execute(
+        delete(PaddleSubscription).where(PaddleSubscription.user_id == user_id)
+    )
     db.execute(delete(CreditEntry).where(CreditEntry.user_id == user_id))
     db.execute(delete(FeedbackEntry).where(FeedbackEntry.user_id == user_id))
     db.execute(

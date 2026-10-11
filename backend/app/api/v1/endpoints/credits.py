@@ -19,7 +19,7 @@ router = APIRouter(prefix="/credits", tags=["credits"])
 class CreditEntryRead(BaseModel):
     id: int
     delta: int
-    reason: Literal["welcome", "grant", "deep_scan", "refund"]
+    reason: Literal["welcome", "grant", "deep_scan", "refund", "plan", "expiry"]
     created_at: datetime
 
 

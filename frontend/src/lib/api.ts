@@ -272,9 +272,30 @@ export type CreditsInfo = {
   recent: Array<{
     id: number;
     delta: number;
-    reason: "welcome" | "grant" | "deep_scan" | "refund";
+    reason: "welcome" | "grant" | "deep_scan" | "refund" | "plan" | "expiry";
     created_at: string;
   }>;
+};
+
+export type BillingConfig = {
+  enabled: boolean;
+  environment: string;
+  client_token: string;
+  prices: Record<string, Record<string, string>>;
+};
+
+export type BillingStatus = {
+  user_id: number;
+  email: string;
+  plan_type: string;
+  subscription: {
+    plan: string;
+    interval: string | null;
+    status: string;
+    cancels_on: string | null;
+    renews_on: string | null;
+    payment_problem: boolean;
+  } | null;
 };
 
 export type UsageInfo = {
@@ -389,6 +410,15 @@ async function request<T>(
 }
 
 export const api = {
+  billingConfig: (signal?: AbortSignal) =>
+    request<BillingConfig>("/api/v1/billing/config", { signal }),
+
+  billingStatus: (signal?: AbortSignal) =>
+    request<BillingStatus>("/api/v1/billing/status", { signal }),
+
+  billingPortal: () =>
+    request<{ url: string }>("/api/v1/billing/portal", { method: "POST" }),
+
   assetStats: (signal?: AbortSignal) =>
     request<AssetStats>("/api/v1/assets/stats", { signal }),
 

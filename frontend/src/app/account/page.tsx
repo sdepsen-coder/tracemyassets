@@ -1,12 +1,166 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import { AuthGate, useAuth } from "@/components/AuthGate";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { SiteFooter } from "@/components/SiteFooter";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError, type BillingConfig, type BillingStatus } from "@/lib/api";
 import { CONTACT_EMAIL } from "@/lib/site";
+
+function formatDay(value: string | null): string {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function SubscriptionSection({ planType }: { planType: string }) {
+  const [config, setConfig] = useState<BillingConfig | null>(null);
+  const [status, setStatus] = useState<BillingStatus | null>(null);
+  const [waiting, setWaiting] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let stopped = false;
+    const justPaid =
+      new URLSearchParams(window.location.search).get("checkout") ===
+      "success";
+    let tries = 0;
+
+    async function load() {
+      try {
+        const [cfg, current] = await Promise.all([
+          api.billingConfig(),
+          api.billingStatus(),
+        ]);
+
+        if (stopped) return;
+        setConfig(cfg);
+        setStatus(current);
+
+        if (!justPaid) return;
+
+        if (current.subscription) {
+          setWaiting(false);
+
+          // The plan name in the header is read once; refresh it.
+          if (current.plan_type !== planType) window.location.replace("/account");
+          return;
+        }
+
+        // The payment is confirmed by Paddle a few seconds later.
+        setWaiting(true);
+        tries += 1;
+        if (tries < 15) window.setTimeout(() => void load(), 2000);
+        else setWaiting(false);
+      } catch {
+        /* The section just stays quiet. */
+      }
+    }
+
+    void load();
+
+    return () => {
+      stopped = true;
+    };
+  }, [planType]);
+
+  async function manage() {
+    setBusy(true);
+    setError("");
+
+    try {
+      const { url } = await api.billingPortal();
+      window.location.assign(url);
+    } catch {
+      setError("The billing page could not be opened. Please try again.");
+      setBusy(false);
+    }
+  }
+
+  const subscription = status?.subscription ?? null;
+
+  if (!subscription && !waiting && !config?.enabled) return null;
+
+  return (
+    <section
+      data-testid="subscription-section"
+      className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-card"
+    >
+      <h2 className="text-lg font-semibold">Subscription</h2>
+
+      {waiting ? (
+        <p
+          data-testid="subscription-waiting"
+          className="mt-2 text-[14px] text-[var(--text-muted)]"
+        >
+          Thank you. We are activating your plan. This usually takes a few
+          seconds.
+        </p>
+      ) : subscription ? (
+        <div className="mt-2 space-y-2 text-[14px] text-[var(--text-muted)]">
+          <p data-testid="subscription-summary">
+            <strong className="text-[var(--text)]">
+              {subscription.plan}
+            </strong>
+            {subscription.interval === "year" ? " · yearly" : " · monthly"}
+            {subscription.cancels_on
+              ? ` · ends on ${formatDay(subscription.cancels_on)}`
+              : subscription.renews_on
+                ? ` · renews on ${formatDay(subscription.renews_on)}`
+                : ""}
+          </p>
+
+          {subscription.payment_problem ? (
+            <p
+              role="alert"
+              data-testid="subscription-payment-problem"
+              className="text-[var(--danger)]"
+            >
+              The last payment did not go through. Please update your card so
+              your plan is not interrupted.
+            </p>
+          ) : null}
+
+          <button
+            type="button"
+            data-testid="manage-subscription"
+            disabled={busy}
+            onClick={() => void manage()}
+            className="inline-flex h-10 items-center rounded-lg border border-[var(--border)] px-4 text-[13px] font-semibold text-[var(--text)] transition hover:bg-[var(--surface-muted)] disabled:opacity-60"
+          >
+            {busy ? "Opening..." : "Manage subscription"}
+          </button>
+          <p className="text-[12px]">
+            Change your card, see invoices or cancel. A cancelled plan stays
+            active until the end of the period you paid for.
+          </p>
+        </div>
+      ) : (
+        <p className="mt-2 text-[14px] text-[var(--text-muted)]">
+          You are on the Free plan.{" "}
+          <Link href="/pricing" className="text-[var(--primary)] underline">
+            See Pro and Extra
+          </Link>
+          .
+        </p>
+      )}
+
+      {error ? (
+        <p role="alert" className="mt-2 text-[13px] text-[var(--danger)]">
+          {error}
+        </p>
+      ) : null}
+    </section>
+  );
+}
 
 function DownloadSection() {
   const [busy, setBusy] = useState(false);
@@ -108,8 +262,9 @@ function DeleteSection({ email, isAdmin }: { email: string; isAdmin: boolean }) 
       <p className="mt-2 max-w-2xl text-[14px] leading-6 text-[var(--text-muted)]">
         This permanently deletes your account, all your artworks and their
         files, scan history, matches, credits and feedback. It cannot be
-        undone, and unused credits are lost. Download your data first if you
-        want a copy.
+        undone, and unused credits are lost. An active subscription is
+        cancelled immediately (no refund for the current period unless the
+        Refund Policy applies). Download your data first if you want a copy.
       </p>
 
       {isAdmin ? (
@@ -200,6 +355,7 @@ function AccountContent() {
           </p>
         </header>
 
+        <SubscriptionSection planType={user.plan_type} />
         <DownloadSection />
         <DeleteSection email={user.email} isAdmin={Boolean(user.is_admin)} />
 
