@@ -471,6 +471,9 @@ def discover_prices() -> dict[str, tuple[str, str]]:
 
     found: dict[str, tuple[str, str]] = {}
 
+    if not settings.paddle_api_key:
+        logger.warning("PADDLE_API_KEY is empty: prices cannot be listed.")
+
     if settings.paddle_api_key:
         try:
             response = httpx.get(
@@ -481,11 +484,29 @@ def discover_prices() -> dict[str, tuple[str, str]]:
             )
             response.raise_for_status()
 
-            for price in response.json().get("data", []):
+            listed = response.json().get("data", [])
+            skipped = []
+
+            for price in listed:
                 kind = classify_price(price)
 
                 if kind and price.get("id"):
                     found[str(price["id"])] = kind
+                else:
+                    unit = price.get("unit_price") or {}
+                    cycle = price.get("billing_cycle") or {}
+                    skipped.append(
+                        f"{unit.get('amount')} {unit.get('currency_code')} "
+                        f"{cycle.get('frequency')}x{cycle.get('interval')}"
+                    )
+
+            logger.warning(
+                "Paddle lists %s active price(s); %s recognised. "
+                "Not recognised: %s",
+                len(listed),
+                len(found),
+                ", ".join(skipped) or "none",
+            )
         except httpx.HTTPStatusError as error:
             # Paddle's own error text names the cause (bad key, missing
             # permission, wrong environment); it holds no secret.

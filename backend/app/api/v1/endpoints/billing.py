@@ -37,6 +37,14 @@ def read_billing_config() -> BillingConfigRead:
         and prices
     )
 
+    if not enabled:
+        logger.warning(
+            "Payments are off: client token %s, webhook secret %s, prices found %s.",
+            "set" if settings.paddle_client_token else "MISSING",
+            "set" if paddle_billing.billing_enabled() else "MISSING",
+            "yes" if prices else "NO",
+        )
+
     return BillingConfigRead(
         enabled=enabled,
         environment=settings.paddle_environment,
