@@ -23,6 +23,7 @@ function formatDay(value: string | null): string {
 function SubscriptionSection({ planType }: { planType: string }) {
   const [config, setConfig] = useState<BillingConfig | null>(null);
   const [status, setStatus] = useState<BillingStatus | null>(null);
+  const [credits, setCredits] = useState<number | null>(null);
   const [waiting, setWaiting] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -44,6 +45,13 @@ function SubscriptionSection({ planType }: { planType: string }) {
         if (stopped) return;
         setConfig(cfg);
         setStatus(current);
+
+        api
+          .getCredits()
+          .then((info) => {
+            if (!stopped) setCredits(info.balance);
+          })
+          .catch(() => {});
 
         if (!justPaid) return;
 
@@ -118,6 +126,15 @@ function SubscriptionSection({ planType }: { planType: string }) {
                 : ""}
           </p>
 
+          {credits !== null ? (
+            <p data-testid="subscription-credits">
+              Deep scan credits:{" "}
+              <strong className="text-[var(--text)]">{credits}</strong>. Your
+              plan adds new credits each month; unused monthly credits do not
+              carry over.
+            </p>
+          ) : null}
+
           {subscription.payment_problem ? (
             <p
               role="alert"
@@ -145,7 +162,8 @@ function SubscriptionSection({ planType }: { planType: string }) {
         </div>
       ) : (
         <p className="mt-2 text-[14px] text-[var(--text-muted)]">
-          You are on the Free plan.{" "}
+          You are on the Free plan
+          {credits !== null ? ` with ${credits} Deep scan credits` : ""}.{" "}
           <Link href="/pricing" className="text-[var(--primary)] underline">
             See Pro and Extra
           </Link>

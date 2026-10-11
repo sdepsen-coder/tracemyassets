@@ -362,6 +362,33 @@ class MonthlyCreditTests(PaddleCase):
         self.start(price=PRO_YEAR)
         self.assertEqual(self.balance(), 10)
 
+    def test_two_subscriptions_give_only_the_best_plans_credits(self) -> None:
+        self.start(price=PRO_MONTH)
+        self.apply(
+            event(
+                "subscription.created",
+                user_id=self.user.id,
+                event_id="evt_x2",
+                sub="sub_2",
+                price=PRO_MONTH,
+                started="2026-02-15T10:00:00Z",
+            )
+        )
+        self.apply(
+            event(
+                "subscription.created",
+                user_id=self.user.id,
+                event_id="evt_x3",
+                sub="sub_3",
+                price=EXTRA_MONTH,
+                started="2026-03-15T10:00:00Z",
+            )
+        )
+
+        # 40 (Extra) only; not 10 + 10 + 40.
+        self.assertEqual(self.balance(), 40)
+        self.assertEqual(self.refresh().plan_type, "Extra")
+
     def test_extra_gets_forty(self) -> None:
         self.start(price=EXTRA_MONTH)
         self.assertEqual(self.balance(), 40)

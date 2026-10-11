@@ -85,9 +85,19 @@ def grant_due_plan_credits(
         )
     )
 
-    for subscription in subscriptions:
-        if subscription.started_at is None or subscription.plan is None:
-            continue
+    # Someone who ended up with more than one subscription (two checkouts)
+    # still gets one plan's credits: the highest plan, the oldest first.
+    rank = {"Pro": 1, "Extra": 2}
+    subscriptions = [
+        item
+        for item in subscriptions
+        if item.started_at is not None and item.plan in rank
+    ]
+    subscriptions.sort(
+        key=lambda item: (-rank[item.plan], _aware(item.started_at))
+    )
+
+    for subscription in subscriptions[:1]:
 
         if (
             subscription.scheduled_action == "cancel"

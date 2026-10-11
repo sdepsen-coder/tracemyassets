@@ -58,6 +58,7 @@ export function Topbar() {
 
   const [newMatchCount, setNewMatchCount] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuCredits, setMenuCredits] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   // Close the account menu on outside click or Escape.
@@ -104,6 +105,22 @@ export function Topbar() {
 
     return () => controller.abort();
   }, [user.id]);
+
+  // The balance is read when the menu opens, so it is always current.
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const controller = new AbortController();
+
+    api
+      .getCredits(controller.signal)
+      .then((info) => setMenuCredits(info.balance))
+      .catch(() => {
+        /* The plan still shows without the balance. */
+      });
+
+    return () => controller.abort();
+  }, [menuOpen]);
 
   const email = user.email ?? "";
   const initial = email.trim().charAt(0).toUpperCase() || "U";
@@ -207,6 +224,19 @@ export function Topbar() {
                   </p>
                   <p className="truncate text-[13px] font-semibold text-[var(--text)]">
                     {email}
+                  </p>
+                  <p
+                    data-testid="menu-plan"
+                    className="mt-1 text-[12px] text-[var(--text-muted)]"
+                  >
+                    <span className="rounded-md bg-[var(--primary-soft)] px-1.5 py-0.5 font-semibold text-[var(--primary)]">
+                      {user.plan_type}
+                    </span>
+                    {menuCredits !== null
+                      ? ` · ${menuCredits} Deep scan ${
+                          menuCredits === 1 ? "credit" : "credits"
+                        }`
+                      : ""}
                   </p>
                 </div>
 
