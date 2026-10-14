@@ -414,8 +414,9 @@ def verify_email(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
-                "This confirmation link is invalid or has expired. Sign "
-                "in and ask for a new one."
+                "This confirmation link has expired, was already used or "
+                "is not valid. Sign in and ask for a new one if your "
+                "address is not confirmed yet."
             ),
         )
 

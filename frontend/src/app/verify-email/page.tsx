@@ -66,12 +66,19 @@ function VerifyEmail() {
       )}
 
       {state === "failed" && (
-        <p
-          role="alert"
-          className="mt-6 rounded-xl bg-rose-400/10 p-3 text-sm text-rose-300"
-        >
-          {message}
-        </p>
+        <>
+          <p
+            role="alert"
+            className="mt-6 rounded-xl bg-rose-400/10 p-3 text-sm text-rose-300"
+          >
+            {message}
+          </p>
+          <p className="mt-3 text-sm text-slate-400">
+            A confirmation link works once. If you already used it, your
+            address is probably confirmed. If you are not signed in, you
+            will be asked to sign in.
+          </p>
+        </>
       )}
 
       {state !== "working" && (
@@ -79,7 +86,7 @@ function VerifyEmail() {
           href="/"
           className="mt-5 inline-block rounded-xl bg-[#4cd7f6] px-4 py-3 font-semibold text-[#003640]"
         >
-          {state === "done" ? "Open the dashboard" : "Go to sign in"}
+          {state === "done" ? "Open the dashboard" : "Open TraceMyAssets"}
         </Link>
       )}
     </section>
