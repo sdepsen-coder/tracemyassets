@@ -67,6 +67,11 @@ class Settings:
         self.serpapi_monthly_limit = int(
             os.getenv("SERPAPI_MONTHLY_LIMIT", "1000")
         )
+        # Error reporting. Off while SENTRY_DSN is empty.
+        self.sentry_dsn = os.getenv("SENTRY_DSN", "").strip()
+        self.sentry_traces_sample_rate = float(
+            os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0")
+        )
         # Standard scan (Google Cloud Vision Web Detection), counted the
         # same way. Google bills per image after the free monthly units,
         # so these caps keep a runaway loop from becoming a bill.

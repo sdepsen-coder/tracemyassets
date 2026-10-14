@@ -69,6 +69,7 @@ export default function PrivacyPage() {
             "Marketplace search: the title you give an artwork is sent as a search keyword to marketplace search services, including the Etsy API and a third-party Amazon search data provider. Only the title is sent, not the image. Any candidate images returned are downloaded by our servers for comparison and are not kept.",
             "Resend (email): if monitoring is on for an artwork, we email you when a scan finds new possible matches. To send it, your email address, the artwork's title and the number of new matches are passed to Resend. The email never contains where a match was found.",
             "Paddle (payments): if you buy a paid plan, Paddle is the seller of record and takes the payment. Your card or bank details go to Paddle, never to us. We send Paddle your email address and an internal account number so the purchase can be matched to your account, and Paddle tells us the plan, its status and renewal dates. Paddle's own privacy notice applies to what it holds. We keep the plan, status and Paddle's subscription and customer references for as long as the account exists; they are deleted with it.",
+            "Sentry (error reports): when the service crashes, a technical error report goes to Sentry so we can fix it. Reports carry the error and the page address without its query part. We do not send cookies, IP addresses, request contents, names or email addresses.",
             "Fonts and icons are loaded from Google Fonts by your browser.",
           ]}
         />

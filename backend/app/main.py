@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
 from app.core.config import settings
+from app.core.monitoring import init_monitoring
 from app.db.base import initialize_database
 from app.services.scheduler import start_scheduler, stop_scheduler
 
@@ -30,6 +31,7 @@ def configure_app_logging() -> None:
 
 
 configure_app_logging()
+init_monitoring()
 
 
 @asynccontextmanager
