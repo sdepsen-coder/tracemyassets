@@ -10,6 +10,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
+import { PasswordInput } from "@/components/auth/PasswordInput";
 
 import { FloatingFeedback } from "@/components/dashboard/FloatingFeedback";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -499,10 +500,9 @@ export function AuthGate({ children, landing }: AuthGateProps) {
             <label htmlFor="auth-password" className="text-sm text-slate-300">
               Password
             </label>
-            <input
+            <PasswordInput
               id="auth-password"
               name="password"
-              type="password"
               autoComplete={
                 mode === "register" ? "new-password" : "current-password"
               }
@@ -512,7 +512,6 @@ export function AuthGate({ children, landing }: AuthGateProps) {
               disabled={busy}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="mt-2 w-full rounded-xl border border-white/10 bg-[#090e1b] px-3 py-3 outline-none focus:border-sky-400 disabled:opacity-50"
             />
             {mode === "register" && (
               <p className="mt-2 text-xs text-slate-400">

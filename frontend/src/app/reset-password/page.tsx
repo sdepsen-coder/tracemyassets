@@ -4,12 +4,14 @@ import Link from "next/link";
 import { Suspense, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 
+import { PasswordInput } from "@/components/auth/PasswordInput";
 import { api } from "@/lib/api";
 
 function ResetPasswordForm() {
   const token = useSearchParams().get("token") ?? "";
 
   const [password, setPassword] = useState("");
+  const [repeat, setRepeat] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
@@ -19,12 +21,18 @@ function ResetPasswordForm() {
 
     if (busy) return;
 
+    if (password !== repeat) {
+      setError("The two passwords are not the same.");
+      return;
+    }
+
     setBusy(true);
     setError("");
 
     try {
       await api.resetPassword(token, password);
       setPassword("");
+      setRepeat("");
       setDone(true);
     } catch (err) {
       setError(
@@ -75,9 +83,8 @@ function ResetPasswordForm() {
             <label htmlFor="new-password" className="text-sm text-slate-300">
               New password
             </label>
-            <input
+            <PasswordInput
               id="new-password"
-              type="password"
               autoComplete="new-password"
               required
               minLength={8}
@@ -85,12 +92,26 @@ function ResetPasswordForm() {
               disabled={busy}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="mt-2 w-full rounded-xl border border-white/10 bg-[#090e1b] px-3 py-3 outline-none focus:border-sky-400 disabled:opacity-50"
-            />
-            <p className="mt-2 text-xs text-slate-400">
+            />            <p className="mt-2 text-xs text-slate-400">
               At least 8 characters. Avoid common passwords like
               &quot;password123&quot;.
             </p>
+          </div>
+
+          <div>
+            <label htmlFor="repeat-password" className="text-sm text-slate-300">
+              New password (again)
+            </label>
+            <PasswordInput
+              id="repeat-password"
+              autoComplete="new-password"
+              required
+              minLength={8}
+              maxLength={128}
+              disabled={busy}
+              value={repeat}
+              onChange={(event) => setRepeat(event.target.value)}
+            />
           </div>
 
           {error && (
