@@ -35,6 +35,7 @@ from app.core.config import settings
 from app.core.plan_limits import DEFAULT_PLAN
 from app.models.paddle import PaddleEvent, PaddleSubscription
 from app.models.user import User
+from app.services.credits import grant_purchase, reverse_purchase
 from app.services.plan_credits import ACCESS_STATUSES, grant_due_plan_credits
 
 logger = logging.getLogger("tracemyassets.paddle")
@@ -170,6 +171,64 @@ def classify_price(price: Any) -> tuple[str, str] | None:
             return plan, interval
 
     return None
+
+
+# One-time Deep scan credit packs, by amount (minor units, USD) -> credits.
+PACK_CATALOG: dict[int, int] = {
+    499: 10,
+    999: 25,
+    1999: 60,
+}
+
+
+def pack_price_amount(credits: int) -> int | None:
+    for amount, size in PACK_CATALOG.items():
+        if size == credits:
+            return amount
+
+    return None
+
+
+def classify_pack(price: Any) -> int | None:
+    """Credits in a one-time Paddle price (a credit pack), else None."""
+    if not isinstance(price, dict):
+        return None
+
+    # A subscription price is never a pack.
+    if price.get("billing_cycle"):
+        return None
+
+    unit = price.get("unit_price")
+
+    if isinstance(unit, dict) and unit.get("currency_code") == "USD":
+        try:
+            amount = int(unit.get("amount"))
+        except (TypeError, ValueError):
+            amount = -1
+
+        if amount in PACK_CATALOG:
+            return PACK_CATALOG[amount]
+
+    custom = price.get("custom_data")
+    credits = custom.get("credits") if isinstance(custom, dict) else None
+
+    if isinstance(credits, int) and not isinstance(credits, bool):
+        if 1 <= credits <= 1000:
+            return credits
+
+    return None
+
+
+def _pack_entry(price: dict[str, Any]) -> tuple[int, int]:
+    """(credits, price in minor units) of a price classify_pack accepted."""
+    credits = int(classify_pack(price) or 0)
+
+    try:
+        amount = int((price.get("unit_price") or {}).get("amount"))
+    except (TypeError, ValueError):
+        amount = pack_price_amount(credits) or 0
+
+    return credits, amount
 
 
 def plan_from_items(items: Any) -> tuple[str | None, str | None, str | None]:
@@ -341,6 +400,93 @@ def apply_subscription_event(
     return f"applied: {subscription.status} {subscription.plan}"
 
 
+def apply_transaction_event(db: Session, event: dict[str, Any]) -> str:
+    """A completed one-time payment: add the credits of a credit pack."""
+    data = event.get("data")
+
+    if not isinstance(data, dict) or not data.get("id"):
+        return "ignored: no transaction"
+
+    if data.get("status") != "completed":
+        return "ignored: not completed"
+
+    total = 0
+    items = data.get("items")
+
+    for item in items if isinstance(items, list) else []:
+        price = item.get("price") if isinstance(item, dict) else None
+
+        if not isinstance(price, dict):
+            continue
+
+        credits = classify_pack(price) or _discovered_packs.get(
+            str(price.get("id")), (0, 0)
+        )[0]
+
+        try:
+            quantity = max(int(item.get("quantity") or 1), 1)
+        except (TypeError, ValueError):
+            quantity = 1
+
+        total += credits * quantity
+
+    if total <= 0:
+        return "ignored: not a credit pack"
+
+    user_id = _user_id_from(data)
+    user = db.get(User, user_id) if user_id else None
+
+    if user is None:
+        # Money was taken but we cannot tell whose it is: shout.
+        logger.error(
+            "Paddle transaction %s paid for %s credits but has no matching user",
+            data["id"],
+            total,
+        )
+        return "ignored: unknown user"
+
+    if not grant_purchase(
+        db, user_id=user.id, credits=total, transaction_id=str(data["id"])
+    ):
+        return "ignored: already credited"
+
+    return f"applied: +{total} credits for user {user.id}"
+
+
+def apply_adjustment_event(db: Session, event: dict[str, Any]) -> str:
+    """A refund or chargeback: take back the unspent credits of the pack."""
+    data = event.get("data")
+
+    if not isinstance(data, dict):
+        return "ignored: no adjustment"
+
+    if data.get("status") != "approved":
+        return "ignored: not approved"
+
+    if data.get("action") not in ("refund", "chargeback"):
+        return "ignored: not a refund"
+
+    transaction_id = data.get("transaction_id")
+
+    if not transaction_id:
+        return "ignored: no transaction"
+
+    if data.get("type") != "full":
+        logger.warning(
+            "Partial refund on transaction %s: credits are left as they are; "
+            "adjust by hand if needed.",
+            transaction_id,
+        )
+        return "ignored: partial refund"
+
+    reversed_ = reverse_purchase(db, transaction_id=str(transaction_id))
+
+    if reversed_ is None:
+        return "ignored: no credit purchase to reverse"
+
+    return f"applied: -{reversed_[1]} credits for user {reversed_[0]}"
+
+
 HANDLED = {
     "subscription.created",
     "subscription.activated",
@@ -370,6 +516,10 @@ def handle_event(db: Session, event: dict[str, Any]) -> str:
     try:
         if event_type in HANDLED:
             result = apply_subscription_event(db, event)
+        elif event_type == "transaction.completed":
+            result = apply_transaction_event(db, event)
+        elif event_type in ("adjustment.created", "adjustment.updated"):
+            result = apply_adjustment_event(db, event)
         else:
             result = "ignored: not needed"
 
@@ -445,14 +595,15 @@ def cancel_subscription_now(subscription_id: str) -> None:
 
 
 _discovered: dict[str, tuple[str, str]] = {}
+_discovered_packs: dict[str, tuple[int, int]] = {}
 _discovered_at = 0.0
 _DISCOVERY_SECONDS = 300
 _DISCOVERY_RETRY_SECONDS = 30
 
 
 def reset_price_cache() -> None:
-    global _discovered, _discovered_at
-    _discovered, _discovered_at = {}, 0.0
+    global _discovered, _discovered_packs, _discovered_at
+    _discovered, _discovered_packs, _discovered_at = {}, {}, 0.0
 
 
 def discover_prices() -> dict[str, tuple[str, str]]:
@@ -460,7 +611,7 @@ def discover_prices() -> dict[str, tuple[str, str]]:
     Our prices as Paddle lists them, found by amount and interval (see
     PRICE_CATALOG). Cached; a failure is retried after half a minute.
     """
-    global _discovered, _discovered_at
+    global _discovered, _discovered_packs, _discovered_at
 
     now = time.time()
 
@@ -470,6 +621,7 @@ def discover_prices() -> dict[str, tuple[str, str]]:
         return _discovered
 
     found: dict[str, tuple[str, str]] = {}
+    packs: dict[str, tuple[int, int]] = {}
 
     if not settings.paddle_api_key:
         logger.warning("PADDLE_API_KEY is empty: prices cannot be listed.")
@@ -499,6 +651,8 @@ def discover_prices() -> dict[str, tuple[str, str]]:
 
                 if kind and price.get("id"):
                     found[str(price["id"])] = kind
+                elif classify_pack(price) and price.get("id"):
+                    packs[str(price["id"])] = _pack_entry(price)
                 else:
                     unit = price.get("unit_price") or {}
                     cycle = price.get("billing_cycle") or {}
@@ -532,12 +686,11 @@ def discover_prices() -> dict[str, tuple[str, str]]:
                         nested += 1
                         kind = classify_price(price)
 
-                        if (
-                            kind
-                            and price.get("id")
-                            and price.get("status") != "archived"
-                        ):
-                            found[str(price["id"])] = kind
+                        if price.get("id") and price.get("status") != "archived":
+                            if kind:
+                                found[str(price["id"])] = kind
+                            elif classify_pack(price):
+                                packs[str(price["id"])] = _pack_entry(price)
 
                 logger.warning(
                     "Paddle account behind this key has %s product(s): %s; "
@@ -567,9 +720,21 @@ def discover_prices() -> dict[str, tuple[str, str]]:
                 error,
             )
 
-    _discovered, _discovered_at = found, now
+    _discovered, _discovered_packs, _discovered_at = found, packs, now
 
     return found
+
+
+def pack_table() -> list[dict[str, Any]]:
+    """The credit packs on sale: [{"price_id", "credits", "amount"}], small first."""
+    discover_prices()
+
+    packs = [
+        {"price_id": price_id, "credits": credits, "amount": amount}
+        for price_id, (credits, amount) in _discovered_packs.items()
+    ]
+
+    return sorted(packs, key=lambda pack: pack["credits"])
 
 
 def price_table() -> dict[str, dict[str, str]]:

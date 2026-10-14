@@ -272,9 +272,24 @@ export type CreditsInfo = {
   recent: Array<{
     id: number;
     delta: number;
-    reason: "welcome" | "grant" | "deep_scan" | "refund" | "plan" | "expiry";
+    reason:
+      | "welcome"
+      | "grant"
+      | "deep_scan"
+      | "refund"
+      | "plan"
+      | "expiry"
+      | "purchase"
+      | "purchase_refund";
     created_at: string;
   }>;
+};
+
+export type CreditPack = {
+  price_id: string;
+  credits: number;
+  /** US cents. */
+  amount: number;
 };
 
 export type BillingConfig = {
@@ -282,6 +297,7 @@ export type BillingConfig = {
   environment: string;
   client_token: string;
   prices: Record<string, Record<string, string>>;
+  packs: CreditPack[];
 };
 
 export type BillingStatus = {

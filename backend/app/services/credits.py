@@ -19,6 +19,8 @@ The balance is the sum of an append-only ledger (models.credit_entry).
 
 from __future__ import annotations
 
+import hashlib
+
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -196,6 +198,85 @@ def grant_credits(
     db.refresh(entry)
 
     return entry
+
+
+def _purchase_key(prefix: str, transaction_id: str) -> str:
+    digest = hashlib.sha1(transaction_id.encode()).hexdigest()
+
+    return f"{prefix}:{digest[:30]}"
+
+
+def grant_purchase(
+    db: Session,
+    *,
+    user_id: int,
+    credits: int,
+    transaction_id: str,
+) -> bool:
+    """
+    Add bought credits for one paid transaction. Returns False (and does
+    nothing) if that transaction was already credited, so a repeated
+    webhook never pays out twice. Bought credits never expire. Does not
+    commit.
+    """
+    if credits <= 0:
+        raise ValueError("credits must be positive")
+
+    try:
+        with db.begin_nested():
+            db.add(
+                CreditEntry(
+                    user_id=user_id,
+                    delta=credits,
+                    reason="purchase",
+                    grant_key=_purchase_key("tx", transaction_id),
+                    note=f"Bought {credits} Deep scan credits",
+                )
+            )
+    except IntegrityError:
+        return False
+
+    return True
+
+
+def reverse_purchase(
+    db: Session,
+    *,
+    transaction_id: str,
+) -> tuple[int, int] | None:
+    """
+    Take back the credits of a fully refunded (or charged back) purchase.
+    Only what is still unspent can be taken, so the balance never goes
+    below zero. Returns (user_id, credits taken), or None if there is no
+    such purchase or it was already reversed. Does not commit.
+    """
+    bought = db.scalar(
+        select(CreditEntry).where(
+            CreditEntry.reason == "purchase",
+            CreditEntry.grant_key == _purchase_key("tx", transaction_id),
+        )
+    )
+
+    if bought is None:
+        return None
+
+    taken = min(bought.delta, max(get_balance(db, bought.user_id), 0))
+
+    try:
+        with db.begin_nested():
+            db.add(
+                CreditEntry(
+                    user_id=bought.user_id,
+                    delta=-taken,
+                    reason="purchase_refund",
+                    grant_key=_purchase_key("rf", transaction_id),
+                    note="Credit pack refunded",
+                )
+            )
+    except IntegrityError:
+        return None
+
+    return bought.user_id, taken
 
 
 def recent_entries(

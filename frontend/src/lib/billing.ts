@@ -92,3 +92,27 @@ export async function startCheckout(
     },
   });
 }
+
+/** Open the checkout for a one-time Deep scan credit pack. */
+export async function startPackCheckout(
+  config: BillingConfig,
+  priceId: string,
+  who: { user_id: number; email: string },
+): Promise<void> {
+  if (!config.packs.some((pack) => pack.price_id === priceId)) {
+    throw new Error("This credit pack is not available right now.");
+  }
+
+  const paddle = await loadPaddle(config);
+
+  paddle.Checkout.open({
+    items: [{ priceId, quantity: 1 }],
+    customer: { email: who.email },
+    customData: { user_id: String(who.user_id) },
+    settings: {
+      displayMode: "overlay",
+      allowLogout: false,
+      successUrl: `${window.location.origin}/account?credits=success`,
+    },
+  });
+}

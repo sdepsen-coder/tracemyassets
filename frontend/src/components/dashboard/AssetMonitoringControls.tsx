@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/components/AuthGate";
+import { OutOfCreditsNotice } from "@/components/billing/CreditPacks";
 import {
   api,
   ApiError,
@@ -615,10 +616,7 @@ export function AssetMonitoringControls({
               </p>
 
               {credits.balance < credits.deep_scan_cost ? (
-                <p className="mt-2 text-[var(--danger)]">
-                  You have no deep scan credits left. Contact support to
-                  get more.
-                </p>
+                <OutOfCreditsNotice />
               ) : null}
 
               <div className="mt-3 flex flex-wrap gap-2">

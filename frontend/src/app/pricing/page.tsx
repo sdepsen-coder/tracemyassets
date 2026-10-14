@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { LegalPage, LegalSection } from "@/components/legal/LegalPage";
+import { CreditPacks } from "@/components/billing/CreditPacks";
 import { PlanCards } from "@/components/pricing/PlanCards";
 import { PRICING_NOTE } from "@/lib/plans";
 import { CONTACT_EMAIL, SITE_NAME } from "@/lib/site";
@@ -26,7 +27,7 @@ const QUESTIONS: Array<{ question: string; answer: string }> = [
   {
     question: "What is a Deep scan, and what are credits?",
     answer:
-      "A Deep scan looks further than the Standard scan and costs real money to run, so it is paid for with credits: one credit for one artwork. Every new account gets 3 credits once. Pro adds 10 credits every month and Extra adds 40; the monthly credits do not carry over to the next month. If you need more, you will be able to buy extra credits that never expire.",
+      "A Deep scan looks further than the Standard scan and costs real money to run, so it is paid for with credits: one credit for one artwork. Every new account gets 3 credits once. Pro adds 10 credits every month and Extra adds 40; the monthly credits do not carry over to the next month. If you need more, you can buy extra credits in packs of 10, 25 or 60. They are a one-time payment and never expire.",
   },
   {
     question: "Is there a yearly option?",
@@ -55,6 +56,18 @@ export default function PricingPage() {
       </p>
 
       <PlanCards />
+
+      <section data-testid="credit-packs-section" className="space-y-3">
+        <h2 className="text-lg font-semibold text-[var(--text)]">
+          Need more Deep scans?
+        </h2>
+        <p className="max-w-2xl text-[14px] leading-relaxed text-[var(--text-muted)]">
+          Buy extra Deep scan credits whenever you like, with or without a
+          plan. They are a one-time payment and never expire; monthly plan
+          credits are used first.
+        </p>
+        <CreditPacks showSignedOutHint />
+      </section>
 
       <p
         data-testid="pricing-note"

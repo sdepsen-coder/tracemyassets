@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { AuthGate, useAuth } from "@/components/AuthGate";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { SiteFooter } from "@/components/SiteFooter";
+import { CreditPacks } from "@/components/billing/CreditPacks";
 import { api, ApiError, type BillingConfig, type BillingStatus } from "@/lib/api";
 import { CONTACT_EMAIL } from "@/lib/site";
 
@@ -18,6 +19,13 @@ function formatDay(value: string | null): string {
     month: "long",
     year: "numeric",
   });
+}
+
+/** The server sends UTC; a time without a zone must not be read as local. */
+function serverTime(value: string): number {
+  const zoned = /(Z|[+-]\d\d:?\d\d)$/.test(value) ? value : `${value}Z`;
+
+  return new Date(zoned.replace(" ", "T")).getTime();
 }
 
 function SubscriptionSection({ planType }: { planType: string }) {
@@ -176,6 +184,112 @@ function SubscriptionSection({ planType }: { planType: string }) {
           {error}
         </p>
       ) : null}
+    </section>
+  );
+}
+
+function CreditsSection() {
+  const [balance, setBalance] = useState<number | null>(null);
+  const [packsOpen, setPacksOpen] = useState(false);
+  const [waiting, setWaiting] = useState(false);
+
+  useEffect(() => {
+    let stopped = false;
+    const justPaid =
+      new URLSearchParams(window.location.search).get("credits") ===
+      "success";
+    let tries = 0;
+
+    api
+      .billingConfig()
+      .then((cfg) => {
+        if (!stopped) setPacksOpen(cfg.enabled && cfg.packs.length > 0);
+      })
+      .catch(() => {});
+
+    async function load() {
+      try {
+        const info = await api.getCredits();
+
+        if (stopped) return;
+        setBalance(info.balance);
+
+        if (!justPaid) return;
+
+        // Paddle confirms the payment a few seconds later: wait for the
+        // purchase to show up in the ledger.
+        const recent = info.recent.some(
+          (entry) =>
+            entry.reason === "purchase" &&
+            Date.now() - serverTime(entry.created_at) < 10 * 60 * 1000,
+        );
+
+        if (recent) {
+          setWaiting(false);
+          return;
+        }
+
+        setWaiting(true);
+        tries += 1;
+        if (tries < 15) window.setTimeout(() => void load(), 2000);
+        else setWaiting(false);
+      } catch {
+        /* The section just stays quiet. */
+      }
+    }
+
+    void load();
+
+    return () => {
+      stopped = true;
+    };
+  }, []);
+
+  if (!packsOpen && !waiting) return null;
+
+  return (
+    <section
+      data-testid="credits-section"
+      className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-card"
+    >
+      <h2 className="text-lg font-semibold">Deep scan credits</h2>
+
+      {waiting ? (
+        <p
+          data-testid="credits-waiting"
+          className="mt-2 text-[14px] text-[var(--text-muted)]"
+        >
+          Thank you. We are adding your credits. This usually takes a few
+          seconds.
+        </p>
+      ) : null}
+
+      <p
+        data-testid="credits-balance"
+        className="mt-2 text-[14px] text-[var(--text-muted)]"
+      >
+        {balance !== null ? (
+          <>
+            You have{" "}
+            <strong className="text-[var(--text)]">{balance}</strong> Deep
+            scan {balance === 1 ? "credit" : "credits"}.{" "}
+          </>
+        ) : null}
+        Need more? Credits you buy never expire and are used after your
+        monthly plan credits.
+      </p>
+
+      <div className="mt-4">
+        <CreditPacks />
+      </div>
+
+      <p className="mt-3 text-[12px] text-[var(--text-muted)]">
+        One-time payment, no subscription. Refunds are covered by the{" "}
+        <Link href="/refunds" className="text-[var(--primary)] underline">
+          Refund Policy
+        </Link>
+        .
+      </p>
     </section>
   );
 }
@@ -374,6 +488,8 @@ function AccountContent() {
         </header>
 
         <SubscriptionSection planType={user.plan_type} />
+
+        <CreditsSection />
         <DownloadSection />
         <DeleteSection email={user.email} isAdmin={Boolean(user.is_admin)} />
 

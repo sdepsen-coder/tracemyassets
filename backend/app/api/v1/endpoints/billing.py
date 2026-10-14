@@ -19,12 +19,21 @@ logger = logging.getLogger("tracemyassets.paddle")
 router = APIRouter(prefix="/billing", tags=["billing"])
 
 
+class CreditPackRead(BaseModel):
+    price_id: str
+    credits: int
+    # In US cents, as Paddle lists the price.
+    amount: int
+
+
 class BillingConfigRead(BaseModel):
     enabled: bool
     environment: str
     client_token: str
     # {"Pro": {"month": "pri_...", "year": "pri_..."}, "Extra": {...}}
     prices: dict[str, dict[str, str]]
+    # One-time Deep scan credit packs, small first.
+    packs: list[CreditPackRead] = []
 
 
 @router.get("/config", response_model=BillingConfigRead)
@@ -50,6 +59,11 @@ def read_billing_config() -> BillingConfigRead:
         environment=settings.paddle_environment,
         client_token=settings.paddle_client_token if enabled else "",
         prices=prices if enabled else {},
+        packs=[
+            CreditPackRead(**pack) for pack in paddle_billing.pack_table()
+        ]
+        if enabled
+        else [],
     )
 
 
