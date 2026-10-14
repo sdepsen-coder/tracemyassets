@@ -107,7 +107,10 @@ def _challenge(verifier: str) -> str:
     return base64.urlsafe_b64encode(digest).rstrip(b"=").decode("ascii")
 
 
-@router.get("/providers", response_model=ProvidersRead)
+# HEAD too: uptime monitors on free plans check with HEAD requests.
+@router.api_route(
+    "/providers", methods=["GET", "HEAD"], response_model=ProvidersRead
+)
 def read_providers() -> ProvidersRead:
     return ProvidersRead(google=google_enabled())
 

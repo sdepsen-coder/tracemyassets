@@ -130,6 +130,11 @@ class GoogleSignInTests(unittest.TestCase):
             user = db.scalar(select(User).where(User.email == "new@example.com"))
             self.assertIsNotNone(db.get(VerifiedUser, user.id))
 
+    def test_providers_answers_head_requests_for_uptime_monitors(self) -> None:
+        response = self.client.head("/api/v1/auth/providers")
+
+        self.assertEqual(response.status_code, 200)
+
     def test_providers_reflect_configuration(self) -> None:
         self.assertEqual(
             self.client.get("/api/v1/auth/providers").json(), {"google": True}
