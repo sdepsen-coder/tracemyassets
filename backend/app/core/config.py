@@ -67,6 +67,15 @@ class Settings:
         self.serpapi_monthly_limit = int(
             os.getenv("SERPAPI_MONTHLY_LIMIT", "1000")
         )
+        # Standard scan (Google Cloud Vision Web Detection), counted the
+        # same way. Google bills per image after the free monthly units,
+        # so these caps keep a runaway loop from becoming a bill.
+        self.vision_daily_limit = int(
+            os.getenv("VISION_DAILY_LIMIT", "300")
+        )
+        self.vision_monthly_limit = int(
+            os.getenv("VISION_MONTHLY_LIMIT", "3000")
+        )
         # Public address of THIS backend (e.g. the Railway URL). Deep scan
         # hands SerpApi a short-lived signed link under it so Google Lens
         # can fetch the artwork's protected copy.

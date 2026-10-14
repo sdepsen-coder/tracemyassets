@@ -31,6 +31,12 @@ export type AdminOverview = {
     daily_limit: number;
     monthly_limit: number;
   };
+  vision: {
+    used_today: number;
+    used_this_month: number;
+    daily_limit: number;
+    monthly_limit: number;
+  };
   event_retention_days: number;
 };
 

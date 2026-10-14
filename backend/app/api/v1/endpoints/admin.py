@@ -79,6 +79,7 @@ class OverviewRead(BaseModel):
     failed_sign_ins_24h: int
     sign_ups_by_day: list[tuple[str, int]]
     serpapi: BudgetRead
+    vision: BudgetRead
     event_retention_days: int
 
 
@@ -384,6 +385,13 @@ def read_overview(db: Session = Depends(get_db)) -> OverviewRead:
         monthly_limit=settings.serpapi_monthly_limit,
     )
 
+    vision_budget = get_budget_status(
+        db,
+        "vision",
+        daily_limit=settings.vision_daily_limit,
+        monthly_limit=settings.vision_monthly_limit,
+    )
+
     return OverviewRead(
         users_total=count(select(func.count(User.id))),
         users_new_24h=count(
@@ -418,6 +426,12 @@ def read_overview(db: Session = Depends(get_db)) -> OverviewRead:
             used_this_month=budget.used_this_month,
             daily_limit=budget.daily_limit,
             monthly_limit=budget.monthly_limit,
+        ),
+        vision=BudgetRead(
+            used_today=vision_budget.used_today,
+            used_this_month=vision_budget.used_this_month,
+            daily_limit=vision_budget.daily_limit,
+            monthly_limit=vision_budget.monthly_limit,
         ),
         event_retention_days=settings.event_retention_days,
     )

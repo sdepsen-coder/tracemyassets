@@ -10,6 +10,54 @@ function percent(used: number, limit: number): number {
   return limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
 }
 
+type Budget = AdminOverview["serpapi"];
+
+function AllowancePanel({ title, budget }: { title: string; budget: Budget }) {
+  return (
+    <Panel className="p-5">
+      <h2 className="font-heading text-[16px] font-semibold">{title}</h2>
+
+      {(
+        [
+          ["Today", budget.used_today, budget.daily_limit],
+          ["This month", budget.used_this_month, budget.monthly_limit],
+        ] as const
+      ).map(([label, used, limit]) => {
+        const pct = percent(used, limit);
+
+        return (
+          <div key={label} className="mt-4">
+            <div className="flex justify-between text-[13px]">
+              <span>{label}</span>
+              <span className="text-[var(--text-muted)]">
+                {used} of {limit} ({pct}%)
+              </span>
+            </div>
+            <div className="mt-1 h-2 overflow-hidden rounded-full bg-[var(--surface-strong)]">
+              <div
+                className={[
+                  "h-full rounded-full",
+                  pct >= 80
+                    ? "bg-[var(--danger)]"
+                    : "bg-[var(--primary-strong)]",
+                ].join(" ")}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </Panel>
+  );
+}
+
+function nearLimit(budget: Budget): boolean {
+  return (
+    percent(budget.used_today, budget.daily_limit) >= 80 ||
+    percent(budget.used_this_month, budget.monthly_limit) >= 80
+  );
+}
+
 export function OverviewTab() {
   const [data, setData] = useState<AdminOverview | null>(null);
   const [error, setError] = useState("");
@@ -33,14 +81,20 @@ export function OverviewTab() {
   if (!data) return <p className="text-[14px]">Loading…</p>;
 
   const maxDay = Math.max(1, ...data.sign_ups_by_day.map(([, n]) => n));
-  const dailyUsed = percent(data.serpapi.used_today, data.serpapi.daily_limit);
-  const monthlyUsed = percent(
-    data.serpapi.used_this_month,
-    data.serpapi.monthly_limit,
-  );
 
   return (
     <div className="space-y-6">
+      {nearLimit(data.serpapi) || nearLimit(data.vision) ? (
+        <p
+          role="alert"
+          data-testid="allowance-warning"
+          className="rounded-xl bg-rose-400/10 p-3 text-[14px] text-rose-300"
+        >
+          A paid search allowance is almost used up. When it runs out, scans
+          of that kind stop until the next day or month, or until you raise
+          the limit (SERPAPI_/VISION_ DAILY and MONTHLY LIMIT in Railway).
+        </p>
+      ) : null}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat
           label="Accounts"
@@ -117,48 +171,20 @@ export function OverviewTab() {
           </div>
         </Panel>
 
-        <Panel className="p-5">
-          <h2 className="font-heading text-[16px] font-semibold">
-            Deep scan allowance (SerpApi)
-          </h2>
-
-          {(
-            [
-              ["Today", data.serpapi.used_today, data.serpapi.daily_limit, dailyUsed],
-              [
-                "This month",
-                data.serpapi.used_this_month,
-                data.serpapi.monthly_limit,
-                monthlyUsed,
-              ],
-            ] as const
-          ).map(([label, used, limit, pct]) => (
-            <div key={label} className="mt-4">
-              <div className="flex justify-between text-[13px]">
-                <span>{label}</span>
-                <span className="text-[var(--text-muted)]">
-                  {used} of {limit} ({pct}%)
-                </span>
-              </div>
-              <div className="mt-1 h-2 overflow-hidden rounded-full bg-[var(--surface-strong)]">
-                <div
-                  className={[
-                    "h-full rounded-full",
-                    pct >= 80
-                      ? "bg-[var(--danger)]"
-                      : "bg-[var(--primary-strong)]",
-                  ].join(" ")}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-            </div>
-          ))}
-
-          <p className="mt-5 text-[12px] text-[var(--text-muted)]">
+        <div className="space-y-6">
+          <AllowancePanel
+            title="Deep scan allowance (SerpApi)"
+            budget={data.serpapi}
+          />
+          <AllowancePanel
+            title="Standard scan allowance (Google Vision)"
+            budget={data.vision}
+          />
+          <p className="text-[12px] text-[var(--text-muted)]">
             The activity log (IP addresses, browsers) is deleted after{" "}
             {data.event_retention_days} days.
           </p>
-        </Panel>
+        </div>
       </div>
     </div>
   );

@@ -50,6 +50,9 @@ import google.auth
 from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
 
+from app.core.config import settings
+from app.db.session import SessionLocal
+from app.services.provider_budget import reserve_units
 from app.services.visual_search_provider import (
     DiscoveredCandidate,
     truncate_source_name,
@@ -58,6 +61,9 @@ from app.services.visual_search_provider import (
 VISION_API_URL = "https://vision.googleapis.com/v1/images:annotate"
 REQUEST_TIMEOUT_SECONDS = 15.0
 CLOUD_PLATFORM_SCOPE = "https://www.googleapis.com/auth/cloud-platform"
+
+
+BUDGET_KEY = "vision"
 
 
 class GoogleVisionWebDetectionProvider:
@@ -105,6 +111,22 @@ class GoogleVisionWebDetectionProvider:
         self._session = AuthorizedSession(credentials)
         self.max_results = max_results
 
+    def _reserve_request(self, asset_id: int) -> None:
+        """Count this Vision call against the allowance, or raise."""
+        db = SessionLocal()
+
+        try:
+            reserve_units(
+                db,
+                BUDGET_KEY,
+                1,
+                daily_limit=settings.vision_daily_limit,
+                monthly_limit=settings.vision_monthly_limit,
+                asset_id=asset_id,
+            )
+        finally:
+            db.close()
+
     def find_candidates(
         self,
         *,
@@ -113,6 +135,8 @@ class GoogleVisionWebDetectionProvider:
         reference_original_path,
         reference_watermarked_path,
     ) -> list[DiscoveredCandidate]:
+        self._reserve_request(asset_id)
+
         with open(reference_original_path, "rb") as handle:
             encoded_image = base64.b64encode(handle.read()).decode("ascii")
 
