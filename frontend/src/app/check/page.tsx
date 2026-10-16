@@ -11,8 +11,7 @@ import {
 } from "react";
 
 import { AuthGate, useAuth } from "@/components/AuthGate";
-import { Topbar } from "@/components/dashboard/Topbar";
-import { SiteFooter } from "@/components/SiteFooter";
+import { AppShell, PageTitle } from "@/components/app/ui";
 import {
   api,
   ApiError,
@@ -278,37 +277,13 @@ function CheckImageContent() {
   const presentation = result ? getSignalPresentation(result) : null;
 
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--text)]">
-      <Topbar />
+    <AppShell>
+        <PageTitle
+          title="Found a suspicious image?"
+          subtitle="Compare it with one of your artworks. The image you upload is used only for this check and is not stored."
+        />
 
-      <main className="mx-auto w-full max-w-[1100px] px-4 py-7 sm:px-6 sm:py-10 xl:px-8">
-        <div className="mb-7">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--primary)] hover:underline"
-          >
-            <span className="material-symbols-outlined text-[18px]">
-              arrow_back
-            </span>
-            Back to dashboard
-          </Link>
-
-          <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--primary)]">
-            Image verification
-          </p>
-
-          <h1 className="mt-1 font-heading text-[30px] font-semibold tracking-[-0.035em] sm:text-[38px]">
-            Check a suspicious image
-          </h1>
-
-          <p className="mt-3 max-w-2xl text-[15px] leading-7 text-[var(--text-muted)]">
-            Select one of your registered artworks, then upload an image you
-            want to compare. The candidate image is used only for this check
-            and is not added to your permanent artwork storage.
-          </p>
-        </div>
-
-        <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-card sm:p-7">
+        <section className="glass rounded-card border border-[var(--border)] p-5 sm:p-7">
           <div className="grid gap-6 lg:grid-cols-2">
             <div>
               <div className="flex items-center gap-2">
@@ -347,7 +322,7 @@ function CheckImageContent() {
                   </p>
                   <Link
                     href="/protect"
-                    className="mt-4 inline-flex h-9 items-center rounded-lg bg-[var(--primary-strong)] px-3 text-[12px] font-semibold text-[var(--on-primary)]"
+                    className="mt-4 inline-flex h-9 items-center rounded-full bg-[var(--primary-strong)] px-3 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)]"
                   >
                     Upload artwork
                   </Link>
@@ -478,7 +453,7 @@ function CheckImageContent() {
                   !selectedAsset ||
                   !candidate
                 }
-                className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-[var(--primary-strong)] px-4 text-[13px] font-semibold text-[var(--on-primary)] shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[var(--primary-strong)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] shadow-sm transition hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-[18px]">
                   search_check
@@ -490,7 +465,7 @@ function CheckImageContent() {
         </section>
 
         {verifying && (
-          <section className="mt-6 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 text-center shadow-card">
+          <section className="mt-6 glass rounded-card border border-[var(--border)] p-6 text-center shadow-card">
             <span className="material-symbols-outlined animate-pulse text-[34px] text-[var(--primary)]">
               find_in_page
             </span>
@@ -505,7 +480,7 @@ function CheckImageContent() {
         )}
 
         {result && presentation && (
-          <section className="mt-6 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-card sm:p-7">
+          <section className="mt-6 glass rounded-card border border-[var(--border)] p-5 sm:p-7">
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--primary)]">
               Verification result
             </p>
@@ -628,12 +603,7 @@ function CheckImageContent() {
             </p>
           </section>
         )}
-      </main>
-
-      <div className="mt-auto">
-        <SiteFooter />
-      </div>
-    </div>
+    </AppShell>
   );
 }
 

@@ -42,15 +42,15 @@ function VerifyEmail() {
   }, [token]);
 
   return (
-    <section className="w-full max-w-md rounded-2xl border border-white/10 bg-[#161b29] p-6 shadow-xl sm:p-8">
-      <p className="text-xs font-semibold uppercase tracking-widest text-sky-300">
+    <section className="glass w-full max-w-md rounded-[28px] border border-[var(--border)] p-7 sm:p-10">
+      <p className="label-caps text-[var(--text-muted)]">
         TraceMyAssets
       </p>
 
-      <h1 className="mt-3 text-2xl font-bold">Confirm your email</h1>
+      <h1 className="mt-4 font-heading text-[34px] font-light leading-[1.1] tracking-[-0.03em]">Confirm your email</h1>
 
       {state === "working" && (
-        <p role="status" className="mt-6 text-sm text-slate-300">
+        <p role="status" className="mt-6 text-[14px] text-[var(--text-muted)]">
           Confirming your address…
         </p>
       )}
@@ -58,7 +58,7 @@ function VerifyEmail() {
       {state === "done" && (
         <p
           role="status"
-          className="mt-6 rounded-xl bg-sky-400/10 p-3 text-sm text-sky-200"
+          className="mt-6 rounded-xl bg-[var(--success-soft)] p-3 text-[14px] text-[var(--success)]"
         >
           Your email address is confirmed. Your free Deep scan credits are
           ready.
@@ -69,11 +69,11 @@ function VerifyEmail() {
         <>
           <p
             role="alert"
-            className="mt-6 rounded-xl bg-rose-400/10 p-3 text-sm text-rose-300"
+            className="mt-6 rounded-xl bg-[var(--danger-soft)] p-3 text-[14px] text-[var(--danger)]"
           >
             {message}
           </p>
-          <p className="mt-3 text-sm text-slate-400">
+          <p className="mt-3 text-[14px] text-[var(--text-muted)]">
             A confirmation link works once. If you already used it, your
             address is probably confirmed. If you are not signed in, you
             will be asked to sign in.
@@ -84,7 +84,7 @@ function VerifyEmail() {
       {state !== "working" && (
         <Link
           href="/"
-          className="mt-5 inline-block rounded-xl bg-[#4cd7f6] px-4 py-3 font-semibold text-[#003640]"
+          className="mt-6 inline-flex h-12 items-center rounded-full bg-[var(--primary-strong)] px-7 text-[12px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)]"
         >
           {state === "done" ? "Open the dashboard" : "Open TraceMyAssets"}
         </Link>
@@ -95,7 +95,7 @@ function VerifyEmail() {
 
 export default function VerifyEmailPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#0e1320] px-4 py-10 text-slate-100">
+    <main className="flex min-h-screen items-center justify-center bg-[var(--background)] px-4 py-10 text-[var(--text)]">
       <Suspense fallback={null}>
         <VerifyEmail />
       </Suspense>

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useAuth } from "@/components/AuthGate";
 import { Card, Chip, Notice, PageTitle, Pill, PillLink } from "@/components/app/ui";
+import { GlassArt } from "@/components/app/GlassArt";
 import { Icon } from "@/components/dashboard/Icon";
 import { NextSteps } from "@/components/matches/NextSteps";
 import {
@@ -420,9 +421,9 @@ export function MatchesPage() {
         <p className="py-16 text-center text-[var(--text-muted)]">Loading matches…</p>
       ) : visible.length === 0 ? (
         <Card className="mx-auto max-w-[560px] p-10 text-center">
-          <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--success-soft)] text-[var(--success)]">
-            <Icon name="task_alt" className="text-[34px]" />
-          </span>
+          <div className="flex justify-center">
+            <GlassArt motif="orb" size="sm" />
+          </div>
           <h2 className="mt-5 font-heading text-[22px] font-normal">
             {tab === "review" ? "Nothing to review" : "Nothing here yet"}
           </h2>

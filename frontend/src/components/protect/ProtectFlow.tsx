@@ -17,6 +17,7 @@ import {
   Pill,
   PillLink,
 } from "@/components/app/ui";
+import { GlassArt } from "@/components/app/GlassArt";
 import { Icon } from "@/components/dashboard/Icon";
 import {
   api,
@@ -805,9 +806,7 @@ export function ProtectFlow() {
               </>
             ) : (
               <>
-                <span className="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--success-soft)] text-[var(--success)]">
-                  <Icon name="verified" className="text-[40px]" />
-                </span>
+                <GlassArt motif="orb" size="sm" />
                 <h1 className="mt-6 font-heading text-[30px] font-light tracking-[-0.02em] sm:text-[40px]">
                   No copies found right now
                 </h1>

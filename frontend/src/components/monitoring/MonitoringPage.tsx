@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "@/components/AuthGate";
 import { Card, Notice, PageTitle, PillLink } from "@/components/app/ui";
+import { GlassArt } from "@/components/app/GlassArt";
 import { Icon } from "@/components/dashboard/Icon";
 import {
   api,
@@ -51,9 +52,7 @@ function EmptyState() {
 
   return (
     <Card className="mx-auto max-w-[720px] p-8 sm:p-12">
-      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--primary-soft)] text-[var(--primary-strong)]">
-        <Icon name="shield" className="text-[30px]" />
-      </span>
+      <GlassArt motif="shield" size="sm" />
       <h2 className="mt-6 font-heading text-[30px] font-light tracking-[-0.02em]">
         Let&apos;s protect your first artwork
       </h2>

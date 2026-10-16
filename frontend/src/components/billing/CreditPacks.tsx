@@ -134,14 +134,14 @@ export function CreditPacks({
               data-testid={`credit-pack-${pack.credits}`}
               disabled={busy !== null}
               onClick={() => void buy(pack)}
-              className="inline-flex h-8 items-center rounded-lg border border-[var(--primary)]/40 bg-[var(--surface)] px-3 text-[12px] font-semibold text-[var(--text)] transition hover:bg-[var(--surface-muted)] disabled:opacity-60"
+              className="inline-flex h-8 items-center rounded-full border border-[var(--primary)]/40 bg-[var(--surface)] px-3 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text)] transition hover:bg-[var(--surface-muted)] disabled:opacity-60"
             >
               {pack.credits} credits · {usd(pack.amount)}
             </button>
           ) : (
             <div
               key={pack.price_id}
-              className="flex flex-col rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4"
+              className="flex flex-col glass rounded-card border border-[var(--border)] p-4"
             >
               <p className="text-[22px] font-semibold text-[var(--text)]">
                 {pack.credits}{" "}
@@ -160,7 +160,7 @@ export function CreditPacks({
                 data-testid={`credit-pack-${pack.credits}`}
                 disabled={busy !== null}
                 onClick={() => void buy(pack)}
-                className="mt-4 inline-flex h-10 items-center justify-center rounded-lg bg-[var(--primary-strong)] px-4 text-[13px] font-semibold text-[var(--on-primary)] transition hover:brightness-110 disabled:opacity-60"
+                className="mt-4 inline-flex h-10 items-center justify-center rounded-full bg-[var(--primary-strong)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85 disabled:opacity-60"
               >
                 {busy === pack.price_id ? "Opening..." : "Buy credits"}
               </button>

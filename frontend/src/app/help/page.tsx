@@ -399,7 +399,7 @@ export default function HelpPage() {
         <section key={group.title}>
           <h2 className="text-lg font-semibold">{group.title}</h2>
 
-          <div className="mt-3 divide-y divide-[var(--border)] rounded-xl border border-[var(--border)] bg-[var(--surface)]">
+          <div className="mt-3 divide-y divide-[var(--border)] glass rounded-card border border-[var(--border)]">
             {group.items.map((item) => (
               <details key={item.question} className="group px-4 py-3">
                 <summary className="cursor-pointer list-none text-[15px] font-medium text-[var(--text)] marker:content-none">
