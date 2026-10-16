@@ -108,7 +108,7 @@ def delete_my_account(
 
     if payload.confirm_email.strip().lower() != user.email.lower():
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="The email address does not match this account.",
         )
 

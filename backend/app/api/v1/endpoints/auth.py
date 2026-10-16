@@ -126,7 +126,7 @@ def register(
 
     if is_blocked_domain(email):
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=(
                 "Please use a permanent email address. Temporary mail "
                 "services are not accepted."
@@ -139,7 +139,7 @@ def register(
 
     if refusal:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=refusal,
         )
 
@@ -590,7 +590,7 @@ def reset_password(
 
     if refusal:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=refusal,
         )
 
