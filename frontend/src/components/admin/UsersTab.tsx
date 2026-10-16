@@ -512,7 +512,7 @@ export function UsersTab() {
         />
         <button
           type="submit"
-          className="rounded-lg bg-[var(--primary-strong)] px-4 py-2 text-[14px] font-semibold text-white"
+          className="rounded-lg bg-[var(--primary-strong)] px-4 py-2 text-[14px] font-semibold text-[var(--on-primary)]"
         >
           Search
         </button>

@@ -10,9 +10,11 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import { PasswordInput } from "@/components/auth/PasswordInput";
+import { useRouter } from "next/navigation";
 
-import { FloatingFeedback } from "@/components/dashboard/FloatingFeedback";
+import { BrandMark } from "@/components/app/brand";
+import { GlassArt } from "@/components/app/GlassArt";
+import { PasswordInput } from "@/components/auth/PasswordInput";
 import { SiteFooter } from "@/components/SiteFooter";
 import { api, ApiError, type User } from "@/lib/api";
 
@@ -79,6 +81,7 @@ const GOOGLE_ERRORS: Record<string, string> = {
 };
 
 export function AuthGate({ children, landing }: AuthGateProps) {
+  const router = useRouter();
   const [screen, setScreen] = useState<"landing" | "auth">("landing");
   const [session, setSession] = useState<User | null>(null);
   const [checking, setChecking] = useState(true);
@@ -334,9 +337,19 @@ export function AuthGate({ children, landing }: AuthGateProps) {
 
       if (mode === "register") {
         await api.register(credentials);
-        setMode("login");
-        setPassword("");
-        setMessage("Your account has been created. You can now sign in.");
+
+        try {
+          const user = await api.login(credentials);
+          setPassword("");
+          setSession(user);
+          router.push("/protect");
+        } catch {
+          // Signing in can still be refused (for example while the address
+          // must be confirmed first): fall back to the sign-in form.
+          setMode("login");
+          setPassword("");
+          setMessage("Your account has been created. You can now sign in.");
+        }
         return;
       }
 
@@ -358,7 +371,7 @@ export function AuthGate({ children, landing }: AuthGateProps) {
 
   if (checking || restoreError) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#0e1320] px-4 text-slate-100">
+      <main className="flex min-h-screen items-center justify-center bg-[var(--background)] px-4 text-[var(--text-muted)]">
         <div className="max-w-md text-center">
           <p role={restoreError ? "alert" : "status"}>
             {checking ? "Checking your session..." : restoreError}
@@ -368,7 +381,7 @@ export function AuthGate({ children, landing }: AuthGateProps) {
             <button
               type="button"
               onClick={() => setRestoreKey((value) => value + 1)}
-              className="mt-4 rounded-xl bg-[#4cd7f6] px-4 py-2 font-semibold text-[#003640]"
+              className="mt-4 inline-flex h-10 items-center rounded-full bg-[var(--primary-strong)] px-5 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)]"
             >
               Retry
             </button>
@@ -384,43 +397,16 @@ export function AuthGate({ children, landing }: AuthGateProps) {
         key={session.id}
         value={{ user: session, logout, logoutEverywhere }}
       >
-        <div className="border-b border-white/10 bg-[#161b29] px-4 py-3 text-slate-200">
-          <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-3">
-            <p className="text-sm">
-              {session.email}
-              <span className="ml-2 text-sky-300">
-                {session.plan_type}
-              </span>
-            </p>
-
-            <button
-              type="button"
-              disabled={busy}
-              onClick={logout}
-              className="rounded-lg border border-white/10 px-3 py-1.5 text-sm hover:bg-white/5 disabled:opacity-50"
-            >
-              {busy ? "Signing out..." : "Sign out"}
-            </button>
-          </div>
-
-          <p className="mx-auto mt-2 max-w-[1440px] text-xs text-amber-300">
-            Asset uploads and counts use live account data. Monitoring and
-            evidence panels are demo previews.
+        {error && (
+          <p
+            role="alert"
+            className="bg-[var(--danger-soft)] px-4 py-2 text-center text-sm text-[var(--danger)]"
+          >
+            {error}
           </p>
-
-          {error && (
-            <p
-              role="alert"
-              className="mx-auto mt-2 max-w-[1440px] text-sm text-rose-300"
-            >
-              {error}
-            </p>
-          )}
-        </div>
+        )}
 
         {children}
-
-        <FloatingFeedback />
       </AuthContext.Provider>
     );
   }
@@ -445,40 +431,74 @@ export function AuthGate({ children, landing }: AuthGateProps) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#0e1320] text-slate-100">
-    <main className="flex flex-1 items-center justify-center px-4 py-10">
-      <section className="w-full max-w-md rounded-2xl border border-white/10 bg-[#161b29] p-6 shadow-xl sm:p-8">
+    <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--text)]">
+    <main className="flex flex-1 items-center justify-center px-4 py-10 sm:py-16">
+      <div className="grid w-full max-w-[1040px] overflow-hidden rounded-[28px] border border-[var(--border)] lg:grid-cols-2">
+        <aside className="relative hidden flex-col justify-between overflow-hidden p-10 lg:flex">
+          <span aria-hidden className="iris absolute inset-0 opacity-60" />
+          <div className="relative flex items-center gap-2.5">
+            <BrandMark />
+            <span className="text-[12px] font-medium tracking-[0.32em] text-[#111111]">
+              TRACEMYASSETS
+            </span>
+          </div>
+          <div className="relative flex justify-center">
+            <GlassArt motif="shield" />
+          </div>
+          <p className="relative font-heading text-[34px] font-light leading-[1.1] tracking-[-0.03em] text-[#111111]">
+            Your art, watched over.
+          </p>
+        </aside>
+
+        <section className="glass p-7 sm:p-12">
         {landing && (
           <button
             type="button"
             onClick={() => setScreen("landing")}
-            className="mb-4 text-sm text-slate-400 hover:text-slate-200"
+            className="mb-8 text-[13px] text-[var(--text-muted)] transition hover:text-[var(--text)]"
           >
             &larr; Back to home
           </button>
         )}
 
-        <p className="text-xs font-semibold uppercase tracking-widest text-sky-300">
-          TraceMyAssets
-        </p>
-
-        <h1 className="mt-3 text-2xl font-bold">
+        <h1 className="font-heading text-[40px] font-light leading-[1.05] tracking-[-0.03em]">
           {mode === "login"
-            ? "Sign in to your account"
-            : mode === "register"
-              ? "Create an account"
-              : "Reset your password"}
+              ? "Sign in"
+              : mode === "register"
+                ? "Create your account"
+                : "Reset your password"}
         </h1>
 
-        <p className="mt-2 text-sm text-slate-400">
+        <p className="mt-3 text-[15px] text-[var(--text-muted)]">
           {mode === "forgot"
             ? "Enter your email and we will send you a link to choose a new password."
-            : "Manage your digital assets from your own account."}
+            : mode === "register"
+              ? "No credit card needed. You can protect your first artwork right after."
+              : "Welcome back."}
         </p>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        {googleEnabled && mode !== "forgot" && (
+          <>
+            <a
+              href="/api/v1/auth/google/start"
+              className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[var(--line-strong)] text-[12px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)]"
+            >
+              <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4">
+                <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.3-1.6 3.8-5.4 3.8-3.2 0-5.9-2.7-5.9-6s2.7-6 5.9-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.4 14.6 2.4 12 2.4 6.7 2.4 2.4 6.7 2.4 12s4.3 9.6 9.6 9.6c5.5 0 9.2-3.9 9.2-9.4 0-.6-.1-1.1-.2-1.6H12z" />
+              </svg>
+              Continue with Google
+            </a>
+            <div className="my-6 flex items-center gap-3 text-[12px] text-[var(--text-muted)]">
+              <span className="h-px flex-1 bg-[var(--border)]" />
+              or
+              <span className="h-px flex-1 bg-[var(--border)]" />
+            </div>
+          </>
+        )}
+
+        <form onSubmit={handleSubmit} className={googleEnabled && mode !== "forgot" ? "space-y-5" : "mt-8 space-y-5"}>
           <div>
-            <label htmlFor="auth-email" className="text-sm text-slate-300">
+            <label htmlFor="auth-email" className="label-caps text-[var(--text-muted)]">
               Email
             </label>
             <input
@@ -491,13 +511,13 @@ export function AuthGate({ children, landing }: AuthGateProps) {
               disabled={busy}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="mt-2 w-full rounded-xl border border-white/10 bg-[#090e1b] px-3 py-3 outline-none focus:border-sky-400 disabled:opacity-50"
+              className="mt-2 h-12 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 text-[16px] outline-none focus:border-[var(--text)] disabled:opacity-50"
             />
           </div>
 
           {mode !== "forgot" && (
           <div>
-            <label htmlFor="auth-password" className="text-sm text-slate-300">
+            <label htmlFor="auth-password" className="label-caps text-[var(--text-muted)]">
               Password
             </label>
             <PasswordInput
@@ -514,17 +534,33 @@ export function AuthGate({ children, landing }: AuthGateProps) {
               onChange={(event) => setPassword(event.target.value)}
             />
             {mode === "register" && (
-              <p className="mt-2 text-xs text-slate-400">
-                At least 8 characters. Avoid common passwords like "password123".
+              <p className="mt-2 text-[13px] text-[var(--text-muted)]">
+                At least 8 characters. Avoid common passwords like &quot;password123&quot;.
               </p>
             )}
           </div>
           )}
 
+          {mode === "login" && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                setMode("forgot");
+                setPassword("");
+                setError("");
+                setMessage("");
+              }}
+              className="block text-[13px] text-[var(--text-muted)] underline-offset-4 hover:text-[var(--text)] hover:underline disabled:opacity-50"
+            >
+              Forgot your password?
+            </button>
+          )}
+
           {error && (
             <p
               role="alert"
-              className="break-words rounded-xl bg-rose-400/10 p-3 text-sm text-rose-300"
+              className="break-words rounded-xl bg-[var(--danger-soft)] p-3 text-[14px] text-[var(--danger)]"
             >
               {error}
             </p>
@@ -533,7 +569,7 @@ export function AuthGate({ children, landing }: AuthGateProps) {
           {message && (
             <p
               role="status"
-              className="rounded-xl bg-sky-400/10 p-3 text-sm text-sky-200"
+              className="rounded-xl bg-[var(--success-soft)] p-3 text-[14px] text-[var(--success)]"
             >
               {message}
             </p>
@@ -542,10 +578,10 @@ export function AuthGate({ children, landing }: AuthGateProps) {
           <button
             type="submit"
             disabled={busy}
-            className="w-full rounded-xl bg-[#4cd7f6] px-4 py-3 font-semibold text-[#003640] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-12 w-full rounded-full bg-[var(--primary-strong)] text-[12px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {busy
-              ? "Please wait..."
+              ? "Please wait…"
               : mode === "login"
                 ? "Sign in"
                 : mode === "register"
@@ -553,39 +589,6 @@ export function AuthGate({ children, landing }: AuthGateProps) {
                   : "Send reset link"}
           </button>
         </form>
-
-        {googleEnabled && mode !== "forgot" && (
-          <>
-            <div className="my-5 flex items-center gap-3 text-xs text-slate-500">
-              <span className="h-px flex-1 bg-white/10" />
-              or
-              <span className="h-px flex-1 bg-white/10" />
-            </div>
-
-            <a
-              href="/api/v1/auth/google/start"
-              className="flex w-full items-center justify-center rounded-xl border border-white/15 px-4 py-3 font-semibold text-slate-100 transition hover:bg-white/5"
-            >
-              Continue with Google
-            </a>
-          </>
-        )}
-
-        {mode === "login" && (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => {
-              setMode("forgot");
-              setPassword("");
-              setError("");
-              setMessage("");
-            }}
-            className="mt-5 block text-sm text-slate-400 hover:text-slate-200 disabled:opacity-50"
-          >
-            Forgot your password?
-          </button>
-        )}
 
         <button
           type="button"
@@ -596,18 +599,19 @@ export function AuthGate({ children, landing }: AuthGateProps) {
             setError("");
             setMessage("");
           }}
-          className="mt-5 text-sm text-sky-300 hover:text-sky-200 disabled:opacity-50"
+          className="mt-8 text-[14px] text-[var(--text-muted)] transition hover:text-[var(--text)] disabled:opacity-50"
         >
           {mode === "login"
-            ? "Don't have an account? Create one"
+            ? "New here? Create an account"
             : mode === "register"
               ? "Already have an account? Sign in"
               : "Back to sign in"}
         </button>
-      </section>
+        </section>
+      </div>
     </main>
 
-    <SiteFooter tone="dark" />
+    <SiteFooter />
     </div>
   );
 }

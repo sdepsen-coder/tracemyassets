@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Outfit:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "primary-fixed": "#dce1ff", "surface-container": "#e7eeff", "on-surface-variant": "#434655", "status-warning-text": "#B45309", "outline": "#747686", "primary-fixed-dim": "#b7c4ff", "status-muted-bg": "#F1F2F5", "inverse-surface": "#283140", "on-primary-fixed-variant": "#0039b5", "status-danger-text": "#DC2626", "on-secondary-container": "#5c647a", "primary": "#0037b0", "tertiary-fixed-dim": "#63dca6", "on-primary-fixed": "#001551", "inverse-primary": "#b7c4ff", "surface-base": "#FFFFFF", "status-danger-bg": "#FDECEC", "border-subtle": "#E6E8F0", "on-error": "#ffffff", "on-tertiary-fixed-variant": "#005236", "on-surface": "#131c2a", "secondary-container": "#dae2fd", "surface-container-lowest": "#ffffff", "surface-container-high": "#dfe8fd", "on-tertiary": "#ffffff", "secondary": "#565e74", "surface-container-low": "#f0f3ff", "surface-tint": "#2151da", "secondary-fixed-dim": "#bec6e0", "status-success-bg": "#E7F8F1", "surface-variant": "#dae3f7", "tertiary-container": "#006a47", "on-error-container": "#93000a", "tertiary-fixed": "#81f9c1", "secondary-fixed": "#dae2fd", "on-tertiary-container": "#73ecb4", "primary-container": "#1d4ed8", "on-background": "#131c2a", "surface-soft": "#F5F7FB", "surface": "#f9f9ff", "on-tertiary-fixed": "#002113", "primary-hover": "#1E40AF", "inverse-on-surface": "#ebf1ff", "on-secondary": "#ffffff", "status-muted-text": "#6B7280", "surface-dim": "#d1daee", "outline-variant": "#c4c5d7", "on-secondary-fixed": "#131b2e", "on-primary": "#ffffff", "status-warning-bg": "#FEF3E2", "surface-bright": "#f9f9ff", "status-success-text": "#0E9F6E", "tertiary": "#004f35", "surface-container-highest": "#dae3f7", "on-secondary-fixed-variant": "#3f465c", "dark-band": "#0B0F19", "primary-soft": "#E8EEFF", "on-primary-container": "#cad3ff", "error": "#ba1a1a", "background": "#f9f9ff", "error-container": "#ffdad6" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-2xl": "4rem", "margin-desktop": "3rem", "margin-mobile": "1rem", "space-xl": "2.5rem", "space-md": "1rem", "space-sm": "0.5rem", "margin": "2rem", "space-lg": "1.5rem", "space-xs": "0.25rem", "gutter": "1.5rem", "gutter-mobile": "1rem" }, "fontFamily": { "metric-num": [ "Inter" ], "label-md": [ "Inter" ], "headline-md": [ "Outfit" ], "headline-sm": [ "Outfit" ], "headline-lg": [ "Outfit" ], "headline-lg-mobile": [ "Outfit" ], "body-lg": [ "Inter" ], "body-sm": [ "Inter" ], "body-md": [ "Inter" ], "display-hero-mobile": [ "Outfit" ], "label-lg": [ "Inter" ], "display-hero": [ "Outfit" ] }, "fontSize": { "metric-num": [ "28px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" } ], "label-md": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600" } ], "headline-md": [ "24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" } ], "headline-sm": [ "18px", { "lineHeight": "26px", "letterSpacing": "-0.005em", "fontWeight": "600" } ], "headline-lg": [ "40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "headline-lg-mobile": [ "28px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "700" } ], "body-lg": [ "16px", { "lineHeight": "24px", "fontWeight": "400" } ], "body-sm": [ "13px", { "lineHeight": "18px", "fontWeight": "400" } ], "body-md": [ "15px", { "lineHeight": "22px", "fontWeight": "400" } ], "display-hero-mobile": [ "36px", { "lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "700" } ], "label-lg": [ "14px", { "lineHeight": "20px", "fontWeight": "600" } ], "display-hero": [ "56px", { "lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "700" } ] } } } }</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 z-50 bg-surface-base shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full max-w-[1280px] mx-auto px-gutter flex items-center justify-between gap-gutter"><div class="flex items-center gap-space-sm"><a class="flex items-center gap-space-sm" data-path="home" href="#"><span class="material-symbols-outlined text-primary text-[26px]">shield</span><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight">TraceMyAssets</span></a></div><nav class="hidden md:flex items-center gap-space-xl" data-active-classes="text-primary font-label-lg font-semibold"><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors" data-path="how-it-works" href="#">How it works</a><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors" data-path="pricing" href="#">Pricing</a><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors" data-path="help" href="#">Help</a></nav><div class="flex items-center gap-space-md"><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors px-space-sm py-space-xs" data-path="sign-in" href="#">Sign in</a><a class="h-11 px-space-lg rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg flex items-center justify-center gap-space-xs hover:bg-primary-hover transition-colors shadow-[0_10px_25px_-5px_rgba(15,23,42,0.04)]" data-path="sign-up" href="#"><span>Start free</span><span class="material-symbols-outlined text-[16px]">arrow_forward</span></a></div></div></header><main class="w-full pt-16 bg-surface min-h-[calc(100vh-16rem)]"><div class="flex flex-col w-full">
+<!-- 1. HERO SECTION -->
+<section class="w-full max-w-[1280px] mx-auto px-gutter py-space-2xl">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center">
+<!-- Left Column: Copy & Actions -->
+<div class="lg:col-span-7 flex flex-col items-start gap-space-lg">
+<h1 class="font-display-hero text-display-hero text-on-surface tracking-tight">
+          Someone is using your art. <span class="text-primary-container">Find out where.</span>
+</h1>
+<p class="font-body-lg text-body-lg text-secondary max-w-xl">
+          Add an invisible watermark to your artwork and let us keep scanning the web for copies. When we find one, we show you the proof — you decide what to do.
+        </p>
+<div class="flex flex-col items-start gap-space-xs pt-space-sm w-full sm:w-auto">
+<div class="flex flex-wrap items-center gap-space-md">
+<a class="h-11 px-space-lg rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg flex items-center justify-center gap-space-xs hover:bg-primary-hover transition-colors shadow-sm" data-path="sign-up" href="#">
+<span>Protect your first artwork — free</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+<a class="h-11 px-space-lg rounded-full bg-surface-base text-on-surface font-label-lg text-label-lg flex items-center justify-center hover:bg-surface-soft transition-colors shadow-sm" href="#how-it-works">
+<span>See how it works</span>
+</a>
+</div>
+<p class="font-label-md text-label-md text-secondary pl-space-xs">
+            No credit card needed
+          </p>
+</div>
+</div>
+<!-- Right Column: Realistic Dashboard Card Mockup -->
+<div class="lg:col-span-5 w-full">
+<div class="relative bg-surface-base rounded-xl p-space-lg shadow-xl overflow-hidden">
+<!-- Window Header Bar -->
+<div class="flex items-center justify-between pb-space-md mb-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary-fixed-dim"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-secondary-fixed-dim"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-secondary-fixed-dim"></span>
+<span class="font-label-md text-label-md text-secondary ml-space-xs">Forensic Registry · Live Radar</span>
+</div>
+<div class="flex items-center gap-space-xs bg-status-success-bg px-space-sm py-0.5 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success-text"></span>
+<span class="font-label-md text-label-md text-status-success-text">System Active</span>
+</div>
+</div>
+<!-- Main Tracked Item -->
+<div class="bg-surface-soft rounded-lg p-space-md flex flex-col gap-space-md">
+<div class="flex gap-space-md items-center">
+<div class="w-16 h-16 rounded-lg overflow-hidden bg-surface-container-high flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Vibrant modern digital landscape painting showing a warm desert sunset study with sharp chromatic contrast, neon orange horizon, and subtle cobalt shadows created by a contemporary digital artist." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCodxEoCkZbfU1PB-2Nknb6Xqj8yWMJPCAB2ge9dk_r2bVbp8W1OFqCpiipM7qRu5a2lwPSAW6Uwn2W7axD0ZZuTyB4IstBdbnDXng6aRXWg_cmIYPnlpiA6ARKbszaBDst-0dYzFEJFirXRSWuDCGO-R0QjgbBD2UfjXEhJ4ldRz4b8AzBklUE0TE-gPKl-YKYDUzi5a2hULB1KK2hGhwqUaw-Q0ZVri4fNwpY4cNNT_4WMzjkD4YG"/>
+</div>
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-center justify-between gap-space-xs">
+<h4 class="font-headline-sm text-headline-sm text-on-surface truncate">Sunset Study</h4>
+<span class="rounded-full px-space-sm py-0.5 bg-status-warning-bg text-status-warning-text font-label-md text-label-md whitespace-nowrap">2 copies found</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary truncate">ID: TMA-88942-PX · Embedded Key 256-bit</p>
+<div class="flex items-center gap-space-sm mt-space-xs">
+<span class="font-label-md text-label-md text-primary font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">autorenew</span> Auto-scan weekly
+                  </span>
+<span class="text-secondary text-label-md">·</span>
+<span class="font-label-md text-label-md text-secondary">Verified 2m ago</span>
+</div>
+</div>
+</div>
+<!-- Detailed Match Pill Strip -->
+<div class="bg-surface-base rounded-md p-space-sm flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-status-danger-text text-[18px]">travel_explore</span>
+<span class="font-label-md text-label-md text-on-surface font-semibold truncate max-w-[180px]">printmarket-vault.shop/canvas</span>
+</div>
+<span class="font-label-md text-label-md text-status-danger-text bg-status-danger-bg px-space-xs py-0.5 rounded">98% Match</span>
+</div>
+</div>
+<!-- Second Tracked Item Preview -->
+<div class="mt-space-md pt-space-md flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-md overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Minimalist architectural linework illustration of a brutalist concrete pavilion in bright daylight with crisp cobalt geometry and clean whitespace." src="https://lh3.googleusercontent.com/aida-public/AB6AXuClcYX0fpuBlnkDE-TwkdqmcUHMME_xZojyeSikSxpqCZvcryx3Y2k-DmxWPhVwekeP-h4DSaHQ-BXFocBZtigcyjCfOfwgggMN4Cz3tkJjImWm9eBzKc7TiatFSV2Flkf7rsktSk5cuyzAgUsqGsCRQzEJ-Ug5_d5lhy77P2eiHDVFFaMkgQUlg0Iq3j1DxDrUIJ8jUIwYF1TsT5g8mPfnKSE3X3aIbNJ7DKZxypxTMUK4tFMmjN6P"/>
+</div>
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">Arch 04 Minimal</p>
+<p class="font-body-sm text-body-sm text-secondary">No unauthorized copies detected</p>
+</div>
+</div>
+<span class="rounded-full px-space-sm py-0.5 bg-status-success-bg text-status-success-text font-label-md text-label-md">Protected</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 2. SOURCES STRIP -->
+<section class="w-full bg-surface-base py-space-xl">
+<div class="w-full max-w-[1280px] mx-auto px-gutter">
+<div class="flex flex-col items-center text-center mb-space-lg">
+<h3 class="font-headline-sm text-headline-sm text-secondary uppercase tracking-wider">Where we look</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+<div class="flex flex-col gap-space-xs p-space-md rounded-lg bg-surface-soft">
+<div class="w-10 h-10 rounded-full bg-primary-soft flex items-center justify-center text-primary mb-space-xs">
+<span class="material-symbols-outlined text-[20px]">public</span>
+</div>
+<h4 class="font-label-lg text-label-lg text-on-surface font-semibold">Web search</h4>
+<p class="font-body-sm text-body-sm text-secondary">
+            Billions of indexed pages and images surveyed around the clock. (Standard scan)
+          </p>
+</div>
+<div class="flex flex-col gap-space-xs p-space-md rounded-lg bg-surface-soft">
+<div class="w-10 h-10 rounded-full bg-primary-soft flex items-center justify-center text-primary mb-space-xs">
+<span class="material-symbols-outlined text-[20px]">saved_search</span>
+</div>
+<h4 class="font-label-lg text-label-lg text-on-surface font-semibold">Visual search</h4>
+<p class="font-body-sm text-body-sm text-secondary">
+            Finds re-cropped, filtered, rotated, and resized variations across directories. (Deep scan)
+          </p>
+</div>
+<div class="flex flex-col gap-space-xs p-space-md rounded-lg bg-surface-soft">
+<div class="w-10 h-10 rounded-full bg-primary-soft flex items-center justify-center text-primary mb-space-xs">
+<span class="material-symbols-outlined text-[20px]">storefront</span>
+</div>
+<h4 class="font-label-lg text-label-lg text-on-surface font-semibold">Marketplace listings</h4>
+<p class="font-body-sm text-body-sm text-secondary">
+            Copies on shops such as Etsy and Amazon show up the moment their catalog pages are indexed.
+          </p>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-secondary text-center mt-space-lg">
+        We search the public web, so we find copies wherever search engines can see them.
+      </p>
+</div>
+</section>
+<!-- 3. DRAMATIC DARK BAND (#0B0F19) -->
+<section class="w-full bg-dark-band py-space-2xl text-on-primary">
+<div class="w-full max-w-[1280px] mx-auto px-gutter">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center">
+<!-- Graphic / Shield Representation -->
+<div class="lg:col-span-6 flex justify-center">
+<div class="relative w-full max-w-md p-space-lg rounded-xl bg-inverse-surface shadow-2xl flex flex-col gap-space-md">
+<div class="flex items-center justify-between pb-space-sm">
+<span class="font-label-md text-label-md text-primary-fixed-dim">CRYPTOGRAPHIC PROOF RECORD</span>
+<span class="material-symbols-outlined text-primary-fixed text-[18px]">verified_user</span>
+</div>
+<!-- Canvas graphic representation -->
+<div class="relative w-full h-48 rounded-lg overflow-hidden bg-dark-band flex items-center justify-center">
+<div class="absolute inset-0 opacity-40">
+<svg height="100%" width="100%" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern height="20" id="grid" patternunits="userSpaceOnUse" width="20">
+<circle cx="2" cy="2" fill="#63dca6" r="1"></circle>
+</pattern>
+</defs>
+<rect fill="url(#grid)" height="100%" width="100%"></rect>
+</svg>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-space-xs text-center p-space-md bg-dark-band/80 rounded-lg backdrop-blur">
+<span class="material-symbols-outlined text-tertiary-fixed text-[36px]">shield_lock</span>
+<span class="font-label-md text-label-md text-on-primary font-semibold">Pixel-Embedded Signatures</span>
+<span class="font-body-sm text-body-sm text-outline-variant font-mono">SHA256: 9b2d...a481c</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-space-sm pt-space-xs">
+<div class="bg-dark-band/40 p-space-sm rounded">
+<p class="font-label-md text-label-md text-outline-variant">Payload Robustness</p>
+<p class="font-label-lg text-label-lg text-tertiary-fixed font-semibold">Survives 70% Crop</p>
+</div>
+<div class="bg-dark-band/40 p-space-sm rounded">
+<p class="font-label-md text-label-md text-outline-variant">Metadata Loss</p>
+<p class="font-label-lg text-label-lg text-primary-fixed font-semibold">Impervious</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Copy & Action -->
+<div class="lg:col-span-6 flex flex-col items-start gap-space-md">
+<h2 class="font-headline-lg text-headline-lg text-surface-base">
+            Stop copies before they spread.
+          </h2>
+<p class="font-body-lg text-body-lg text-outline-variant">
+            Copies of artwork turn up on marketplaces, print shops and social media every day. TraceMyAssets finds them and gives you the evidence.
+          </p>
+<div class="pt-space-sm">
+<a class="h-11 px-space-xl rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg inline-flex items-center justify-center hover:bg-primary-hover transition-colors shadow-sm" data-path="sign-up" href="#">
+<span>Start free</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. HOW IT WORKS -->
+<section class="w-full max-w-[1280px] mx-auto px-gutter py-space-2xl" id="how-it-works">
+<div class="flex flex-col items-center text-center gap-space-xs mb-space-2xl">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">How it works</h2>
+<p class="font-body-lg text-body-lg text-secondary max-w-xl">
+        Three simple steps to keep your art protected around the clock.
+      </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+<!-- Step 1 -->
+<div class="bg-surface-base rounded-xl p-space-lg flex flex-col justify-between shadow-sm">
+<div>
+<span class="font-headline-md text-headline-md text-primary block mb-space-xs">01</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-space-sm">Upload and protect</h3>
+<p class="font-body-md text-body-md text-secondary">
+            We embed an imperceptible forensic watermark directly into your image pixels that survives compression and cropping.
+          </p>
+</div>
+<div class="mt-space-lg bg-surface-soft p-space-md rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center justify-between text-label-md font-label-md">
+<span class="text-on-surface font-semibold">Embedding watermark...</span>
+<span class="text-primary font-semibold">100%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full w-full"></div>
+</div>
+<div class="flex items-center gap-space-xs text-status-success-text text-label-md font-label-md pt-space-xs">
+<span class="material-symbols-outlined text-[14px]">done_all</span>
+<span>Anchor generated: #0921-X</span>
+</div>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="bg-surface-base rounded-xl p-space-lg flex flex-col justify-between shadow-sm">
+<div>
+<span class="font-headline-md text-headline-md text-primary block mb-space-xs">02</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-space-sm">We keep watching</h3>
+<p class="font-body-md text-body-md text-secondary">
+            Our automated crawlers run weekly or monthly web scans across global indexes without using up your manual quota.
+          </p>
+</div>
+<div class="mt-space-lg bg-surface-soft p-space-md rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-secondary">Scheduled cycle</span>
+<span class="font-label-md text-label-md text-status-success-text bg-status-success-bg px-space-xs py-0.5 rounded">Weekly loop</span>
+</div>
+<div class="flex items-center gap-space-sm pt-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">radar</span>
+<span class="font-label-md text-label-md text-on-surface">Scanning 248 storefront queries</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary">Next batch: Friday at 04:00 UTC</p>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="bg-surface-base rounded-xl p-space-lg flex flex-col justify-between shadow-sm">
+<div>
+<span class="font-headline-md text-headline-md text-primary block mb-space-xs">03</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-space-sm">Review the proof</h3>
+<p class="font-body-md text-body-md text-secondary">
+            Get side-by-side match comparisons, cryptographic match certainty, and direct links to where your art is being sold.
+          </p>
+</div>
+<div class="mt-space-lg bg-surface-soft p-space-md rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Target Identified</span>
+<span class="font-label-md text-label-md bg-status-danger-bg text-status-danger-text px-space-xs py-0.5 rounded">94% Match</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary truncate">e-commerce-gallery.example/item/492</p>
+<div class="pt-space-xs flex items-center justify-between">
+<span class="font-label-md text-label-md text-primary font-semibold">Takedown draft ready</span>
+<span class="material-symbols-outlined text-primary text-[18px]">description</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 5. TWO ALTERNATING FEATURE ROWS -->
+<section class="w-full bg-surface-base py-space-2xl">
+<div class="w-full max-w-[1280px] mx-auto px-gutter flex flex-col gap-space-2xl">
+<!-- Row 1: Text Left, Screenshot Right -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center">
+<div class="lg:col-span-6 flex flex-col items-start gap-space-md">
+<div class="bg-primary-soft text-primary px-space-sm py-0.5 rounded-full font-label-md text-label-md">
+            Inspection Protocol
+          </div>
+<h3 class="font-headline-lg text-headline-lg text-on-surface">
+            Every match is double-checked
+          </h3>
+<p class="font-body-lg text-body-lg text-secondary">
+            Search results are only leads. We compare each one with your original before we show it. High-entropy perceptual verification ensures you only get alerted when it truly matters.
+          </p>
+</div>
+<div class="lg:col-span-6">
+<div class="bg-surface-soft rounded-xl p-space-lg shadow-md">
+<div class="flex items-center justify-between pb-space-sm mb-space-md">
+<span class="font-label-md text-label-md text-secondary">Side-by-Side Visual Comparison</span>
+<span class="font-label-md text-label-md bg-status-warning-bg text-status-warning-text px-space-xs py-0.5 rounded">92% Similarity</span>
+</div>
+<div class="grid grid-cols-2 gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-md text-label-md text-secondary">Original Asset</span>
+<div class="h-40 rounded-lg overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Original detailed botanical oil illustration of an exotic midnight blossom on a deep navy canvas, crisp museum grade detail with warm studio light." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4sJtV97ixCMCSpbf9A_SzvqC8FhTR3QLGsAlt4JzFPPG81-FBA9EA028Jbgep7CopVyRYLI-gTOibaxCHeY4Z5SYCugOs_RBS7m1sxA-zhYeLSjSzBD8jk7E-hOZfQGJqrwkZ8aMAUKtmK3KoHA8WuiSYJ1F-rYqXoWAY2s4V5Exa2ae650WaieJfOqo-ILYgMDz7e5TFeHbjP4CxofbG7cDv2XCECZpeXz40NGhKv9CIhNoTyLUn"/>
+</div>
+<span class="font-body-sm text-body-sm text-secondary">Registered Apr 12</span>
+</div>
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-md text-label-md text-secondary">Detected Clone</span>
+<div class="h-40 rounded-lg overflow-hidden bg-surface-container relative">
+<img class="w-full h-full object-cover" data-alt="Cropped and color-shifted version of the midnight blossom artwork displayed on a fake online retail catalog card with synthetic mockups." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTF5MIjpVXpbUfnWDzgwGAHSb3Duzo1nsQZwqSwuad3EKqIXuU6hguBBwWV4fULRmnWzFtWBPOYeaXjijPRHC6ybGpF4k757EniNTeGng94Dt-uC5IV2-9Iqb4hQXRVBXIRrD0QE2JEmxWXHKlIlYeEno2vqUP2tGOXP1rRIHqB2oxHtyL8mADzXtroQWXLcZqPTI7G9h4TdphLBnqspQf4X8vNDbHEnJMhnlbqGewxTRUXvfVlZLW"/>
+<div class="absolute inset-0 bg-status-danger-bg/20 flex items-center justify-center">
+<span class="bg-status-danger-text text-on-primary text-label-md font-label-md px-space-xs py-0.5 rounded">Crop Detected</span>
+</div>
+</div>
+<span class="font-body-sm text-body-sm text-status-danger-text truncate">shoppy-prints.net/art</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Row 2: Screenshot Left, Text Right -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center">
+<div class="lg:col-span-6 order-2 lg:order-1">
+<div class="bg-surface-soft rounded-xl p-space-lg shadow-md flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Takedown Generator</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">content_copy</span>
+</div>
+<div class="bg-surface-base p-space-md rounded-lg">
+<p class="font-body-sm text-body-sm text-secondary font-mono leading-relaxed">
+                "Notice of Infringement: I am the copyright owner of 'Midnight Blossom'. This URL infringes on my protected work (Registered ID TMA-774). Please remove this listing immediately..."
+              </p>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<button class="h-9 px-space-md rounded-full bg-primary-container text-on-primary font-label-md text-label-md flex items-center gap-space-xs hover:bg-primary-hover transition-colors">
+<span class="material-symbols-outlined text-[16px]">copy_all</span>
+<span>Copy message</span>
+</button>
+<span class="font-label-md text-label-md text-status-success-text flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">check_circle</span> Watermark embedded
+              </span>
+</div>
+</div>
+</div>
+<div class="lg:col-span-6 order-1 lg:order-2 flex flex-col items-start gap-space-md">
+<div class="bg-primary-soft text-primary px-space-sm py-0.5 rounded-full font-label-md text-label-md">
+            Actionable Evidence
+          </div>
+<h3 class="font-headline-lg text-headline-lg text-on-surface">
+            Proof you can use
+          </h3>
+<p class="font-body-lg text-body-lg text-secondary">
+            See where it was found, how strong the match is, and whether your watermark is inside. Copy a ready-written message to send yourself.
+          </p>
+</div>
+</div>
+</div>
+</section>
+<!-- 6. PRICING TEASER -->
+<section class="w-full max-w-[1280px] mx-auto px-gutter py-space-2xl" id="pricing">
+<div class="flex flex-col items-center text-center gap-space-xs mb-space-2xl">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Simple, transparent pricing</h2>
+<p class="font-body-lg text-body-lg text-secondary">
+        Choose the level of vigilance that matches your catalog.
+      </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg items-stretch">
+<!-- Card 1: Free -->
+<div class="bg-surface-base rounded-xl p-space-lg flex flex-col justify-between shadow-sm">
+<div class="flex flex-col gap-space-sm">
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Free</h4>
+<div class="flex items-baseline gap-1 my-space-xs">
+<span class="font-headline-lg text-headline-lg text-on-surface">$0</span>
+</div>
+<p class="font-body-md text-body-md text-secondary">
+            Up to 3 artworks, weekly scans, basic match detection
+          </p>
+</div>
+<div class="pt-space-lg">
+<a class="w-full h-11 rounded-full bg-surface-soft text-on-surface font-label-lg text-label-lg flex items-center justify-center hover:bg-surface-container transition-colors" data-path="sign-up" href="#">
+            Start free
+          </a>
+</div>
+</div>
+<!-- Card 2: Pro (Highlighted) -->
+<div class="bg-surface-base rounded-xl p-space-lg flex flex-col justify-between shadow-xl relative">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary-container text-on-primary font-label-md text-label-md px-space-md py-0.5 rounded-full">
+          Most Popular
+        </div>
+<div class="flex flex-col gap-space-sm">
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Pro</h4>
+<div class="flex items-baseline gap-1 my-space-xs">
+<span class="font-headline-lg text-headline-lg text-on-surface">$12.99</span>
+<span class="font-body-md text-body-md text-secondary">/ mo</span>
+</div>
+<p class="font-body-md text-body-md text-secondary">
+            Up to 40 artworks, automatic daily/weekly scans, 10 deep scans/mo
+          </p>
+</div>
+<div class="pt-space-lg">
+<a class="w-full h-11 rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg flex items-center justify-center hover:bg-primary-hover transition-colors" data-path="sign-up" href="#">
+            Choose Pro
+          </a>
+</div>
+</div>
+<!-- Card 3: Extra -->
+<div class="bg-surface-base rounded-xl p-space-lg flex flex-col justify-between shadow-sm">
+<div class="flex flex-col gap-space-sm">
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Extra</h4>
+<div class="flex items-baseline gap-1 my-space-xs">
+<span class="font-headline-lg text-headline-lg text-on-surface">$29.99</span>
+<span class="font-body-md text-body-md text-secondary">/ mo</span>
+</div>
+<p class="font-body-md text-body-md text-secondary">
+            Up to 100 artworks, priority crawling, 40 deep scans/mo
+          </p>
+</div>
+<div class="pt-space-lg">
+<a class="w-full h-11 rounded-full bg-surface-soft text-on-surface font-label-lg text-label-lg flex items-center justify-center hover:bg-surface-container transition-colors" data-path="sign-up" href="#">
+            Choose Extra
+          </a>
+</div>
+</div>
+</div>
+<div class="flex justify-center mt-space-xl">
+<a class="font-label-lg text-label-lg text-primary hover:underline flex items-center gap-space-xs" data-path="pricing" href="#">
+<span>Compare all plans &amp; features</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+</section>
+<!-- 7. HONEST NOTE BAND (soft grey #F5F7FB) -->
+<section class="w-full bg-surface-soft py-space-xl">
+<div class="w-full max-w-[800px] mx-auto px-gutter text-center flex flex-col gap-space-xs">
+<div class="flex items-center justify-center gap-space-xs text-secondary mb-space-xs">
+<span class="material-symbols-outlined text-[20px]">info</span>
+<span class="font-label-lg text-label-lg font-semibold text-on-surface">Straightforward Terms</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">
+        Matches are technical signals, not legal proof. We never contact anyone for you.
+      </h3>
+<p class="font-body-md text-body-md text-secondary">
+        We equip you with verifiable forensic data, side-by-side comparisons, and court-admissible timestamp receipts so you hold the leverage.
+      </p>
+</div>
+</section>
+<!-- 8. FAQ ACCORDION -->
+<section class="w-full max-w-[800px] mx-auto px-gutter py-space-2xl">
+<div class="text-center mb-space-xl">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Frequently asked questions</h2>
+</div>
+<div class="flex flex-col gap-space-md" id="faq-container">
+<!-- FAQ 1 -->
+<div class="bg-surface-base rounded-lg p-space-md shadow-sm">
+<button class="w-full text-left flex justify-between items-center faq-trigger" onclick="toggleFaq(this)">
+<span class="font-headline-sm text-headline-sm text-on-surface">How does the invisible watermark work without ruining my artwork?</span>
+<span class="material-symbols-outlined text-secondary transition-transform">expand_more</span>
+</button>
+<div class="faq-content hidden pt-space-sm">
+<p class="font-body-md text-body-md text-secondary">
+            Our forensic engine uses frequency-domain steganography. It makes minute adjustments to high-entropy pixel channels that are imperceptible to human vision and completely preserve color accuracy, yet can be reliably reconstructed by our scanners.
+          </p>
+</div>
+</div>
+<!-- FAQ 2 -->
+<div class="bg-surface-base rounded-lg p-space-md shadow-sm">
+<button class="w-full text-left flex justify-between items-center faq-trigger" onclick="toggleFaq(this)">
+<span class="font-headline-sm text-headline-sm text-on-surface">What happens when you find a copy of my artwork online?</span>
+<span class="material-symbols-outlined text-secondary transition-transform">expand_more</span>
+</button>
+<div class="faq-content hidden pt-space-sm">
+<p class="font-body-md text-body-md text-secondary">
+            You receive an alert in your dashboard detailing the host domain, match percentage, and whether your hidden signature is intact. You can view the live source URL, archive a timestamped snapshot, or generate a tailored copyright notice.
+          </p>
+</div>
+</div>
+<!-- FAQ 3 -->
+<div class="bg-surface-base rounded-lg p-space-md shadow-sm">
+<button class="w-full text-left flex justify-between items-center faq-trigger" onclick="toggleFaq(this)">
+<span class="font-headline-sm text-headline-sm text-on-surface">Can someone remove the watermark by screenshotting or editing my image?</span>
+<span class="material-symbols-outlined text-secondary transition-transform">expand_more</span>
+</button>
+<div class="faq-content hidden pt-space-sm">
+<p class="font-body-md text-body-md text-secondary">
+            Standard crops, JPEG compression, and screenshots maintain enough perceptual signals for our deep scan to flag the match. The embedded mathematical signature persists through resizing, mild color tweaks, and recompression.
+          </p>
+</div>
+</div>
+<!-- FAQ 4 -->
+<div class="bg-surface-base rounded-lg p-space-md shadow-sm">
+<button class="w-full text-left flex justify-between items-center faq-trigger" onclick="toggleFaq(this)">
+<span class="font-headline-sm text-headline-sm text-on-surface">Do you automatically send DMCA takedown notices on my behalf?</span>
+<span class="material-symbols-outlined text-secondary transition-transform">expand_more</span>
+</button>
+<div class="faq-content hidden pt-space-sm">
+<p class="font-body-md text-body-md text-secondary">
+            No. We believe creators should always retain complete legal authority. We provide pre-filled infringement templates and verified timestamp evidence, but you remain the party making contact.
+          </p>
+</div>
+</div>
+<!-- FAQ 5 -->
+<div class="bg-surface-base rounded-lg p-space-md shadow-sm">
+<button class="w-full text-left flex justify-between items-center faq-trigger" onclick="toggleFaq(this)">
+<span class="font-headline-sm text-headline-sm text-on-surface">Does TraceMyAssets use my uploaded art to train AI models?</span>
+<span class="material-symbols-outlined text-secondary transition-transform">expand_more</span>
+</button>
+<div class="faq-content hidden pt-space-sm">
+<p class="font-body-md text-body-md text-secondary">
+            Never. Zero AI training guarantee. Your original artwork files are processed purely to generate mathematical hash fingerprints and apply your protective watermark. They are never ingested, scraped, or sold.
+          </p>
+</div>
+</div>
+</div>
+</section>
+<!-- 9. FINAL BLUE BAND -->
+<section class="w-full max-w-[1280px] mx-auto px-gutter pb-space-2xl">
+<div class="bg-primary-container text-on-primary rounded-xl p-space-xl md:p-space-2xl text-center flex flex-col items-center gap-space-md shadow-xl">
+<h2 class="font-headline-lg text-headline-lg text-on-primary">
+        Your art deserves to be watched.
+      </h2>
+<p class="font-body-lg text-body-lg text-on-primary-container max-w-xl">
+        Join thousands of independent illustrators, painters, and digital creators protecting their livelihood.
+      </p>
+<div class="pt-space-sm">
+<a class="h-12 px-space-xl rounded-full bg-surface-base text-primary-container font-label-lg text-label-lg font-bold flex items-center justify-center hover:bg-surface-soft transition-colors shadow-lg" data-path="sign-up" href="#">
+          Protect your first artwork
+        </a>
+</div>
+</div>
+</section>
+<script>
+    function toggleFaq(button) {
+      const content = button.nextElementSibling;
+      const icon = button.querySelector('.material-symbols-outlined');
+      const isHidden = content.classList.contains('hidden');
+      
+      // Close all FAQs first
+      document.querySelectorAll('.faq-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.faq-trigger .material-symbols-outlined').forEach(ic => ic.style.transform = 'rotate(0deg)');
+      
+      if (isHidden) {
+        content.classList.remove('hidden');
+        icon.style.transform = 'rotate(180deg)';
+      }
+    }
+  </script>
+</div></main><footer class="w-full bg-surface-base shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="w-full max-w-[1280px] mx-auto px-gutter py-space-xl"><div class="flex flex-col items-center justify-center gap-space-md text-center"><nav class="flex flex-wrap items-center justify-center gap-x-space-md gap-y-space-xs text-on-surface-variant font-label-md text-label-md" data-active-classes="text-primary font-semibold"><a class="hover:text-on-surface transition-colors" data-path="about" href="#">About</a><span class="text-outline-variant">·</span><a class="hover:text-on-surface transition-colors" data-path="pricing" href="#">Pricing</a><span class="text-outline-variant">·</span><a class="hover:text-on-surface transition-colors" data-path="help" href="#">Help</a><span class="text-outline-variant">·</span><a class="hover:text-on-surface transition-colors" data-path="privacy" href="#">Privacy</a><span class="text-outline-variant">·</span><a class="hover:text-on-surface transition-colors" data-path="terms" href="#">Terms</a><span class="text-outline-variant">·</span><a class="hover:text-on-surface transition-colors" data-path="refunds" href="#">Refunds</a><span class="text-outline-variant">·</span><a class="hover:text-on-surface transition-colors" data-path="support" href="#">Support</a></nav><div class="flex flex-col items-center gap-space-xs pt-space-xs"><p class="font-body-sm text-body-sm text-on-surface-variant tracking-normal">TraceMyAssets · Forensic Visual Registry &amp; Copyright Protection</p><p class="font-label-md text-label-md text-outline">© 2025 TraceMyAssets Inc. All rights reserved.</p></div></div></div></footer></body></html>

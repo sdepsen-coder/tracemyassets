@@ -19,14 +19,14 @@ export function PasswordInput(props: PasswordInputProps) {
       <input
         {...props}
         type={visible ? "text" : "password"}
-        className="w-full rounded-xl border border-white/10 bg-[#090e1b] py-3 pl-3 pr-16 outline-none focus:border-sky-400 disabled:opacity-50"
+        className="h-12 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] pl-4 pr-16 text-[16px] text-[var(--text)] outline-none focus:border-[var(--text)] disabled:opacity-50"
       />
       <button
         type="button"
         onClick={() => setVisible((value) => !value)}
         aria-label={visible ? "Hide password" : "Show password"}
         aria-pressed={visible}
-        className="absolute inset-y-0 right-0 px-3 text-xs font-semibold text-slate-400 transition hover:text-slate-100"
+        className="absolute inset-y-0 right-0 px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text-muted)] transition hover:text-[var(--text)]"
       >
         {visible ? "Hide" : "Show"}
       </button>

@@ -2,54 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Glass template palette (design/stitch-prompts.md, section 0). */
 :root {
-  --background: #faf8ff;
+  --background: #f5f4f0;
   --surface: #ffffff;
-  --surface-muted: #f2f3ff;
-  --surface-raised: #eaedff;
-  --surface-strong: #e2e7ff;
+  --surface-muted: #eeece6;
+  --surface-raised: #e8e6e0;
+  --surface-strong: #e2e0da;
+  --glass: rgb(255 255 255 / 0.72);
 
-  --text: #131b2e;
-  --text-muted: #454655;
-  --border: #c5c5d8;
+  --text: #111111;
+  --text-muted: #6b6a66;
+  --border: #e2e0da;
+  --line-strong: rgb(17 17 17 / 0.22);
 
-  --primary: #001bca;
-  --primary-strong: #2d3fe0;
-  --primary-soft: #dfe0ff;
+  --primary: #111111;
+  --primary-strong: #111111;
+  --primary-soft: #ecebf6;
+  --on-primary: #ffffff;
 
-  --success: #00714d;
-  --success-soft: #e6fff3;
+  --success: #2f7a55;
+  --success-soft: #e6f2ea;
 
-  --warning: #8a5000;
-  --warning-soft: #fff3dc;
+  --warning: #9a5b12;
+  --warning-soft: #f7eedd;
 
-  --danger: #ba1a1a;
-  --danger-soft: #ffdad6;
+  --danger: #b4322b;
+  --danger-soft: #f8e5e3;
+
+  --iris: linear-gradient(120deg, #c9c3f5 0%, #bfd9f7 45%, #f3e9f7 100%);
 }
 
 .dark {
-  --background: #0b0f19;
-  --surface: #0f172a;
-  --surface-muted: #131d32;
-  --surface-raised: #1e293b;
-  --surface-strong: #28364c;
+  --background: #0e0e10;
+  --surface: #17171a;
+  --surface-muted: #1f1f23;
+  --surface-raised: #26262b;
+  --surface-strong: #2e2e33;
+  --glass: rgb(23 23 26 / 0.72);
 
-  --text: #f8fafc;
-  --text-muted: #a7b1c2;
-  --border: #334155;
+  --text: #f2f1ee;
+  --text-muted: #a3a19c;
+  --border: #2a2a2e;
+  --line-strong: rgb(242 241 238 / 0.24);
 
-  --primary: #aeb8ff;
-  --primary-strong: #4f62ff;
-  --primary-soft: #202d72;
+  --primary: #f2f1ee;
+  --primary-strong: #f2f1ee;
+  --primary-soft: #26243a;
+  --on-primary: #111111;
 
-  --success: #34d399;
-  --success-soft: #064e3b;
+  --success: #6fcf9a;
+  --success-soft: #143323;
 
-  --warning: #fbbf24;
-  --warning-soft: #451a03;
+  --warning: #e7b56a;
+  --warning-soft: #3a2a12;
 
-  --danger: #fca5a5;
-  --danger-soft: #5c1717;
+  --danger: #f19a92;
+  --danger-soft: #3d1a17;
+
+  --iris: linear-gradient(120deg, #4b4382 0%, #2f5a86 45%, #6a4d73 100%);
 }
 
 html,
@@ -62,7 +73,7 @@ body {
 body {
   background: var(--background);
   color: var(--text);
-  font-family: var(--font-inter), Arial, sans-serif;
+  font-family: var(--font-geist), Arial, sans-serif;
   overscroll-behavior: none;
 }
 
@@ -134,5 +145,61 @@ html {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+}
+
+/* Frosted glass surface used by the header, cards and panels. */
+.glass {
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+}
+
+/* Iridescent accent for highlights, selected states and progress. */
+.iris {
+  background: var(--iris);
+}
+
+/* Small uppercase label ("MONITORING", "STEP 2 OF 4"). */
+.label-caps {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@keyframes tma-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.iris-shimmer {
+  background: linear-gradient(90deg, #c9c3f5, #bfd9f7, #f3e9f7, #c9c3f5);
+  background-size: 200% 100%;
+  animation: tma-shimmer 2.4s linear infinite;
+}
+
+@keyframes tma-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+}
+
+.glass-float {
+  animation: tma-float 7s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iris-shimmer,
+  .glass-float {
+    animation: none;
   }
 }

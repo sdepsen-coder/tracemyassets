@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Outfit:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "status-success-bg": "#E7F8F1", "tertiary-fixed-dim": "#63dca6", "status-danger-bg": "#FDECEC", "border-subtle": "#E6E8F0", "status-muted-bg": "#F1F2F5", "primary-soft": "#E8EEFF", "primary-hover": "#1E40AF", "inverse-on-surface": "#ebf1ff", "primary-fixed": "#dce1ff", "primary": "#0037b0", "secondary-fixed": "#dae2fd", "on-surface": "#131c2a", "error": "#ba1a1a", "on-tertiary": "#ffffff", "surface-dim": "#d1daee", "inverse-surface": "#283140", "on-secondary": "#ffffff", "on-secondary-container": "#5c647a", "tertiary": "#004f35", "on-error-container": "#93000a", "surface-variant": "#dae3f7", "primary-container": "#1d4ed8", "on-primary-container": "cad3ff", "secondary-container": "#dae2fd", "surface-base": "#FFFFFF", "inverse-primary": "#b7c4ff", "surface-container-lowest": "#ffffff", "tertiary-fixed": "#81f9c1", "on-secondary-fixed-variant": "#3f465c", "on-tertiary-container": "#73ecb4", "surface-bright": "#f9f9ff", "outline": "#747686", "surface-container": "#e7eeff", "status-warning-text": "#B45309", "secondary": "#565e74", "on-primary-fixed-variant": "#0039b5", "surface-container-highest": "#dae3f7", "dark-band": "#0B0F19", "on-primary": "#ffffff", "status-danger-text": "#DC2626", "primary-fixed-dim": "#b7c4ff", "surface-container-high": "#dfe8fd", "outline-variant": "#c4c5d7", "on-secondary-fixed": "#131b2e", "surface-soft": "#F5F7FB", "on-background": "#131c2a", "on-tertiary-fixed": "#002113", "status-muted-text": "#6B7280", "tertiary-container": "#006a47", "background": "#f9f9ff", "secondary-fixed-dim": "#bec6e0", "on-tertiary-fixed-variant": "#005236", "status-success-text": "#0E9F6E", "surface-tint": "#2151da", "on-primary-fixed": "#001551", "surface-container-low": "#f0f3ff", "on-error": "#ffffff", "status-warning-bg": "#FEF3E2", "surface": "#f9f9ff", "error-container": "#ffdad6", "on-surface-variant": "#434655" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-md": "1rem", "margin": "2rem", "space-2xl": "4rem", "margin-desktop": "3rem", "space-sm": "0.5rem", "space-xl": "2.5rem", "gutter": "1.5rem", "gutter-mobile": "1rem", "space-lg": "1.5rem", "space-xs": "0.25rem", "margin-mobile": "1rem" }, "fontFamily": { "headline-lg": [ "Outfit" ], "display-hero-mobile": [ "Outfit" ], "headline-lg-mobile": [ "Outfit" ], "display-hero": [ "Outfit" ], "label-lg": [ "Inter" ], "body-md": [ "Inter" ], "headline-sm": [ "Outfit" ], "body-sm": [ "Inter" ], "body-lg": [ "Inter" ], "headline-md": [ "Outfit" ], "label-md": [ "Inter" ], "metric-num": [ "Inter" ] }, "fontSize": { "headline-lg": [ "40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "display-hero-mobile": [ "36px", { "lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "700" } ], "headline-lg-mobile": [ "28px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "700" } ], "display-hero": [ "56px", { "lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "label-lg": [ "14px", { "lineHeight": "20px", "fontWeight": "600" } ], "body-md": [ "15px", { "lineHeight": "22px", "fontWeight": "400" } ], "headline-sm": [ "18px", { "lineHeight": "26px", "letterSpacing": "-0.005em", "fontWeight": "600" } ], "body-sm": [ "13px", { "lineHeight": "18px", "fontWeight": "400" } ], "body-lg": [ "16px", { "lineHeight": "24px", "fontWeight": "400" } ], "headline-md": [ "24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" } ], "label-md": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600" } ], "metric-num": [ "28px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" } ] } } } };</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 w-full z-50 bg-surface-base border-b border-border-subtle"><div class="h-16 max-w-7xl mx-auto px-gutter flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-lg"><a class="flex items-center gap-space-sm" data-path="03-monitoring-dashboard" href="#"><span class="material-symbols-outlined text-primary text-[28px]">verified_user</span><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight font-bold">TraceMyAssets</span></a></div><nav class="hidden md:flex items-center gap-space-xs" data-active-classes="bg-surface-soft text-primary font-bold rounded-lg"><a class="px-space-md py-space-sm font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-soft rounded-lg transition-colors" data-path="03-monitoring-dashboard" href="#">Monitoring</a><a class="px-space-md py-space-sm font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-soft rounded-lg transition-colors flex items-center gap-space-xs" data-path="matches" href="#">Matches<span class="inline-flex items-center justify-center px-1.5 py-0.5 rounded-full font-label-md text-label-md bg-status-warning-bg text-status-warning-text">2</span></a><a aria-current="page" class="px-space-md py-space-sm transition-colors bg-surface-soft text-primary font-bold rounded-lg" data-path="05-check-an-image" href="#">Check an image</a></nav><div class="flex items-center gap-space-md"><a class="inline-flex items-center justify-center h-11 px-6 rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg hover:bg-primary-hover transition-colors shadow-sm gap-space-xs" data-path="protect-artwork" href="#"><span class="material-symbols-outlined text-base">add</span><span>Protect new artwork</span></a><button class="relative p-space-sm text-on-surface-variant hover:text-on-surface rounded-full hover:bg-surface-soft transition-colors" type="button"><span class="material-symbols-outlined">notifications</span><span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-status-danger-text"></span></button><div class="flex items-center pl-space-xs border-l border-border-subtle"><a class="flex items-center focus:outline-none focus:ring-2 focus:ring-primary rounded-full" data-path="account-settings" href="#"><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-1 ring-border-subtle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8pv7FwgmGzBptuYZKbRfYVLK6AibuTrAYN-GkHkDbpkCHg4xRixcTci6k6pofG4gcS0HjBBc2ukN6avjWjwRSO6e14X7NMQppv_nWwgDR8UObYJ9wVgIaBBDf6E1liQBjo9V95zbwsxuTNsegYC8qTFnRpmnYPnw8NigMFn8808wPkxbaPm-e61sgxtDbHdJyLU2SM8qk5QK_lEJU7HH7xq6dA3MZuEARBE__MnF92FXYcjVKeuyG"/></a></div></div></div></header><main class="w-full pt-16 bg-surface min-h-[calc(100vh-64px)]"><div class="flex flex-col w-full">
+<!-- Interactive Style Scaffolding for Dynamic States -->
+<style>
+    @keyframes pulseScan {
+      0%, 100% { opacity: 0.25; transform: scale(0.98); }
+      50% { opacity: 0.65; transform: scale(1.02); }
+    }
+    .animate-scan-pulse {
+      animation: pulseScan 3.5s ease-in-out infinite;
+    }
+  </style>
+<!-- Page Header Container -->
+<section class="max-w-7xl mx-auto px-gutter w-full pt-space-lg pb-space-md">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
+<div class="space-y-space-xs max-w-3xl">
+<div class="inline-flex items-center gap-space-xs px-3 py-1 rounded-full bg-surface-container font-label-md text-label-md text-primary">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">policy</span>
+<span>Forensic Pixel-Match Engine · On-Demand Validator</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">
+          Found a suspicious image?
+        </h1>
+<p class="font-body-lg text-body-lg text-secondary">
+          Compare it with one of your artworks. The image you upload is only used for this check.
+        </p>
+</div>
+<!-- Trust & Privacy Tag -->
+<div class="inline-flex items-center gap-space-xs px-space-md py-2.5 rounded-full bg-surface-base shadow-sm self-start md:self-auto">
+<span class="material-symbols-outlined text-tertiary-container text-base">lock</span>
+<span class="font-label-md text-label-md text-on-surface font-medium">Encrypted one-time analysis · File discarded after check</span>
+</div>
+</div>
+</section>
+<!-- Main Workflow Workspace (2-Column Studio) -->
+<section class="max-w-7xl mx-auto px-gutter w-full py-space-md">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+<!-- Left Column: Master Source Selection (lg:col-span-6) -->
+<div class="lg:col-span-6 flex flex-col bg-surface-base rounded-xl p-space-lg shadow-sm">
+<div class="flex items-center justify-between pb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="w-6 h-6 rounded-full bg-primary-soft text-primary font-label-md text-label-md flex items-center justify-center font-bold">1</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Pick your artwork</h2>
+</div>
+<span class="font-label-md text-label-md text-secondary bg-surface-soft px-2.5 py-1 rounded-full">
+            4 protected artworks available
+          </span>
+</div>
+<!-- Search & Filter bar -->
+<div class="relative w-full mb-space-md">
+<span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+<input class="w-full h-11 pl-10 pr-4 bg-surface-soft rounded-lg font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-base transition-colors" placeholder="Search by title, canvas ID or registry code..." type="text"/>
+</div>
+<!-- Gallery Selector Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm" id="artworkGrid">
+<!-- Artwork 1 (Selected State) -->
+<button class="artwork-card text-left relative flex flex-col p-space-sm rounded-xl transition-all duration-200 bg-surface-container-low shadow-sm" data-id="tma-8921" onclick="selectArtwork(this, 'Sunset Study', 'TMA-8921', '2400 × 1800 px')" type="button">
+<div class="relative w-full h-36 rounded-lg overflow-hidden bg-surface-soft">
+<img alt="Sunset Study thumbnail" class="w-full h-full object-cover" data-alt="Rich impressionist oil painting of an oceanic sunset with golden amber waves, deep cobalt reflections, textured palette knife strokes, warm ambient lighting, high visual fidelity gallery presentation." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAk9xYdqW0AF3f7N5N4jbBIC4X63IRt1jbUZNmgFNodxPuteIgunWuiwPdYBU_XclIA0ZsupbEEjgwpA-gfv2V_KcGVXpp5bnbCDNs6p2AqBedEoyZ058XXxPnPyaGtNg_G3f8NPEgEXiB-JyCLr8se5HtdMnuX9MunCJvzu71aA4gvTBL3DqaDkQzrml0YcY6BF063v3ZvsIJH8fxG17-SKQyBc6-5fivkymjGAl2Pw_ywb6PcSPkX"/>
+<div class="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+<div class="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-surface-base/90 backdrop-blur-sm font-label-md text-label-md text-on-surface font-semibold shadow-xs">
+                TMA-8921
+              </div>
+</div>
+<div class="pt-2 px-1 flex flex-col">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Sunset Study</span>
+<div class="flex items-center justify-between text-secondary pt-0.5">
+<span class="font-body-sm text-body-sm">2400 × 1800 px</span>
+<span class="font-label-md text-label-md text-status-success-text font-medium">Protected</span>
+</div>
+</div>
+</button>
+<!-- Artwork 2 -->
+<button class="artwork-card text-left relative flex flex-col p-space-sm rounded-xl transition-all duration-200 bg-surface-soft hover:bg-surface-container-low" data-id="tma-9104" onclick="selectArtwork(this, 'Alpine Dusk', 'TMA-9104', '3200 × 2400 px')" type="button">
+<div class="relative w-full h-36 rounded-lg overflow-hidden bg-surface-variant">
+<img alt="Alpine Dusk thumbnail" class="w-full h-full object-cover" data-alt="Moody dusk landscape of a still alpine mountain lake reflecting jagged snow-capped peaks in indigo, mist, and deep pine forests, fine art digital concept painting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjkKM_4aQcJR_UbUewdor9cmDvyklrp8ok5USCptkQ_1OWbqaOX8dOtQwGeC6yn94rTPplgRHdJdg0L67sAjAnbxXOU1FyHOEd545-o7rK6rjGlGxuSBSAwRJQUcupwuOFk_YjDYGN57GI2AHBW7Qn_hzlHHnq_0x7xEqxpu214krofmucfHI7pH05Vxk-jBpxlNx9NOco_aIj7kL51-smsGKSQ_jI17LcCUiXc2znDRFwFKVHwtq6"/>
+<div class="check-icon hidden absolute top-2 right-2 w-6 h-6 rounded-full bg-primary-container text-on-primary items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+<div class="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-surface-base/90 backdrop-blur-sm font-label-md text-label-md text-on-surface font-semibold shadow-xs">
+                TMA-9104
+              </div>
+</div>
+<div class="pt-2 px-1 flex flex-col">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Alpine Dusk</span>
+<div class="flex items-center justify-between text-secondary pt-0.5">
+<span class="font-body-sm text-body-sm">3200 × 2400 px</span>
+<span class="font-label-md text-label-md text-status-success-text font-medium">Protected</span>
+</div>
+</div>
+</button>
+<!-- Artwork 3 -->
+<button class="artwork-card text-left relative flex flex-col p-space-sm rounded-xl transition-all duration-200 bg-surface-soft hover:bg-surface-container-low" data-id="tma-8742" onclick="selectArtwork(this, 'Golden Flora', 'TMA-8742', '1800 × 2400 px')" type="button">
+<div class="relative w-full h-36 rounded-lg overflow-hidden bg-surface-variant">
+<img alt="Golden Flora thumbnail" class="w-full h-full object-cover" data-alt="Art nouveau inspired botanical portrait illustration with ornate golden leaf motifs, emerald green accents, delicate line art, and organic decorative contours." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1lvg4m5Rkev8_gjgfNoz3cOoaEO6Rn3MGxYj_vcxUEuIeWwIWSojHehh06kLL7yBu1aAXjR1UcKpnrKS9UKMDWiHsyEWbEwBgNXg40YhZYi41PSXLbaYEcFRbAvysRItl6xQkdyxwdL1Qk3gdSuIxg5VUxEZrAxvCbJGTtksYxZcTJydEtZH57aTNk50d75uS1s4KFM5sdhZ267Ewh1rWZMjTFWp0TjHy91NYVylTjVgd-eKyiDjF"/>
+<div class="check-icon hidden absolute top-2 right-2 w-6 h-6 rounded-full bg-primary-container text-on-primary items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+<div class="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-surface-base/90 backdrop-blur-sm font-label-md text-label-md text-on-surface font-semibold shadow-xs">
+                TMA-8742
+              </div>
+</div>
+<div class="pt-2 px-1 flex flex-col">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Golden Flora</span>
+<div class="flex items-center justify-between text-secondary pt-0.5">
+<span class="font-body-sm text-body-sm">1800 × 2400 px</span>
+<span class="font-label-md text-label-md text-status-success-text font-medium">Protected</span>
+</div>
+</div>
+</button>
+<!-- Artwork 4 -->
+<button class="artwork-card text-left relative flex flex-col p-space-sm rounded-xl transition-all duration-200 bg-surface-soft hover:bg-surface-container-low" data-id="tma-9350" onclick="selectArtwork(this, 'Ocean Mist', 'TMA-9350', '2800 × 1600 px')" type="button">
+<div class="relative w-full h-36 rounded-lg overflow-hidden bg-surface-variant">
+<img alt="Ocean Mist thumbnail" class="w-full h-full object-cover" data-alt="Dramatic crashing sea waves along jagged slate cliffs, heavy sea mist, dark teal ocean currents, atmospheric oil painting with deep textural details." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIA2A_cUjvHYkI8aT8hu5VFI-5joDZJL9ins4ntoaDIEuofp3wy-pyLS2EnL1dCXb6fw7hZ8qj0EkThr4XI4JwuFvhms6EJlLVgpphPBgy2a6I8KZx4nS_j9GtZqxBX8zjs2r0zp0Mxgo5eWQDZcb-mz9zjixW7wmBf8OI9oW8ACOeWCsvKHXN-Y3hLl1yKAFFprg8c4NdjPTac2zl451kSFxYZ1AG1fOtdtSft4XO5cUczyBKhegH"/>
+<div class="check-icon hidden absolute top-2 right-2 w-6 h-6 rounded-full bg-primary-container text-on-primary items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+<div class="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-surface-base/90 backdrop-blur-sm font-label-md text-label-md text-on-surface font-semibold shadow-xs">
+                TMA-9350
+              </div>
+</div>
+<div class="pt-2 px-1 flex flex-col">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Ocean Mist</span>
+<div class="flex items-center justify-between text-secondary pt-0.5">
+<span class="font-body-sm text-body-sm">2800 × 1600 px</span>
+<span class="font-label-md text-label-md text-status-success-text font-medium">Protected</span>
+</div>
+</div>
+</button>
+</div>
+</div>
+<!-- Right Column: Suspicious Asset Intake & Ingestion (lg:col-span-6) -->
+<div class="lg:col-span-6 flex flex-col bg-surface-base rounded-xl p-space-lg shadow-sm">
+<div class="flex items-center justify-between pb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="w-6 h-6 rounded-full bg-primary-soft text-primary font-label-md text-label-md flex items-center justify-center font-bold">2</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Add the image you found</h2>
+</div>
+<span class="font-label-md text-label-md text-secondary">
+            Drag &amp; drop or paste
+          </span>
+</div>
+<!-- Dynamic Upload / Preview Container -->
+<div class="space-y-space-md">
+<!-- Active Uploaded Card State -->
+<div class="p-space-md rounded-xl bg-surface-soft flex flex-col sm:flex-row items-center gap-space-md relative overflow-hidden">
+<!-- Thumbnail of suspected file -->
+<div class="relative w-full sm:w-32 h-28 rounded-lg overflow-hidden shrink-0 shadow-xs bg-dark-band">
+<img alt="Suspected listing screenshot" class="w-full h-full object-cover" data-alt="Close-up crop screenshot of a warm sunset seascape with noticeable digital compression artifacts, slightly altered contrast, and a clipped horizontal perspective." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4T9rUGAa7_0Ljn8CPkci4hCtX0PCTkt2b2lTemfBAVK7uAUHV3KC5jVdGOuigklQCkpCoXura7FtUUrmP-6Ni0MHsYICllUpPJuT8iz8rj_ngq7646t7s-uR1PjEesPLM5CjcBTObtyk408mZcJX2BI_AnFVcIxqQFKICPIllZBOdAxH4sWx8J_xhQAwTfZNh0eQa9iSb3F5Ttio2xXriIlFxHJ3llOs3EV0Crc5YFNWibW8Hj3Ar"/>
+<span class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-dark-band/80 text-on-primary font-label-md text-[10px]">
+                SUSPECT
+              </span>
+</div>
+<!-- Upload Details & Metadata -->
+<div class="flex flex-col flex-1 min-w-0 w-full space-y-1">
+<div class="flex items-center gap-1.5 flex-wrap">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full font-label-md text-label-md bg-status-warning-bg text-status-warning-text font-semibold">
+                  Uploaded · In Queue
+                </span>
+<span class="font-body-sm text-body-sm text-secondary truncate">1280 × 960 px</span>
+</div>
+<p class="font-label-lg text-label-lg text-on-surface font-semibold truncate pt-0.5">
+                ebay-listing-crop-detail.png
+              </p>
+<p class="font-body-sm text-body-sm text-secondary">
+                File size: 1.4 MB · SHA-256 pre-indexed
+              </p>
+</div>
+<!-- Replace / Remove Actions -->
+<div class="flex sm:flex-col gap-2 shrink-0">
+<button class="p-2 rounded-full hover:bg-surface-base text-secondary hover:text-on-surface transition-colors shadow-xs" title="Replace file" type="button">
+<span class="material-symbols-outlined text-[20px]">sync</span>
+</button>
+<button class="p-2 rounded-full hover:bg-status-danger-bg text-secondary hover:text-status-danger-text transition-colors shadow-xs" title="Remove image" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+</div>
+<!-- Secondary Quick-Paste / Alternative Drop Area -->
+<div class="w-full p-4 rounded-xl bg-surface-container-low flex items-center justify-between gap-space-sm">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-surface-base flex items-center justify-center text-primary shadow-xs">
+<span class="material-symbols-outlined text-[20px]">content_paste</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-medium">Or paste direct link / image clipboard</span>
+<span class="font-body-sm text-body-sm text-secondary">Supports JPG, PNG, WEBP, or screenshot paste (Ctrl+V) · Up to 25 MB</span>
+</div>
+</div>
+<button class="font-label-md text-label-md text-primary font-semibold hover:underline shrink-0" type="button">
+              Paste URL
+            </button>
+</div>
+<!-- Action Submission Group -->
+<div class="pt-space-xs flex flex-col items-center">
+<button class="w-full sm:w-auto min-w-[280px] h-11 px-8 rounded-full bg-primary-container hover:bg-primary-hover text-on-primary font-label-lg text-label-lg font-semibold flex items-center justify-center gap-2 shadow-sm transition-all transform hover:-translate-y-0.5 active:translate-y-0" type="button">
+<span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+<span>Compare images</span>
+</button>
+<p class="font-body-sm text-body-sm text-secondary pt-2 text-center">
+              Does not use your monthly scans · Included in all plans
+            </p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 3: Forensic Verification Results Card -->
+<section class="max-w-7xl mx-auto px-gutter w-full py-space-lg">
+<div class="bg-surface-base rounded-2xl shadow-sm p-space-md sm:p-space-lg space-y-space-lg">
+<!-- Result Banner Header with Badges -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md pb-space-md bg-surface-soft p-space-md rounded-xl">
+<div class="space-y-1">
+<div class="flex items-center gap-2 flex-wrap">
+<!-- Strong Match Badge -->
+<div class="inline-flex items-center gap-1.5 h-7 px-3 rounded-full bg-status-success-bg text-status-success-text font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span>Strong match · 92% confidence</span>
+</div>
+<!-- Confirmed Watermark Signal Badge -->
+<div class="inline-flex items-center gap-1.5 h-7 px-3 rounded-full bg-primary-soft text-primary font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+<span>Watermark found — this image came from your protected file</span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-secondary pt-1">
+            Visual fingerprint analysis matched cryptographic spatial key <code class="font-mono text-primary font-semibold">TMA-8921-SIG</code> across high-entropy pixel channels.
+          </p>
+</div>
+<!-- Match Metric Pill -->
+<div class="flex items-center gap-3 shrink-0 bg-surface-base px-4 py-2.5 rounded-xl shadow-xs self-start md:self-auto">
+<div class="w-10 h-10 rounded-full bg-status-success-bg flex items-center justify-center text-status-success-text">
+<span class="material-symbols-outlined text-[24px]">troubleshoot</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-on-surface leading-none font-bold">92.4%</span>
+<span class="font-body-sm text-body-sm text-secondary">Spatial similarity</span>
+</div>
+</div>
+</div>
+<!-- Side-by-Side Visual Comparison Inspection Frame -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Left: Master Master Copy -->
+<div class="flex flex-col space-y-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container"></span>
+              Your Original Master (Sunset Study)
+            </span>
+<span class="font-label-md text-label-md text-secondary">Registry Master · Lossless</span>
+</div>
+<div class="relative w-full h-80 rounded-xl overflow-hidden bg-dark-band shadow-sm flex items-center justify-center group">
+<img alt="Original Master Sunset Study" class="w-full h-full object-cover" data-alt="High resolution authentic oil painting of golden sunset over churning ocean waves, vibrant amber light illuminating sea foam, full complete original canvas frame without crops." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6ZXQH14ibrnd3iIVekFoftz0xQPsphjXXyar0DmJZqF_4WFSUSZCvjJG_4k-Sex1aSdvo4HaY5Y5tbNvyMWdMEUTzvzC83iSCUQKRcmT2aKoKCyebDC8K1p_hWzn6AdzvGGq1n0nyjWdd61FuBgRTgTpCC3Alh8rLwGyD3vZ7UpbCZmBtrEpntwvlXTquk_2LoJfBMTmLgL_G-wQhRymJpL2xyOm0suQhF0Z5J0keBUWqq8QGiyqi"/>
+<!-- Coordinate Crop Indicator Overlay (representing matched zone) -->
+<div class="absolute inset-x-8 inset-y-6 rounded-lg pointer-events-none bg-primary/10">
+<span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-surface-base/90 font-label-md text-[11px] text-primary font-bold shadow-xs">
+                Matched Ingestion Zone (92% overlap)
+              </span>
+<div class="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded bg-surface-base/90 font-label-md text-[11px] text-on-surface">
+<span class="material-symbols-outlined text-[13px] text-tertiary">fingerprint</span>
+<span>Watermark anchor locked</span>
+</div>
+</div>
+<!-- Master Meta Footer -->
+<div class="absolute bottom-0 inset-x-0 p-space-sm bg-gradient-to-t from-dark-band/80 to-transparent flex items-center justify-between text-on-primary">
+<span class="font-label-md text-label-md font-mono">ID: TMA-8921-ORIGINAL</span>
+<span class="font-label-md text-label-md">2400 × 1800 px</span>
+</div>
+</div>
+</div>
+<!-- Right: Suspicious Found Asset with Forensic Heatmap Indicators -->
+<div class="flex flex-col space-y-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-status-danger-text"></span>
+              Suspicious Found Image
+            </span>
+<span class="font-label-md text-label-md text-status-danger-text font-medium">Re-encoded JPEG · 78% quality</span>
+</div>
+<div class="relative w-full h-80 rounded-xl overflow-hidden bg-dark-band shadow-sm flex items-center justify-center group">
+<img alt="Found suspicious image on eBay" class="w-full h-full object-cover" data-alt="Cropped screenshot of the same sunset ocean oil painting with visible lossy artifacts, compressed dynamic range, and slight tint shift." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCebsSAXyUyMZVnToL60151gAFmaiYqYYysxy803u50kHehU--Jo8P226R2Okw1IZfq1qhuM39zjPJXJRWdyPIhL7Kzl614fQbBdL9U8GWULvRhw-ab8BO2zCYUluwJorm56_AOtMIdU4P7pNi__leBGMruIS5i1J3oBxhgeXDIGB3VbmZZbKBPgAuPYrXG3NvQCk4vRwWKhJBdPVGUvecaYqt36l63Gw57hbIkuWoJnyXugfO1vevY"/>
+<!-- SVG Heatmap & Forensic Watermark Signal Overlay -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none" fill="none" viewbox="0 0 400 320" xmlns="http://www.w3.org/2000/svg">
+<!-- Watermark Sensor Nodes -->
+<circle class="animate-scan-pulse" cx="120" cy="110" fill="#1D4ED8" fill-opacity="0.25" r="28"></circle>
+<circle cx="120" cy="110" fill="#1D4ED8" fill-opacity="0.4" r="14"></circle>
+<circle cx="120" cy="110" fill="#FFFFFF" r="3"></circle>
+<circle class="animate-scan-pulse" cx="280" cy="180" fill="#1D4ED8" fill-opacity="0.2" r="36" style="animation-delay: 1s;"></circle>
+<circle cx="280" cy="180" fill="#1D4ED8" fill-opacity="0.45" r="18"></circle>
+<circle cx="280" cy="180" fill="#FFFFFF" r="4"></circle>
+<circle class="animate-scan-pulse" cx="210" cy="90" fill="#0E9F6E" fill-opacity="0.3" r="22" style="animation-delay: 0.5s;"></circle>
+<circle cx="210" cy="90" fill="#FFFFFF" r="3"></circle>
+<!-- Forensic alignment vectors -->
+<path d="M120 110 L210 90 L280 180" opacity="0.8" stroke="#1D4ED8" stroke-dasharray="4 4" stroke-width="1.5"></path>
+</svg>
+<!-- Detected Signal Overlay Badge -->
+<div class="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-status-danger-bg text-status-danger-text font-label-md text-label-md font-semibold shadow-xs">
+<span class="material-symbols-outlined text-[15px]">radar</span>
+<span>Altered Crop · Watermark Intact</span>
+</div>
+<!-- Suspect Meta Footer -->
+<div class="absolute bottom-0 inset-x-0 p-space-sm bg-gradient-to-t from-dark-band/80 to-transparent flex items-center justify-between text-on-primary">
+<span class="font-label-md text-label-md font-mono">Matched: 1280 × 960 px</span>
+<span class="font-label-md text-label-md text-status-danger-bg">Source: External Web Crawl</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 3 Plain-Language Forensic Verification Points -->
+<div class="space-y-space-sm pt-space-xs">
+<h3 class="font-label-lg text-label-lg text-on-surface font-bold uppercase tracking-wider text-[11px] text-secondary">
+          Verification Evidence Details
+        </h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Point 1 -->
+<div class="flex items-start gap-space-sm p-space-md rounded-xl bg-surface-soft">
+<div class="w-7 h-7 rounded-full bg-status-success-bg text-status-success-text flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+</div>
+<div class="space-y-0.5">
+<h4 class="font-label-md text-label-md text-on-surface font-semibold">Invisible Watermark Detected</h4>
+<p class="font-body-sm text-body-sm text-secondary">
+                Invisible forensic watermark detected (<strong class="text-on-surface font-medium">#TMA-8921 matched at 99.4% signal strength</strong>).
+              </p>
+</div>
+</div>
+<!-- Point 2 -->
+<div class="flex items-start gap-space-sm p-space-md rounded-xl bg-surface-soft">
+<div class="w-7 h-7 rounded-full bg-status-success-bg text-status-success-text flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">brush</span>
+</div>
+<div class="space-y-0.5">
+<h4 class="font-label-md text-label-md text-on-surface font-semibold">Composition &amp; Brushwork</h4>
+<p class="font-body-sm text-body-sm text-secondary">
+                Composition and brushwork structure <strong class="text-on-surface font-medium">match 92%</strong> despite crop and heavy color compression.
+              </p>
+</div>
+</div>
+<!-- Point 3 -->
+<div class="flex items-start gap-space-sm p-space-md rounded-xl bg-surface-soft">
+<div class="w-7 h-7 rounded-full bg-status-success-bg text-status-success-text flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">hub</span>
+</div>
+<div class="space-y-0.5">
+<h4 class="font-label-md text-label-md text-on-surface font-semibold">Cryptographic Lineage</h4>
+<p class="font-body-sm text-body-sm text-secondary">
+                File metadata stripped, but perceptual cryptographic hash confirms <strong class="text-on-surface font-medium">direct master lineage</strong>.
+              </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Footer and Cryptographic Timestamp -->
+<div class="pt-space-md flex flex-col md:flex-row items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm w-full md:w-auto">
+<!-- Primary Pill Button -->
+<button class="flex-1 md:flex-none h-11 px-6 rounded-full bg-primary-container hover:bg-primary-hover text-on-primary font-label-lg text-label-lg font-semibold flex items-center justify-center gap-2 shadow-sm transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">flag</span>
+<span>Save to Matches &amp; prepare takedown</span>
+</button>
+<!-- Secondary Pill Button -->
+<button class="flex-1 md:flex-none h-11 px-5 rounded-full bg-surface-soft hover:bg-surface-container text-on-surface font-label-lg text-label-lg font-semibold flex items-center justify-center gap-2 transition-colors" onclick="resetVerificationState()" type="button">
+<span class="material-symbols-outlined text-[18px]">refresh</span>
+<span>Check another image</span>
+</button>
+</div>
+<!-- Verified Timestamp & Audit Trace -->
+<div class="flex items-center gap-2 text-secondary font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-outline text-[16px]">schedule</span>
+<span>TraceMyAssets verification timestamp: <strong>24 Oct 2024, 14:32 UTC</strong> · SHA-256 fingerprint verified</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Interactive JavaScript -->
+<script>
+    function selectArtwork(element, title, id, dimensions) {
+      // Deactivate all sibling cards
+      const cards = document.querySelectorAll('.artwork-card');
+      cards.forEach(card => {
+        card.classList.remove('bg-surface-container-low', 'shadow-sm');
+        card.classList.add('bg-surface-soft');
+        const checkIcon = card.querySelector('.check-icon');
+        if (checkIcon) checkIcon.classList.add('hidden');
+      });
+
+      // Activate clicked card
+      element.classList.remove('bg-surface-soft');
+      element.classList.add('bg-surface-container-low', 'shadow-sm');
+      const activeCheck = element.querySelector('.check-icon');
+      if (activeCheck) activeCheck.classList.remove('hidden');
+    }
+
+    function resetVerificationState() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</div></main><footer class="w-full bg-surface-base border-t border-border-subtle py-space-xl"><div class="max-w-7xl mx-auto px-gutter flex flex-col md:flex-row items-center justify-between gap-space-md text-on-surface-variant font-body-sm text-body-sm"><div class="flex items-center gap-space-sm"><span class="font-headline-sm text-headline-sm text-on-surface">TraceMyAssets</span><span class="text-outline-variant">•</span><span>Forensic Visual Registry &amp; Copyright Protection</span></div><div class="flex items-center gap-space-lg"><a class="hover:text-on-surface transition-colors" href="#">Documentation</a><a class="hover:text-on-surface transition-colors" href="#">Security Standards</a><a class="hover:text-on-surface transition-colors" href="#">Terms of Service</a><a class="hover:text-on-surface transition-colors" href="#">Privacy Policy</a></div></div></footer></body></html>

@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Outfit:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "primary-fixed": "#dce1ff", "surface-container": "#e7eeff", "on-surface-variant": "#434655", "status-warning-text": "#B45309", "outline": "#747686", "primary-fixed-dim": "#b7c4ff", "status-muted-bg": "#F1F2F5", "inverse-surface": "#283140", "on-primary-fixed-variant": "#0039b5", "status-danger-text": "#DC2626", "on-secondary-container": "#5c647a", "primary": "#0037b0", "tertiary-fixed-dim": "#63dca6", "on-primary-fixed": "#001551", "inverse-primary": "#b7c4ff", "surface-base": "#FFFFFF", "status-danger-bg": "#FDECEC", "border-subtle": "#E6E8F0", "on-error": "#ffffff", "on-tertiary-fixed-variant": "#005236", "on-surface": "#131c2a", "secondary-container": "#dae2fd", "surface-container-lowest": "#ffffff", "surface-container-high": "#dfe8fd", "on-tertiary": "#ffffff", "secondary": "#565e74", "surface-container-low": "#f0f3ff", "surface-tint": "#2151da", "secondary-fixed-dim": "#bec6e0", "status-success-bg": "#E7F8F1", "surface-variant": "#dae3f7", "tertiary-container": "#006a47", "on-error-container": "#93000a", "tertiary-fixed": "#81f9c1", "secondary-fixed": "#dae2fd", "on-tertiary-container": "#73ecb4", "primary-container": "#1d4ed8", "on-background": "#131c2a", "surface-soft": "#F5F7FB", "surface": "#f9f9ff", "on-tertiary-fixed": "#002113", "primary-hover": "#1E40AF", "inverse-on-surface": "#ebf1ff", "on-secondary": "#ffffff", "status-muted-text": "#6B7280", "surface-dim": "#d1daee", "outline-variant": "#c4c5d7", "on-secondary-fixed": "#131b2e", "on-primary": "#ffffff", "status-warning-bg": "#FEF3E2", "surface-bright": "#f9f9ff", "status-success-text": "#0E9F6E", "tertiary": "#004f35", "surface-container-highest": "#dae3f7", "on-secondary-fixed-variant": "#3f465c", "dark-band": "#0B0F19", "primary-soft": "#E8EEFF", "on-primary-container": "#cad3ff", "error": "#ba1a1a", "background": "#f9f9ff", "error-container": "#ffdad6" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-2xl": "4rem", "margin-desktop": "3rem", "margin-mobile": "1rem", "space-xl": "2.5rem", "space-md": "1rem", "space-sm": "0.5rem", "margin": "2rem", "space-lg": "1.5rem", "space-xs": "0.25rem", "gutter": "1.5rem", "gutter-mobile": "1rem" }, "fontFamily": { "metric-num": [ "Inter" ], "label-md": [ "Inter" ], "headline-md": [ "Outfit" ], "headline-sm": [ "Outfit" ], "headline-lg": [ "Outfit" ], "headline-lg-mobile": [ "Outfit" ], "body-lg": [ "Inter" ], "body-sm": [ "Inter" ], "body-md": [ "Inter" ], "display-hero-mobile": [ "Outfit" ], "label-lg": [ "Inter" ], "display-hero": [ "Outfit" ] }, "fontSize": { "metric-num": [ "28px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" } ], "label-md": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600" } ], "headline-md": [ "24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" } ], "headline-sm": [ "18px", { "lineHeight": "26px", "letterSpacing": "-0.005em", "fontWeight": "600" } ], "headline-lg": [ "40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "headline-lg-mobile": [ "28px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "700" } ], "body-lg": [ "16px", { "lineHeight": "24px", "fontWeight": "400" } ], "body-sm": [ "13px", { "lineHeight": "18px", "fontWeight": "400" } ], "body-md": [ "15px", { "lineHeight": "22px", "fontWeight": "400" } ], "display-hero-mobile": [ "36px", { "lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "700" } ], "label-lg": [ "14px", { "lineHeight": "20px", "fontWeight": "600" } ], "display-hero": [ "56px", { "lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "700" } ] } } } }</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 z-50 bg-surface-base shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full max-w-[1280px] mx-auto px-gutter flex items-center justify-between gap-gutter"><div class="flex items-center gap-space-sm"><a class="flex items-center gap-space-sm" data-path="home" href="#"><span class="material-symbols-outlined text-primary text-[26px]">shield</span><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight">TraceMyAssets</span></a></div><nav class="hidden md:flex items-center gap-space-xl" data-active-classes="text-primary font-label-lg font-semibold"><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors" data-path="how-it-works" href="#">How it works</a><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors" data-path="pricing" href="#">Pricing</a><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors" data-path="help" href="#">Help</a></nav><div class="flex items-center gap-space-md"><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors px-space-sm py-space-xs" data-path="sign-in" href="#">Sign in</a><a class="h-11 px-space-lg rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg flex items-center justify-center gap-space-xs hover:bg-primary-hover transition-colors shadow-[0_10px_25px_-5px_rgba(15,23,42,0.04)]" data-path="sign-up" href="#"><span>Start free</span><span class="material-symbols-outlined text-[16px]">arrow_forward</span></a></div></div></header><main class="w-full pt-16 bg-surface min-h-[calc(100vh-16rem)]"><div class="flex flex-col w-full">
+<!-- Interactive Billing Script -->
+<script>
+    function toggleBilling(period) {
+      const isYearly = period === 'yearly';
+      const monthlyBtn = document.getElementById('billing-toggle-monthly');
+      const yearlyBtn = document.getElementById('billing-toggle-yearly');
+      
+      if (isYearly) {
+        monthlyBtn.classList.remove('bg-surface-base', 'text-on-surface', 'shadow-sm');
+        monthlyBtn.classList.add('text-on-surface-variant');
+        yearlyBtn.classList.add('bg-surface-base', 'text-on-surface', 'shadow-sm');
+        yearlyBtn.classList.remove('text-on-surface-variant');
+      } else {
+        yearlyBtn.classList.remove('bg-surface-base', 'text-on-surface', 'shadow-sm');
+        yearlyBtn.classList.add('text-on-surface-variant');
+        monthlyBtn.classList.add('bg-surface-base', 'text-on-surface', 'shadow-sm');
+        monthlyBtn.classList.remove('text-on-surface-variant');
+      }
+
+      document.querySelectorAll('.price-monthly').forEach(el => {
+        el.style.display = isYearly ? 'none' : 'inline-flex';
+      });
+      document.querySelectorAll('.price-yearly').forEach(el => {
+        el.style.display = isYearly ? 'inline-flex' : 'none';
+      });
+      document.querySelectorAll('.period-suffix').forEach(el => {
+        el.textContent = isYearly ? '/ month, billed yearly' : '/ month';
+      });
+    }
+
+    function toggleFaq(index) {
+      const answer = document.getElementById('faq-ans-' + index);
+      const icon = document.getElementById('faq-icon-' + index);
+      const isOpen = !answer.classList.contains('hidden');
+      
+      if (isOpen) {
+        answer.classList.add('hidden');
+        icon.textContent = 'add';
+        icon.classList.remove('rotate-45');
+      } else {
+        answer.classList.remove('hidden');
+        icon.textContent = 'remove';
+        icon.classList.add('rotate-45');
+      }
+    }
+  </script>
+<!-- Section 1: Hero & Billing Toggle -->
+<section class="w-full max-w-[1280px] mx-auto px-gutter pt-space-2xl pb-space-xl flex flex-col items-center text-center">
+<!-- Trust Pill Badge -->
+<div class="inline-flex items-center gap-space-xs px-space-md py-1 rounded-full bg-surface-soft text-on-surface-variant font-label-md text-label-md mb-space-md shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-primary">verified_user</span>
+<span>Forensic verification &amp; DMCA workflow</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight max-w-[820px] mb-space-sm">
+      Simple plans for working artists
+    </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-[620px] mb-space-xl">
+      Choose the level of vigilance that matches your catalog. Upgrade, downgrade, or cancel anytime.
+    </p>
+<!-- Billing Period Toggle -->
+<div class="p-1 rounded-full bg-surface-soft flex items-center gap-1 shadow-sm">
+<button class="h-10 px-space-lg rounded-full font-label-lg text-label-lg bg-surface-base text-on-surface shadow-sm transition-all duration-200" id="billing-toggle-monthly" onclick="toggleBilling('monthly')" type="button">
+        Monthly
+      </button>
+<button class="h-10 px-space-lg rounded-full font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface flex items-center gap-space-xs transition-all duration-200" id="billing-toggle-yearly" onclick="toggleBilling('yearly')" type="button">
+<span>Yearly</span>
+<span class="px-2 py-0.5 rounded-full bg-status-success-bg text-status-success-text font-label-md text-[11px] leading-tight">
+          Save ~23%
+        </span>
+</button>
+</div>
+</section>
+<!-- Section 2: Three Main Subscription Cards -->
+<section class="w-full max-w-[1280px] mx-auto px-gutter pb-space-2xl">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter items-stretch">
+<!-- Plan 1: Free -->
+<div class="flex flex-col justify-between bg-surface-base rounded-[16px] p-space-xl shadow-sm hover:shadow-md transition-shadow">
+<div>
+<div class="flex items-center justify-between mb-space-xs">
+<h2 class="font-headline-md text-headline-md text-on-surface">Free</h2>
+<span class="px-2.5 py-1 rounded-full bg-surface-soft text-on-surface-variant font-label-md text-label-md">Starter</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant min-h-[40px] mb-space-lg">
+            Essential defense for individual creators starting out.
+          </p>
+<!-- Pricing Amount -->
+<div class="flex items-baseline gap-1 mb-space-xl">
+<span class="font-headline-lg text-[44px] leading-tight text-on-surface font-bold font-metric-num">$0</span>
+<span class="font-label-md text-label-md text-on-surface-variant">/ month</span>
+</div>
+<!-- Bullet Features -->
+<ul class="flex flex-col gap-space-md mb-space-xl">
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span><strong class="font-semibold text-on-surface">Up to 3</strong> artworks protected</span>
+</li>
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span><strong class="font-semibold text-on-surface">5 hand-started</strong> scans a month</span>
+</li>
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span>Automatic weekly or monthly scans</span>
+</li>
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span><strong class="font-semibold text-on-surface">3 Deep scan credits</strong> (starter bonus)</span>
+</li>
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span>Visual match indicators &amp; strength score</span>
+</li>
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px] text-outline shrink-0 mt-0.5">info</span>
+<span>Host blurred on Free (domain level only)</span>
+</li>
+</ul>
+</div>
+<div class="flex flex-col items-center gap-space-xs pt-space-md">
+<a class="w-full h-11 rounded-full bg-surface-soft hover:bg-surface-container text-on-surface font-label-lg text-label-lg flex items-center justify-center transition-colors" href="#">
+            Start free
+          </a>
+<span class="font-label-md text-label-md text-outline">No credit card required</span>
+</div>
+</div>
+<!-- Plan 2: Pro (Elevated & Highlighted) -->
+<div class="relative flex flex-col justify-between bg-surface-base rounded-[16px] p-space-xl shadow-md transition-shadow">
+<!-- Floating Highlight Badge -->
+<div class="absolute -top-3.5 left-1/2 -translate-x-1/2">
+<span class="px-3.5 py-1 rounded-full bg-primary-container text-on-primary font-label-md text-label-md shadow-sm">
+            Most Popular
+          </span>
+</div>
+<div>
+<div class="flex items-center justify-between mb-space-xs pt-1">
+<h2 class="font-headline-md text-headline-md text-on-surface">Pro</h2>
+<span class="px-2.5 py-1 rounded-full bg-primary-soft text-primary font-label-md text-label-md font-semibold">Active Artist</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant min-h-[40px] mb-space-lg">
+            Full protection and direct takedown assistance for active artists.
+          </p>
+<!-- Pricing Amount with Dynamic Switching -->
+<div class="flex flex-col mb-space-xl">
+<div class="flex items-baseline gap-1">
+<span class="price-monthly font-headline-lg text-[44px] leading-tight text-on-surface font-bold font-metric-num">$12.99</span>
+<span class="price-yearly hidden font-headline-lg text-[44px] leading-tight text-on-surface font-bold font-metric-num">$10.00</span>
+<span class="period-suffix font-label-md text-label-md text-on-surface-variant">/ month</span>
+</div>
+<span class="price-yearly hidden font-label-md text-label-md text-status-success-text mt-0.5">$120 billed yearly (save $35.88)</span>
+</div>
+<!-- Bullet Features -->
+<ul class="flex flex-col gap-space-md mb-space-xl">
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span><strong class="font-semibold text-on-surface">Up to 40</strong> artworks protected</span>
+</li>
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span>Automatic daily, weekly, or monthly scans</span>
+</li>
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span><strong class="font-semibold text-on-surface">30 hand-started</strong> scans a month</span>
+</li>
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span><strong class="font-semibold text-on-surface">10 Deep scan credits</strong> every month (rolls over)</span>
+</li>
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span>Direct shop URLs &amp; specific infringement links</span>
+</li>
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span>Ready-written DMCA notices &amp; step-by-step guides</span>
+</li>
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span>Priority crawling queue for faster detection</span>
+</li>
+</ul>
+</div>
+<div class="flex flex-col items-center gap-space-xs pt-space-md">
+<a class="w-full h-11 rounded-full bg-primary-container hover:bg-primary-hover text-on-primary font-label-lg text-label-lg flex items-center justify-center gap-space-xs shadow-md transition-colors" href="#">
+<span>Choose Pro</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+<span class="font-label-md text-label-md text-outline">14-day money-back guarantee</span>
+</div>
+</div>
+<!-- Plan 3: Extra -->
+<div class="flex flex-col justify-between bg-surface-base rounded-[16px] p-space-xl shadow-sm hover:shadow-md transition-shadow">
+<div>
+<div class="flex items-center justify-between mb-space-xs">
+<h2 class="font-headline-md text-headline-md text-on-surface">Extra</h2>
+<span class="px-2.5 py-1 rounded-full bg-surface-soft text-on-surface-variant font-label-md text-label-md">Studio</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant min-h-[40px] mb-space-lg">
+            Maximum vigilance and speed for prolific studios and high-volume catalogs.
+          </p>
+<!-- Pricing Amount with Dynamic Switching -->
+<div class="flex flex-col mb-space-xl">
+<div class="flex items-baseline gap-1">
+<span class="price-monthly font-headline-lg text-[44px] leading-tight text-on-surface font-bold font-metric-num">$29.99</span>
+<span class="price-yearly hidden font-headline-lg text-[44px] leading-tight text-on-surface font-bold font-metric-num">$20.00</span>
+<span class="period-suffix font-label-md text-label-md text-on-surface-variant">/ month</span>
+</div>
+<span class="price-yearly hidden font-label-md text-label-md text-status-success-text mt-0.5">$240 billed yearly (save $119.88)</span>
+</div>
+<!-- Bullet Features -->
+<ul class="flex flex-col gap-space-md mb-space-xl">
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span><strong class="font-semibold text-on-surface">Up to 100</strong> artworks protected</span>
+</li>
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span><strong class="font-semibold text-on-surface">Everything in Pro</strong> included</span>
+</li>
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span><strong class="font-semibold text-on-surface">100 hand-started</strong> scans a month</span>
+</li>
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span><strong class="font-semibold text-on-surface">40 Deep scan credits</strong> every month</span>
+</li>
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span>High-frequency daily marketplace monitoring</span>
+</li>
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span>Multi-seat studio access (up to 3 team members)</span>
+</li>
+<li class="flex items-start gap-space-sm font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span>Dedicated specialist concierge support</span>
+</li>
+</ul>
+</div>
+<div class="flex flex-col items-center gap-space-xs pt-space-md">
+<a class="w-full h-11 rounded-full bg-surface-soft hover:bg-surface-container text-on-surface font-label-lg text-label-lg flex items-center justify-center transition-colors" href="#">
+            Choose Extra
+          </a>
+<span class="font-label-md text-label-md text-outline">Flexible billing · Cancel anytime</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 3: Deep Scan Credit Packs -->
+<section class="w-full bg-surface-soft py-space-2xl">
+<div class="w-full max-w-[1280px] mx-auto px-gutter">
+<div class="flex flex-col items-center text-center max-w-[760px] mx-auto mb-space-xl">
+<div class="inline-flex items-center gap-space-xs px-space-md py-1 rounded-full bg-surface-base text-primary font-label-md text-label-md mb-space-sm shadow-sm">
+<span class="material-symbols-outlined text-[16px]">radar</span>
+<span>A-la-carte buffer</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface mb-space-xs">
+          Need more Deep scans?
+        </h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+          Deep scans search multi-layer neural index layers to find re-cropped, filtered, or heavily altered images. One-time purchase, instant activation, and credits never expire.
+        </p>
+</div>
+<!-- 3 Credit Pack Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-space-lg">
+<!-- Starter Pack -->
+<div class="bg-surface-base rounded-[16px] p-space-lg flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
+<div>
+<div class="flex items-center justify-between mb-space-sm">
+<span class="font-headline-sm text-headline-sm text-on-surface">Starter Pack</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-soft text-on-surface-variant font-label-md text-label-md">On-demand</span>
+</div>
+<div class="flex items-baseline gap-space-xs mb-space-xs">
+<span class="font-headline-lg text-headline-lg text-on-surface font-metric-num">$4.99</span>
+<span class="font-label-md text-label-md text-outline">one-time</span>
+</div>
+<div class="flex items-center gap-space-sm text-on-surface-variant font-body-sm text-body-sm mb-space-lg">
+<span class="font-semibold text-primary">10 credits</span>
+<span>·</span>
+<span>$0.50 per scan</span>
+</div>
+</div>
+<a class="w-full h-11 rounded-full bg-surface-soft hover:bg-surface-container text-on-surface font-label-lg text-label-lg flex items-center justify-center transition-colors" href="#">
+            Buy 10 credits
+          </a>
+</div>
+<!-- Studio Standard Pack (Popular) -->
+<div class="relative bg-surface-base rounded-[16px] p-space-lg flex flex-col justify-between shadow-md transition-shadow">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2">
+<span class="px-3 py-0.5 rounded-full bg-primary-container text-on-primary font-label-md text-[11px] font-semibold shadow-sm">
+              Best Value
+            </span>
+</div>
+<div class="pt-1">
+<div class="flex items-center justify-between mb-space-sm">
+<span class="font-headline-sm text-headline-sm text-on-surface">Studio Standard</span>
+<span class="px-2 py-0.5 rounded-full bg-primary-soft text-primary font-label-md text-label-md font-semibold">25 Scans</span>
+</div>
+<div class="flex items-baseline gap-space-xs mb-space-xs">
+<span class="font-headline-lg text-headline-lg text-on-surface font-metric-num">$9.99</span>
+<span class="font-label-md text-label-md text-outline">one-time</span>
+</div>
+<div class="flex items-center gap-space-sm text-on-surface-variant font-body-sm text-body-sm mb-space-lg">
+<span class="font-semibold text-primary">25 credits</span>
+<span>·</span>
+<span>$0.40 per scan</span>
+</div>
+</div>
+<a class="w-full h-11 rounded-full bg-primary-container hover:bg-primary-hover text-on-primary font-label-lg text-label-lg flex items-center justify-center shadow-sm transition-colors" href="#">
+            Buy 25 credits
+          </a>
+</div>
+<!-- Agency Reserve Pack -->
+<div class="bg-surface-base rounded-[16px] p-space-lg flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
+<div>
+<div class="flex items-center justify-between mb-space-sm">
+<span class="font-headline-sm text-headline-sm text-on-surface">Agency Reserve</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-soft text-on-surface-variant font-label-md text-label-md">High Volume</span>
+</div>
+<div class="flex items-baseline gap-space-xs mb-space-xs">
+<span class="font-headline-lg text-headline-lg text-on-surface font-metric-num">$19.99</span>
+<span class="font-label-md text-label-md text-outline">one-time</span>
+</div>
+<div class="flex items-center gap-space-sm text-on-surface-variant font-body-sm text-body-sm mb-space-lg">
+<span class="font-semibold text-primary">60 credits</span>
+<span>·</span>
+<span>$0.33 per scan</span>
+</div>
+</div>
+<a class="w-full h-11 rounded-full bg-surface-soft hover:bg-surface-container text-on-surface font-label-lg text-label-lg flex items-center justify-center transition-colors" href="#">
+            Buy 60 credits
+          </a>
+</div>
+</div>
+<!-- Reassuring Pack Note -->
+<div class="flex items-center justify-center gap-space-xs text-center text-outline font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-status-success-text">lock_clock</span>
+<span>Non-expiring buffer · Credits remain in your vault across plan renewals or pauses.</span>
+</div>
+</div>
+</section>
+<!-- Section 4: Detailed Plan Comparison Table -->
+<section class="w-full max-w-[1280px] mx-auto px-gutter py-space-2xl">
+<div class="text-center max-w-[700px] mx-auto mb-space-xl">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-space-xs">
+        Compare all plans &amp; features
+      </h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+        A transparent breakdown of our forensic scanning, detection limits, and recovery tooling.
+      </p>
+</div>
+<!-- Table Container -->
+<div class="w-full bg-surface-base rounded-[16px] p-space-lg md:p-space-xl shadow-sm overflow-x-auto">
+<table class="w-full text-left border-collapse min-w-[640px]">
+<thead>
+<tr class="bg-surface-soft rounded-[12px]">
+<th class="p-space-md font-headline-sm text-headline-sm text-on-surface w-[40%] rounded-l-[12px]">Features</th>
+<th class="p-space-md font-headline-sm text-headline-sm text-on-surface text-center w-[20%]">Free</th>
+<th class="p-space-md font-headline-sm text-headline-sm text-primary text-center w-[20%]">Pro</th>
+<th class="p-space-md font-headline-sm text-headline-sm text-on-surface text-center w-[20%] rounded-r-[12px]">Extra</th>
+</tr>
+</thead>
+<tbody>
+<!-- Category 1: Capacity & Monitoring -->
+<tr>
+<td class="pt-space-lg pb-space-xs px-space-md font-label-lg text-label-lg text-primary uppercase tracking-wider bg-surface-container-low/40" colspan="4">
+              Capacity &amp; Monitoring
+            </td>
+</tr>
+<tr class="hover:bg-surface-soft/60 transition-colors">
+<td class="p-space-md font-body-sm text-body-sm text-on-surface">Protected artworks in catalog</td>
+<td class="p-space-md font-body-sm text-body-sm text-center text-on-surface-variant">3 artworks</td>
+<td class="p-space-md font-body-sm text-body-sm text-center font-semibold text-primary">40 artworks</td>
+<td class="p-space-md font-body-sm text-body-sm text-center text-on-surface">100 artworks</td>
+</tr>
+<tr class="hover:bg-surface-soft/60 transition-colors">
+<td class="p-space-md font-body-sm text-body-sm text-on-surface">Automated background scan frequency</td>
+<td class="p-space-md font-body-sm text-body-sm text-center text-on-surface-variant">Weekly / Monthly</td>
+<td class="p-space-md font-body-sm text-body-sm text-center font-semibold text-primary">Daily, Weekly, Monthly</td>
+<td class="p-space-md font-body-sm text-body-sm text-center text-on-surface">High-frequency Daily</td>
+</tr>
+<tr class="hover:bg-surface-soft/60 transition-colors">
+<td class="p-space-md font-body-sm text-body-sm text-on-surface">Monthly manual / hand-started web checks</td>
+<td class="p-space-md font-body-sm text-body-sm text-center text-on-surface-variant">5 / month</td>
+<td class="p-space-md font-body-sm text-body-sm text-center font-semibold text-primary">30 / month</td>
+<td class="p-space-md font-body-sm text-body-sm text-center text-on-surface">100 / month</td>
+</tr>
+<tr class="hover:bg-surface-soft/60 transition-colors">
+<td class="p-space-md font-body-sm text-body-sm text-on-surface">Deep scan credits included</td>
+<td class="p-space-md font-body-sm text-body-sm text-center text-on-surface-variant">3 once (starter)</td>
+<td class="p-space-md font-body-sm text-body-sm text-center font-semibold text-primary">10 / month (rolls over)</td>
+<td class="p-space-md font-body-sm text-body-sm text-center text-on-surface">40 / month (rolls over)</td>
+</tr>
+<!-- Category 2: Forensic Detection & Evidence -->
+<tr>
+<td class="pt-space-lg pb-space-xs px-space-md font-label-lg text-label-lg text-primary uppercase tracking-wider bg-surface-container-low/40" colspan="4">
+              Forensic Detection &amp; Evidence
+            </td>
+</tr>
+<tr class="hover:bg-surface-soft/60 transition-colors">
+<td class="p-space-md font-body-sm text-body-sm text-on-surface">Invisible pixel-embedded forensic watermarking</td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-status-success-text">check</span></td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-status-success-text">check</span></td>
+</tr>
+<tr class="hover:bg-surface-soft/60 transition-colors">
+<td class="p-space-md font-body-sm text-body-sm text-on-surface">Cryptographic SHA-256 fingerprint registry</td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-status-success-text">check</span></td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-status-success-text">check</span></td>
+</tr>
+<tr class="hover:bg-surface-soft/60 transition-colors">
+<td class="p-space-md font-body-sm text-body-sm text-on-surface">Crop &amp; heavy compression survivability (70%+)</td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-status-success-text">check</span></td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-status-success-text">check</span></td>
+</tr>
+<tr class="hover:bg-surface-soft/60 transition-colors">
+<td class="p-space-md font-body-sm text-body-sm text-on-surface">Visual similarity scoring</td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-status-success-text">check</span></td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-status-success-text">check</span></td>
+</tr>
+<tr class="hover:bg-surface-soft/60 transition-colors">
+<td class="p-space-md font-body-sm text-body-sm text-on-surface">Exact match URL visibility</td>
+<td class="p-space-md font-body-sm text-body-sm text-center text-on-surface-variant">Domain-only (blurred)</td>
+<td class="p-space-md font-body-sm text-body-sm text-center font-semibold text-primary">Full direct URLs</td>
+<td class="p-space-md font-body-sm text-body-sm text-center text-on-surface">Full direct URLs</td>
+</tr>
+<tr class="hover:bg-surface-soft/60 transition-colors">
+<td class="p-space-md font-body-sm text-body-sm text-on-surface">Court-admissible timestamp proof package</td>
+<td class="p-space-md font-body-sm text-body-sm text-center text-on-surface-variant">Summary only</td>
+<td class="p-space-md font-body-sm text-body-sm text-center font-semibold text-primary">Full RFC 3161 package</td>
+<td class="p-space-md font-body-sm text-body-sm text-center text-on-surface">Full RFC 3161 package</td>
+</tr>
+<!-- Category 3: Action & Takedowns -->
+<tr>
+<td class="pt-space-lg pb-space-xs px-space-md font-label-lg text-label-lg text-primary uppercase tracking-wider bg-surface-container-low/40" colspan="4">
+              Action &amp; Takedowns
+            </td>
+</tr>
+<tr class="hover:bg-surface-soft/60 transition-colors">
+<td class="p-space-md font-body-sm text-body-sm text-on-surface">Ready-written DMCA infringement notices</td>
+<td class="p-space-md font-body-sm text-body-sm text-center text-on-surface-variant">Basic draft</td>
+<td class="p-space-md font-body-sm text-body-sm text-center font-semibold text-primary">Customized templates</td>
+<td class="p-space-md font-body-sm text-body-sm text-center text-on-surface">Customized templates</td>
+</tr>
+<tr class="hover:bg-surface-soft/60 transition-colors">
+<td class="p-space-md font-body-sm text-body-sm text-on-surface">Marketplace-specific submission guides</td>
+<td class="p-space-md text-center text-outline"><span class="material-symbols-outlined text-[18px]">remove</span></td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-status-success-text">check</span></td>
+</tr>
+<tr class="hover:bg-surface-soft/60 transition-colors">
+<td class="p-space-md font-body-sm text-body-sm text-on-surface">Takedown tracking dashboard</td>
+<td class="p-space-md text-center text-outline"><span class="material-symbols-outlined text-[18px]">remove</span></td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-status-success-text">check</span></td>
+</tr>
+<tr class="hover:bg-surface-soft/60 transition-colors">
+<td class="p-space-md font-body-sm text-body-sm text-on-surface">Priority crawler re-check after takedown</td>
+<td class="p-space-md text-center text-outline"><span class="material-symbols-outlined text-[18px]">remove</span></td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-status-success-text">check</span></td>
+</tr>
+<!-- Category 4: Support & Account -->
+<tr>
+<td class="pt-space-lg pb-space-xs px-space-md font-label-lg text-label-lg text-primary uppercase tracking-wider bg-surface-container-low/40" colspan="4">
+              Support &amp; Account
+            </td>
+</tr>
+<tr class="hover:bg-surface-soft/60 transition-colors">
+<td class="p-space-md font-body-sm text-body-sm text-on-surface">Community documentation &amp; guides</td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-status-success-text">check</span></td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-primary">check</span></td>
+<td class="p-space-md text-center"><span class="material-symbols-outlined text-[18px] text-status-success-text">check</span></td>
+</tr>
+<tr class="hover:bg-surface-soft/60 transition-colors">
+<td class="p-space-md font-body-sm text-body-sm text-on-surface">Email artist support</td>
+<td class="p-space-md font-body-sm text-body-sm text-center text-on-surface-variant">Standard</td>
+<td class="p-space-md font-body-sm text-body-sm text-center font-semibold text-primary">Priority (&lt; 12h)</td>
+<td class="p-space-md font-body-sm text-body-sm text-center text-on-surface">Dedicated Concierge</td>
+</tr>
+<tr class="hover:bg-surface-soft/60 transition-colors">
+<td class="p-space-md font-body-sm text-body-sm text-on-surface">Multi-seat studio team access</td>
+<td class="p-space-md text-center text-outline"><span class="material-symbols-outlined text-[18px]">remove</span></td>
+<td class="p-space-md text-center text-outline"><span class="material-symbols-outlined text-[18px]">remove</span></td>
+<td class="p-space-md font-body-sm text-body-sm text-center font-semibold text-on-surface">3 seats included</td>
+</tr>
+</tbody>
+</table>
+<!-- Small print under comparison table -->
+<div class="mt-space-lg pt-space-md flex items-center justify-between flex-wrap gap-space-sm text-outline font-label-md text-label-md">
+<span>Prices in US dollars; applicable VAT or sales taxes calculated at checkout.</span>
+<span>Need custom enterprise catalog ingestion? <a class="text-primary hover:underline" href="#">Contact our studio team</a></span>
+</div>
+</div>
+</section>
+<!-- Section 5: Frequently Asked Questions -->
+<section class="w-full bg-surface-soft py-space-2xl">
+<div class="w-full max-w-[860px] mx-auto px-gutter">
+<div class="text-center mb-space-xl">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-space-xs">
+          Frequently asked questions
+        </h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+          Everything you need to know about forensic visual protection, billing, and takedown procedures.
+        </p>
+</div>
+<!-- Accordion Items -->
+<div class="flex flex-col gap-space-sm">
+<!-- FAQ 1 -->
+<div class="bg-surface-base rounded-[12px] p-space-md shadow-sm cursor-pointer" onclick="toggleFaq(1)">
+<div class="flex items-center justify-between gap-space-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Can I change or cancel my plan at any time?</h3>
+<span class="material-symbols-outlined text-outline shrink-0 transition-transform" id="faq-icon-1">add</span>
+</div>
+<p class="hidden font-body-md text-body-md text-on-surface-variant pt-space-sm" id="faq-ans-1">
+            Yes. You can upgrade, downgrade, or cancel whenever you like from your Account settings. If you cancel, your plan remains fully active until the end of the current billing cycle, and your protected artworks remain registered in our cryptographic timestamp ledger.
+          </p>
+</div>
+<!-- FAQ 2 -->
+<div class="bg-surface-base rounded-[12px] p-space-md shadow-sm cursor-pointer" onclick="toggleFaq(2)">
+<div class="flex items-center justify-between gap-space-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">What happens if I exceed my artwork limit?</h3>
+<span class="material-symbols-outlined text-outline shrink-0 transition-transform" id="faq-icon-2">add</span>
+</div>
+<p class="hidden font-body-md text-body-md text-on-surface-variant pt-space-sm" id="faq-ans-2">
+            You can keep your existing artworks protected and monitored. To add new pieces to the automated watcher, you can either upgrade to a higher tier or archive older artworks that no longer require continuous daily surveillance.
+          </p>
+</div>
+<!-- FAQ 3 -->
+<div class="bg-surface-base rounded-[12px] p-space-md shadow-sm cursor-pointer" onclick="toggleFaq(3)">
+<div class="flex items-center justify-between gap-space-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Do Deep scan credits expire?</h3>
+<span class="material-symbols-outlined text-outline shrink-0 transition-transform" id="faq-icon-3">add</span>
+</div>
+<p class="hidden font-body-md text-body-md text-on-surface-variant pt-space-sm" id="faq-ans-3">
+            No. Deep scan credits never expire and roll over indefinitely, even if you pause or change your subscription plan. They sit safely in your forensic vault until you trigger a deep crawl.
+          </p>
+</div>
+<!-- FAQ 4 -->
+<div class="bg-surface-base rounded-[12px] p-space-md shadow-sm cursor-pointer" onclick="toggleFaq(4)">
+<div class="flex items-center justify-between gap-space-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">What is the difference between Standard scan and Deep scan?</h3>
+<span class="material-symbols-outlined text-outline shrink-0 transition-transform" id="faq-icon-4">add</span>
+</div>
+<p class="hidden font-body-md text-body-md text-on-surface-variant pt-space-sm" id="faq-ans-4">
+            Standard scans monitor public search indexes for visual matches and watermark traces. Deep scans employ high-entropy neural models that penetrate deeper into marketplace sub-catalogs and detect severely cropped, color-shifted, mirror-flipped, or heavily filtered copies.
+          </p>
+</div>
+<!-- FAQ 5 -->
+<div class="bg-surface-base rounded-[12px] p-space-md shadow-sm cursor-pointer" onclick="toggleFaq(5)">
+<div class="flex items-center justify-between gap-space-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Does TraceMyAssets take any percentage from settlements or sales?</h3>
+<span class="material-symbols-outlined text-outline shrink-0 transition-transform" id="faq-icon-5">add</span>
+</div>
+<p class="hidden font-body-md text-body-md text-on-surface-variant pt-space-sm" id="faq-ans-5">
+            Never. We are a software utility that gives you the evidentiary tools and proof. We never contact platforms on our own behalf or take a cut of your takedown, licensing resolutions, or copyright settlements.
+          </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 6: Bottom Call to Action Card -->
+<section class="w-full max-w-[1280px] mx-auto px-gutter py-space-2xl">
+<div class="w-full bg-primary-container rounded-[20px] p-space-xl md:p-space-2xl text-on-primary flex flex-col md:flex-row items-center justify-between gap-space-xl shadow-xl relative overflow-hidden">
+<!-- Ambient Visual Elements Inside Container -->
+<div class="absolute -right-24 -bottom-24 w-96 h-96 rounded-full bg-primary-hover/40 blur-3xl pointer-events-none"></div>
+<div class="absolute -left-12 -top-12 w-64 h-64 rounded-full bg-surface-container-highest/10 blur-2xl pointer-events-none"></div>
+<div class="flex flex-col gap-space-xs text-center md:text-left relative z-10 max-w-[620px]">
+<div class="inline-flex items-center gap-space-xs text-on-primary-container font-label-md text-label-md">
+<span class="material-symbols-outlined text-[16px]">security</span>
+<span>Zero risk trial</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-primary tracking-tight">
+          Your art deserves to be watched.
+        </h2>
+<p class="font-body-lg text-body-lg text-on-primary-container">
+          Start protecting your creative catalog in under 2 minutes. No credit card required.
+        </p>
+</div>
+<div class="flex flex-col sm:flex-row items-center gap-space-md shrink-0 relative z-10 w-full md:w-auto">
+<a class="w-full sm:w-auto h-12 px-space-xl rounded-full bg-surface-base text-primary font-label-lg text-label-lg flex items-center justify-center gap-space-xs hover:bg-surface-soft shadow-md transition-all" href="#">
+<span>Protect your first artwork</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</a>
+</div>
+</div>
+</section>
+</div></main><footer class="w-full bg-surface-base shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="w-full max-w-[1280px] mx-auto px-gutter py-space-xl"><div class="flex flex-col items-center justify-center gap-space-md text-center"><nav class="flex flex-wrap items-center justify-center gap-x-space-md gap-y-space-xs text-on-surface-variant font-label-md text-label-md" data-active-classes="text-primary font-semibold"><a class="hover:text-on-surface transition-colors" data-path="about" href="#">About</a><span class="text-outline-variant">·</span><a class="hover:text-on-surface transition-colors" data-path="pricing" href="#">Pricing</a><span class="text-outline-variant">·</span><a class="hover:text-on-surface transition-colors" data-path="help" href="#">Help</a><span class="text-outline-variant">·</span><a class="hover:text-on-surface transition-colors" data-path="privacy" href="#">Privacy</a><span class="text-outline-variant">·</span><a class="hover:text-on-surface transition-colors" data-path="terms" href="#">Terms</a><span class="text-outline-variant">·</span><a class="hover:text-on-surface transition-colors" data-path="refunds" href="#">Refunds</a><span class="text-outline-variant">·</span><a class="hover:text-on-surface transition-colors" data-path="support" href="#">Support</a></nav><div class="flex flex-col items-center gap-space-xs pt-space-xs"><p class="font-body-sm text-body-sm text-on-surface-variant tracking-normal">TraceMyAssets · Forensic Visual Registry &amp; Copyright Protection</p><p class="font-label-md text-label-md text-outline">© 2025 TraceMyAssets Inc. All rights reserved.</p></div></div></div></footer></body></html>

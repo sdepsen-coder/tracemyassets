@@ -84,7 +84,7 @@ export function AdminApp() {
             </p>
             <a
               href="/api/v1/auth/google/start"
-              className="mt-6 inline-block rounded-xl bg-[var(--primary-strong)] px-5 py-2.5 text-[14px] font-semibold text-white"
+              className="mt-6 inline-block rounded-xl bg-[var(--primary-strong)] px-5 py-2.5 text-[14px] font-semibold text-[var(--on-primary)]"
             >
               Continue with Google
             </a>

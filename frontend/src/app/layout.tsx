@@ -1,9 +1,5 @@
 import type { Metadata } from "next";
-import {
-  Inter,
-  JetBrains_Mono,
-  Plus_Jakarta_Sans,
-} from "next/font/google";
+import { Geist, IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 
 import { Analytics } from "@/components/Analytics";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
@@ -15,14 +11,15 @@ import {
 } from "@/lib/site";
 import "./globals.css";
 
-const inter = Inter({
+const geist = Geist({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-geist",
 });
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
-  variable: "--font-jakarta",
+  weight: ["300", "400", "500"],
+  variable: "--font-heading",
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -70,8 +67,8 @@ export default function RootLayout({
 
       <body
         className={[
-          inter.variable,
-          plusJakartaSans.variable,
+          geist.variable,
+          plexSans.variable,
           jetbrainsMono.variable,
           "font-sans",
         ].join(" ")}

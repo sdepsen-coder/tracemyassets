@@ -4,11 +4,26 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { AuthGate, useAuth } from "@/components/AuthGate";
-import { Topbar } from "@/components/dashboard/Topbar";
-import { SiteFooter } from "@/components/SiteFooter";
+import { AppShell, PageTitle } from "@/components/app/ui";
 import { CreditPacks } from "@/components/billing/CreditPacks";
-import { api, ApiError, type BillingConfig, type BillingStatus } from "@/lib/api";
+import {
+  api,
+  ApiError,
+  type AssetStats,
+  type BillingConfig,
+  type BillingStatus,
+  type UsageInfo,
+} from "@/lib/api";
 import { CONTACT_EMAIL } from "@/lib/site";
+
+// Artworks that can be on automatic scans, per plan (backend
+// core/plan_limits.py, max_monitored_assets). Internal has no limit.
+const ARTWORK_LIMITS: Record<string, number | null> = {
+  Free: 3,
+  Pro: 40,
+  Extra: 100,
+  Internal: null,
+};
 
 function formatDay(value: string | null): string {
   if (!value) return "";
@@ -108,9 +123,9 @@ function SubscriptionSection({ planType }: { planType: string }) {
   return (
     <section
       data-testid="subscription-section"
-      className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-card"
+      className="glass rounded-card border border-[var(--border)] p-6 sm:p-7"
     >
-      <h2 className="text-lg font-semibold">Subscription</h2>
+      <h2 className="font-heading text-[24px] font-light tracking-[-0.02em]">Subscription</h2>
 
       {waiting ? (
         <p
@@ -159,7 +174,7 @@ function SubscriptionSection({ planType }: { planType: string }) {
             data-testid="manage-subscription"
             disabled={busy}
             onClick={() => void manage()}
-            className="inline-flex h-10 items-center rounded-lg border border-[var(--border)] px-4 text-[13px] font-semibold text-[var(--text)] transition hover:bg-[var(--surface-muted)] disabled:opacity-60"
+            className="inline-flex h-10 items-center rounded-full border border-[var(--line-strong)] px-5 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text)] transition hover:bg-[var(--surface-muted)] disabled:opacity-60"
           >
             {busy ? "Opening..." : "Manage subscription"}
           </button>
@@ -250,9 +265,9 @@ function CreditsSection() {
   return (
     <section
       data-testid="credits-section"
-      className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-card"
+      className="glass rounded-card border border-[var(--border)] p-6 sm:p-7"
     >
-      <h2 className="text-lg font-semibold">Deep scan credits</h2>
+      <h2 className="font-heading text-[24px] font-light tracking-[-0.02em]">Deep scan credits</h2>
 
       {waiting ? (
         <p
@@ -323,8 +338,8 @@ function DownloadSection() {
   }
 
   return (
-    <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-6">
-      <h2 className="text-lg font-semibold">Download your data</h2>
+    <section className="glass rounded-card border border-[var(--border)] p-6 sm:p-7">
+      <h2 className="font-heading text-[24px] font-light tracking-[-0.02em]">Download your data</h2>
       <p className="mt-2 max-w-2xl text-[14px] leading-6 text-[var(--text-muted)]">
         A ZIP file with everything we hold about your account: your account
         details, artworks (with your original files and protected copies),
@@ -337,7 +352,7 @@ function DownloadSection() {
         data-testid="download-data"
         disabled={busy}
         onClick={() => void download()}
-        className="mt-4 inline-flex h-10 items-center rounded-lg bg-[var(--primary-strong)] px-4 text-[13px] font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 inline-flex h-10 items-center rounded-full bg-[var(--primary-strong)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {busy ? "Preparing your file..." : "Download my data"}
       </button>
@@ -386,8 +401,8 @@ function DeleteSection({ email, isAdmin }: { email: string; isAdmin: boolean }) 
   }
 
   return (
-    <section className="rounded-2xl border border-[var(--danger)]/40 bg-[var(--surface)] p-5 sm:p-6">
-      <h2 className="text-lg font-semibold text-[var(--danger)]">
+    <section className="glass rounded-card border border-[var(--danger)] p-6 sm:p-7">
+      <h2 className="font-heading text-[24px] font-light tracking-[-0.02em] text-[var(--danger)]">
         Delete your account
       </h2>
 
@@ -438,7 +453,7 @@ function DeleteSection({ email, isAdmin }: { email: string; isAdmin: boolean }) 
             data-testid="delete-account"
             disabled={!matches || busy}
             onClick={() => void remove()}
-            className="inline-flex h-10 items-center rounded-lg bg-[var(--danger)] px-4 text-[13px] font-semibold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-10 items-center rounded-full bg-[var(--danger)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busy ? "Deleting..." : "Delete my account permanently"}
           </button>
@@ -472,43 +487,198 @@ function DeleteSection({ email, isAdmin }: { email: string; isAdmin: boolean }) 
   );
 }
 
+const SECTIONS = [
+  { id: "plan", label: "Plan & credits" },
+  { id: "security", label: "Profile & security" },
+  { id: "data", label: "Your data" },
+];
+
+function UsageBar({ label, used, limit }: { label: string; used: number; limit: number | null }) {
+  const percent = limit ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+
+  return (
+    <div>
+      <div className="flex justify-between text-[14px]">
+        <span>{label}</span>
+        <span className="text-[var(--text-muted)]">
+          {limit === null ? `${used} · no limit` : `${used} of ${limit}`}
+        </span>
+      </div>
+      {limit !== null && (
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--surface-muted)]">
+          <div className="iris h-full rounded-full" style={{ width: `${percent}%` }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PlanUsageSection({ planType }: { planType: string }) {
+  const [usage, setUsage] = useState<UsageInfo | null>(null);
+  const [stats, setStats] = useState<AssetStats | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    api.getUsage(controller.signal).then(setUsage).catch(() => {});
+    api.assetStats(controller.signal).then(setStats).catch(() => {});
+    return () => controller.abort();
+  }, []);
+
+  const artworkLimit = ARTWORK_LIMITS[planType] ?? null;
+
+  return (
+    <section className="glass rounded-card border border-[var(--border)] p-6 sm:p-7">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <span className="label-caps text-[var(--text-muted)]">Current plan</span>
+          <p className="mt-2 font-heading text-[36px] font-light leading-none tracking-[-0.02em]">
+            {planType}
+          </p>
+        </div>
+        <Link
+          href="/pricing"
+          className="inline-flex h-10 items-center rounded-full bg-[var(--primary-strong)] px-5 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85"
+        >
+          {planType === "Free" ? "Upgrade" : "Compare plans"}
+        </Link>
+      </div>
+
+      <div className="mt-6 space-y-5">
+        {stats && <UsageBar label="Artworks on auto-scan" used={stats.monitored} limit={artworkLimit} />}
+        {usage && (
+          <UsageBar
+            label="Hand-started scans this month"
+            used={usage.manual_scans.used}
+            limit={usage.manual_scans.limit}
+          />
+        )}
+        {usage && (
+          <p className="text-[13px] text-[var(--text-muted)]">
+            Resets on {formatDay(usage.manual_scans.resets_on)}. Automatic scans
+            are included and don&apos;t count.
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function SecuritySection({ email }: { email: string }) {
+  const { logoutEverywhere } = useAuth();
+  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  async function sendPasswordLink() {
+    setBusy(true);
+    setError("");
+
+    try {
+      await api.forgotPassword(email);
+      setSent(true);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "The email could not be sent.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="glass rounded-card border border-[var(--border)] p-6 sm:p-7">
+      <h2 className="font-heading text-[24px] font-light tracking-[-0.02em]">Profile & security</h2>
+      <dl className="mt-5 text-[14px]">
+        <dt className="label-caps text-[var(--text-muted)]">Email</dt>
+        <dd className="mt-1 text-[16px]">{email}</dd>
+      </dl>
+
+      <div className="mt-6 flex flex-wrap gap-3">
+        <button
+          type="button"
+          disabled={busy || sent}
+          onClick={() => void sendPasswordLink()}
+          className="inline-flex h-10 items-center rounded-full border border-[var(--line-strong)] px-5 text-[11px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)] disabled:opacity-50"
+        >
+          {sent ? "Link sent" : busy ? "Sending…" : "Change password"}
+        </button>
+        <button
+          type="button"
+          onClick={() => void logoutEverywhere()}
+          className="inline-flex h-10 items-center rounded-full border border-[var(--line-strong)] px-5 text-[11px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)]"
+        >
+          Sign out of all devices
+        </button>
+      </div>
+      <p className="mt-3 text-[13px] text-[var(--text-muted)]">
+        {sent
+          ? `We emailed a link to ${email}. Open it to choose a new password.`
+          : "We email you a link to choose a new password. Signing out everywhere ends every session, including this one."}
+      </p>
+      {error && (
+        <p role="alert" className="mt-2 text-[13px] text-[var(--danger)]">
+          {error}
+        </p>
+      )}
+    </section>
+  );
+}
+
 function AccountContent() {
   const { user } = useAuth();
 
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--text)]">
-      <Topbar />
+    <AppShell>
+      <PageTitle
+        title="Account"
+        subtitle={`Signed in as ${user.email} · ${user.plan_type} plan`}
+      />
 
-      <main className="mx-auto w-full max-w-3xl flex-1 space-y-6 px-4 py-8 sm:px-6">
-        <header>
-          <h1 className="text-2xl font-bold">Account</h1>
-          <p className="mt-1 text-[14px] text-[var(--text-muted)]">
-            Signed in as <strong>{user.email}</strong> · {user.plan_type} plan
-          </p>
-        </header>
+      <div className="grid gap-10 lg:grid-cols-[220px_minmax(0,1fr)]">
+        <nav aria-label="Account sections" className="lg:sticky lg:top-28 lg:self-start">
+          <ul className="flex gap-2 overflow-x-auto lg:flex-col">
+            {SECTIONS.map((section) => (
+              <li key={section.id}>
+                <a
+                  href={`#${section.id}`}
+                  className="block whitespace-nowrap rounded-full px-4 py-2 text-[14px] text-[var(--text-muted)] transition hover:bg-[var(--surface-muted)] hover:text-[var(--text)]"
+                >
+                  {section.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
-        <SubscriptionSection planType={user.plan_type} />
+        <div className="max-w-[760px] space-y-12">
+          <div id="plan" className="scroll-mt-28 space-y-4">
+            <span className="label-caps text-[var(--text-muted)]">Plan & credits</span>
+            <PlanUsageSection planType={user.plan_type} />
+            <SubscriptionSection planType={user.plan_type} />
+            <CreditsSection />
+          </div>
 
-        <CreditsSection />
-        <DownloadSection />
-        <DeleteSection email={user.email} isAdmin={Boolean(user.is_admin)} />
+          <div id="security" className="scroll-mt-28 space-y-4">
+            <span className="label-caps text-[var(--text-muted)]">Profile & security</span>
+            <SecuritySection email={user.email} />
+          </div>
 
-        {CONTACT_EMAIL ? (
-          <p className="text-[13px] text-[var(--text-muted)]">
-            Need something else? Write to{" "}
-            <a
-              href={`mailto:${CONTACT_EMAIL}`}
-              className="text-[var(--primary)] underline"
-            >
-              {CONTACT_EMAIL}
-            </a>
-            .
-          </p>
-        ) : null}
-      </main>
+          <div id="data" className="scroll-mt-28 space-y-4">
+            <span className="label-caps text-[var(--text-muted)]">Your data</span>
+            <DownloadSection />
+            <DeleteSection email={user.email} isAdmin={Boolean(user.is_admin)} />
+          </div>
 
-      <SiteFooter />
-    </div>
+          {CONTACT_EMAIL ? (
+            <p className="text-[13px] text-[var(--text-muted)]">
+              Need something else? Write to{" "}
+              <a href={`mailto:${CONTACT_EMAIL}`} className="underline underline-offset-4">
+                {CONTACT_EMAIL}
+              </a>
+              .
+            </p>
+          ) : null}
+        </div>
+      </div>
+    </AppShell>
   );
 }
 

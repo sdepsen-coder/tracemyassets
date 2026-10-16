@@ -1,250 +1,163 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 
+import { Eyebrow } from "@/components/app/ui";
+import { GlassArt } from "@/components/app/GlassArt";
+import { Wordmark } from "@/components/app/brand";
 import { PlanCards } from "@/components/pricing/PlanCards";
 import { SiteFooter } from "@/components/SiteFooter";
 import { LandingAccountMenu } from "@/components/dashboard/AccountMenu";
 import { Icon } from "@/components/dashboard/Icon";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
-import { SITE_NAME } from "@/lib/site";
 
 import { ArtworkSample } from "./ArtworkSample";
 import { AuthEntryButton } from "./AuthEntryButton";
 
-const STEPS = [
-  {
-    icon: "upload",
-    title: "Register your artwork",
-    body: "Upload an original. It stays private, and you get back a protected copy with an invisible watermark to share instead.",
-  },
-  {
-    icon: "travel_explore",
-    title: "We keep watch",
-    body: "Your artworks are checked against the sources we support, and possible copies are gathered for review.",
-  },
-  {
-    icon: "fact_check",
-    title: "Review the evidence",
-    body: "Every candidate is compared with your original and your watermark. You see what we found and decide what to do next.",
-  },
-];
-
-type Feature = {
-  icon: string;
-  title: string;
-  body: string;
-  soon?: boolean;
-};
-
-const FEATURES: Feature[] = [
-  {
-    icon: "water_drop",
-    title: "Prove a copy came from you",
-    body: "Share the protected version of your artwork. Nothing visible is added, but a copy that carries your invisible watermark can be traced back to your file.",
-  },
-  {
-    icon: "visibility",
-    title: "Keep watch automatically",
-    body: "Set how often each artwork is checked and let the scans run while you get on with your work.",
-  },
-  {
-    icon: "verified",
-    title: "See real matches, not noise",
-    body: "Search results are only leads. Each one is re-checked against your original before it is shown as a match, so you review fewer false alarms.",
-  },
-  {
-    icon: "check_circle",
-    title: "Check any image yourself",
-    body: "Spotted something suspicious? Upload it and see how it compares with your registered artwork.",
-  },
-  {
-    icon: "lock",
-    title: "Your originals stay private",
-    body: "Originals are never public. Matches and evidence are visible only to your account, and you can delete an artwork and its data whenever you like.",
-  },
-  {
-    icon: "person_check",
-    title: "You decide what happens next",
-    body: "We never contact anyone or send notices for you. TraceMyAssets shows you what it found, and every next step is yours.",
-  },
-];
-
-const COMING_SOON: Feature[] = [
-  {
-    icon: "notifications_active",
-    title: "Email alerts",
-    body: "Get told when a new possible match appears, so you do not have to keep checking.",
-    soon: true,
-  },
-  {
-    icon: "description",
-    title: "Evidence pack",
-    body: "A dated, downloadable record of a match: your original, the copy, and the comparison results.",
-    soon: true,
-  },
-  {
-    icon: "checklist",
-    title: "Next steps and templates",
-    body: "A guide to what you can do once you find a copy, with editable message templates you send yourself. Starting points, not legal advice.",
-    soon: true,
-  },
-];
-
 const SOURCES = [
   {
-    name: "Web",
-    status: "Live",
-    live: true,
-    body: "Visual search across the open web for pages that show images like yours.",
+    icon: "travel_explore",
+    title: "Web search",
+    body: "Pages and images across the public web that look like yours. This is the Standard scan.",
   },
   {
-    name: "Amazon",
-    status: "Coming to the beta",
-    live: false,
-    body: "Keyword-based discovery of product listings that may use your artwork.",
+    icon: "image_search",
+    title: "Visual search",
+    body: "Finds re-cropped and edited copies that a plain search misses. This is the Deep scan.",
   },
   {
-    name: "Etsy",
-    status: "Coming to the beta",
-    live: false,
-    body: "Discovery of shop listings that may use your artwork, subject to Etsy's approval of our integration.",
+    icon: "storefront",
+    title: "Marketplace listings",
+    body: "Copies on shops such as Etsy and Amazon show up when search engines have indexed their pages.",
   },
 ];
 
-const LIMITS = [
-  "Matches are technical signals, not legal proof of copying. They are a starting point for your own judgement.",
-  "The invisible watermark is designed to survive everyday changes, but its robustness against heavy editing is still being tested.",
-  "No match does not mean no copy. We can only look where our sources can see, and images not indexed anywhere are out of reach.",
+const STEPS = [
+  {
+    number: "01",
+    title: "Upload and protect",
+    body: "Upload your original. It stays private, and you get back a copy with an invisible watermark to share instead.",
+  },
+  {
+    number: "02",
+    title: "We keep watching",
+    body: "Choose weekly or monthly automatic scans. They are included in your plan and run while you work.",
+  },
+  {
+    number: "03",
+    title: "Review the proof",
+    body: "See both images side by side, how strong the match is, where it was found, and whether your watermark is inside.",
+  },
 ];
 
-function SectionHeading({
+const FAQ = [
+  {
+    question: "How does the invisible watermark work without ruining my artwork?",
+    answer:
+      "It hides a small, signed code in the fine detail of the image. Nothing visible is added. When a copy of your protected file turns up, we can read the code back and link it to you.",
+  },
+  {
+    question: "What happens when you find a copy?",
+    answer:
+      "It appears in Matches. You compare it with your original and decide whether it is your work. If it is, you get step-by-step guidance and ready-written messages you can send yourself.",
+  },
+  {
+    question: "Can someone remove the watermark by screenshotting or editing?",
+    answer:
+      "Heavy edits can damage it, and how well it survives is still being tested. That is why every match is also compared by how it looks, so copies without a readable watermark can still be found.",
+  },
+  {
+    question: "Do you send takedown notices for me?",
+    answer:
+      "No. We never contact anyone on your behalf. You decide what to do, and you send any message from your own account.",
+  },
+  {
+    question: "What happens to my uploaded art?",
+    answer:
+      "Your original is never published. To search, an image of your artwork is sent to the search services we use, as our Privacy Policy explains. We do not sell your data or use your artwork to train models.",
+  },
+];
+
+function Section({
+  id,
   eyebrow,
   title,
   body,
+  children,
+  tinted,
 }: {
-  eyebrow: string;
-  title: string;
+  id?: string;
+  eyebrow?: string;
+  title: ReactNode;
   body?: string;
+  children?: ReactNode;
+  tinted?: boolean;
 }) {
   return (
-    <div className="mx-auto max-w-2xl text-center">
-      <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[var(--primary)]">
-        {eyebrow}
-      </p>
-      <h2 className="mt-3 font-heading text-[30px] font-semibold leading-tight tracking-[-0.03em] text-[var(--text)] sm:text-[38px]">
-        {title}
-      </h2>
-      {body && (
-        <p className="mt-4 text-[16px] leading-relaxed text-[var(--text-muted)]">
-          {body}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function FeatureCard({ feature }: { feature: Feature }) {
-  return (
-    <article
-      className={`rounded-2xl border p-6 transition ${
-        feature.soon
-          ? "border-dashed border-[var(--border)] bg-[var(--surface-muted)]"
-          : "border-[var(--border)] bg-[var(--surface)] shadow-card hover:-translate-y-0.5 hover:shadow-floating"
-      }`}
+    <section
+      id={id}
+      className={[
+        "scroll-mt-28 px-4 py-24 sm:px-6 sm:py-32",
+        tinted ? "bg-[var(--surface-muted)]" : "",
+      ].join(" ")}
     >
-      <div className="flex items-start justify-between gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--primary-soft)] text-[var(--primary)]">
-          <Icon name={feature.icon} className="text-[22px]" />
-        </span>
-        {feature.soon && (
-          <span className="rounded-full bg-[var(--warning-soft)] px-2.5 py-1 text-[11px] font-semibold text-[var(--warning)]">
-            Coming soon
-          </span>
-        )}
+      <div className="mx-auto max-w-[1200px]">
+        <div className="max-w-[720px]">
+          {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
+          <h2 className="font-heading text-[36px] font-light leading-[1.08] tracking-[-0.03em] sm:text-[52px]">
+            {title}
+          </h2>
+          {body && (
+            <p className="mt-5 text-[17px] leading-7 text-[var(--text-muted)]">{body}</p>
+          )}
+        </div>
+        {children}
       </div>
-      <h3 className="mt-4 font-heading text-[17px] font-semibold tracking-[-0.02em]">
-        {feature.title}
-      </h3>
-      <p className="mt-2 text-[14px] leading-relaxed text-[var(--text-muted)]">
-        {feature.body}
-      </p>
-    </article>
+    </section>
   );
 }
 
-function HeroMock() {
+function ProductPreview() {
   return (
-    <div className="relative mx-auto w-full max-w-[560px]">
-      <div
-        aria-hidden="true"
-        className="absolute -inset-6 -z-10 rounded-[40px] bg-[radial-gradient(closest-side,color-mix(in_srgb,var(--primary-strong)_28%,transparent),transparent)] blur-2xl"
-      />
-
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-floating sm:p-5">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-[12px] font-semibold text-[var(--text)]">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--primary-soft)] text-[var(--primary)]">
-              <Icon name="radar" className="text-[16px]" />
-            </span>
-            Scan result
-          </div>
-          <span className="rounded-full bg-[var(--success-soft)] px-2.5 py-1 text-[11px] font-semibold text-[var(--success)]">
-            Verified match
-          </span>
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <figure>
-            <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-[var(--border)]">
-              <ArtworkSample
-                id="orig"
-                variant="original"
-                className="h-full w-full"
-              />
-            </div>
-            <figcaption className="mt-2 text-[11px] font-medium text-[var(--text-muted)]">
-              Your original
-            </figcaption>
-          </figure>
-
-          <figure>
-            <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-[var(--border)]">
-              <ArtworkSample
-                id="copy"
-                variant="copy"
-                className="h-full w-full"
-              />
-              <div
-                aria-hidden="true"
-                className="tma-scan absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-transparent via-white/45 to-transparent"
-              />
-            </div>
-            <figcaption className="mt-2 text-[11px] font-medium text-[var(--text-muted)]">
-              Found online
-            </figcaption>
-          </figure>
-        </div>
-
-        <ul className="mt-4 grid gap-2 text-[12px] sm:grid-cols-3">
-          {[
-            { icon: "fingerprint", label: "Visual match" },
-            { icon: "water_drop", label: "Watermark found" },
-            { icon: "verified", label: "Evidence saved" },
-          ].map((chip) => (
-            <li
-              key={chip.label}
-              className="flex items-center gap-2 rounded-lg bg-[var(--surface-muted)] px-3 py-2 font-medium text-[var(--text)]"
-            >
-              <span className="text-[var(--success)]">
-                <Icon name={chip.icon} className="text-[16px]" />
-              </span>
-              {chip.label}
-            </li>
-          ))}
-        </ul>
+    <div className="glass relative rounded-card border border-[var(--border)] p-4 shadow-[0_30px_80px_-30px_rgb(60_50_120/0.25)] sm:p-5">
+      <div className="flex items-center justify-between">
+        <span className="label-caps text-[var(--text-muted)]">Monitoring</span>
+        <span className="iris rounded-full px-2.5 py-1 text-[10.5px] font-medium uppercase tracking-[0.08em] text-[#111111]">
+          2 copies
+        </span>
       </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <figure>
+          <div className="aspect-[4/3] overflow-hidden rounded-xl border border-[var(--border)]">
+            <ArtworkSample id="orig" variant="original" className="h-full w-full" />
+          </div>
+          <figcaption className="mt-2 text-[12px] text-[var(--text-muted)]">Your original</figcaption>
+        </figure>
+        <figure>
+          <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-[var(--border)]">
+            <ArtworkSample id="copy" variant="copy" className="h-full w-full" />
+            <div
+              aria-hidden="true"
+              className="tma-scan absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-transparent via-white/50 to-transparent"
+            />
+          </div>
+          <figcaption className="mt-2 text-[12px] text-[var(--text-muted)]">Found online</figcaption>
+        </figure>
+      </div>
+
+      <ul className="mt-4 grid gap-2 text-[13px] sm:grid-cols-3">
+        {["Strong visual match", "Watermark found", "Auto-scan weekly"].map((label) => (
+          <li
+            key={label}
+            className="flex items-center gap-2 rounded-xl bg-[var(--surface-muted)] px-3 py-2"
+          >
+            <Icon name="check" className="text-[16px] text-[var(--success)]" />
+            {label}
+          </li>
+        ))}
+      </ul>
 
       <p className="mt-3 text-center text-[11px] text-[var(--text-muted)]">
-        Illustration with generated artwork &mdash; not a real result.
+        Illustration with generated artwork — not a real result.
       </p>
     </div>
   );
@@ -253,35 +166,22 @@ function HeroMock() {
 export function LandingPage() {
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--text)]">
-      <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[color:var(--background)]/85 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-3 px-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--primary-soft)] text-[var(--primary)]">
-              <Icon name="shield" />
-            </span>
-            <span className="font-heading text-[18px] font-semibold tracking-[-0.03em]">
-              {SITE_NAME}
-            </span>
-          </Link>
+      <header className="sticky top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4">
+        <div className="glass mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-3 rounded-2xl border border-[var(--border)] px-4 shadow-[0_10px_40px_rgb(0_0_0/0.05)] sm:px-5">
+          <Wordmark />
 
           <nav
             aria-label="Page sections"
-            className="hidden items-center gap-6 text-[13px] font-medium text-[var(--text-muted)] md:flex"
+            className="hidden items-center gap-7 text-[14px] text-[var(--text-muted)] lg:flex"
           >
-            <a href="#features" className="transition hover:text-[var(--text)]">
-              Features
-            </a>
             <a href="#how-it-works" className="transition hover:text-[var(--text)]">
               How it works
             </a>
             <a href="#sources" className="transition hover:text-[var(--text)]">
-              Sources
+              Where we look
             </a>
             <a href="#pricing" className="transition hover:text-[var(--text)]">
               Pricing
-            </a>
-            <a href="#limits" className="transition hover:text-[var(--text)]">
-              Limits
             </a>
             <Link href="/help" className="transition hover:text-[var(--text)]">
               Help
@@ -289,12 +189,11 @@ export function LandingPage() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <ThemeToggle />
             <AuthEntryButton mode="login" variant="ghost">
               Sign in
             </AuthEntryButton>
             <span className="hidden sm:inline-flex">
-              <AuthEntryButton mode="register">Get started</AuthEntryButton>
+              <AuthEntryButton mode="register">Start free</AuthEntryButton>
             </span>
             <LandingAccountMenu />
           </div>
@@ -303,232 +202,218 @@ export function LandingPage() {
 
       <main>
         {/* Hero */}
-        <section className="relative overflow-hidden">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(60%_50%_at_15%_0%,color-mix(in_srgb,var(--primary-strong)_14%,transparent),transparent),radial-gradient(45%_40%_at_95%_20%,color-mix(in_srgb,var(--success)_10%,transparent),transparent)]"
-          />
+        <section className="relative overflow-hidden px-4 pb-24 pt-16 sm:px-6 sm:pb-32 sm:pt-24">
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            <span className="absolute -right-24 top-10 h-[420px] w-[420px] rounded-full bg-[#c9c3f5] opacity-40 blur-3xl" />
+            <span className="absolute right-40 top-64 h-[320px] w-[320px] rounded-full bg-[#bfd9f7] opacity-50 blur-3xl" />
+          </div>
 
-          <div className="relative mx-auto grid max-w-[1200px] items-center gap-14 px-4 pb-20 pt-14 sm:px-6 sm:pt-20 lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:pb-28 lg:pt-24">
+          <div className="relative mx-auto grid max-w-[1200px] items-center gap-12 lg:grid-cols-[1.15fr_1fr]">
             <div>
-              <p className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-[12px] font-semibold text-[var(--text-muted)] shadow-card">
-                <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
-                Private beta &middot; free while we learn
-              </p>
-
-              <h1 className="mt-6 font-heading text-[42px] font-semibold leading-[1.05] tracking-[-0.045em] sm:text-[58px]">
-                Know where your{" "}
-                <span className="bg-gradient-to-r from-[var(--primary-strong)] to-[var(--success)] bg-clip-text text-transparent">
-                  art travels.
-                </span>
+              <h1 className="font-heading text-[52px] font-light leading-[0.98] tracking-[-0.04em] sm:text-[80px] lg:text-[96px]">
+                Someone is using your art.
+                <span className="block text-[var(--text-muted)]">Find out where.</span>
               </h1>
-
-              <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-[var(--text-muted)]">
-                Protect your artwork with an invisible watermark and keep watch over where it appears online. Every possible match is verified against your original, so you get evidence to act on, not a pile of guesses.
+              <p className="mt-8 max-w-[560px] text-[18px] leading-8 text-[var(--text-muted)]">
+                Add an invisible watermark to your artwork and let us keep
+                scanning the web for copies. When we find one, we show you the
+                proof — you decide what to do.
               </p>
-
-              <div className="mt-8 flex flex-wrap items-center gap-3">
+              <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <AuthEntryButton mode="register" size="lg">
-                  Create free account
-                  <Icon name="arrow_forward" />
+                  Protect your first artwork — free
                 </AuthEntryButton>
-
                 <a
-                  href="#features"
-                  className="inline-flex h-12 items-center rounded-xl border border-[var(--border)] bg-[var(--surface)] px-6 text-[15px] font-semibold text-[var(--text)] transition hover:bg-[var(--surface-muted)]"
+                  href="#how-it-works"
+                  className="inline-flex h-12 items-center justify-center rounded-full border border-[var(--line-strong)] px-7 text-[12px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)]"
                 >
-                  See what you get
+                  See how it works
                 </a>
               </div>
-
-              <p className="mt-5 text-[13px] text-[var(--text-muted)]">
-                No credit card. Your originals stay private.
-              </p>
+              <p className="mt-4 text-[13px] text-[var(--text-muted)]">No credit card needed.</p>
             </div>
 
-            <HeroMock />
+            <div className="flex justify-center lg:justify-end">
+              <GlassArt motif="shield" size="lg" />
+            </div>
+          </div>
+
+          <div className="relative mx-auto mt-20 max-w-[760px]">
+            <ProductPreview />
           </div>
         </section>
 
-        {/* Features */}
-        <section id="features" className="scroll-mt-20 py-20 sm:py-24">
-          <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
-            <SectionHeading
-              eyebrow="What you get"
-              title="Protect your work and know where it stands"
-              body="A focused set of tools to mark your artwork, watch for copies, and understand what you find."
-            />
+        {/* Where we look */}
+        <Section
+          id="sources"
+          eyebrow="Where we look"
+          title="Wherever search engines can see."
+          body="We search the public web, so we find copies wherever search engines have indexed them."
+          tinted
+        >
+          <div className="mt-14 grid gap-4 md:grid-cols-3">
+            {SOURCES.map((source) => (
+              <div key={source.title} className="glass rounded-card border border-[var(--border)] p-6">
+                <span className="iris flex h-11 w-11 items-center justify-center rounded-xl text-[#111111]">
+                  <Icon name={source.icon} className="text-[22px]" />
+                </span>
+                <h3 className="mt-6 text-[18px] font-medium">{source.title}</h3>
+                <p className="mt-2 text-[15px] leading-6 text-[var(--text-muted)]">{source.body}</p>
+              </div>
+            ))}
+          </div>
+        </Section>
 
-            <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {FEATURES.map((feature) => (
-                <FeatureCard key={feature.title} feature={feature} />
-              ))}
+        {/* Feature band */}
+        <section className="px-4 py-24 sm:px-6 sm:py-32">
+          <div className="glass mx-auto grid max-w-[1200px] items-center gap-10 overflow-hidden rounded-[28px] border border-[var(--border)] p-8 sm:p-14 lg:grid-cols-2">
+            <div className="flex justify-center">
+              <GlassArt motif="lens" size="lg" />
             </div>
-
-            <div className="mt-16">
-              <h3 className="text-center font-heading text-[20px] font-semibold tracking-[-0.02em]">
-                On the way
-              </h3>
-              <p className="mx-auto mt-2 max-w-xl text-center text-[14px] text-[var(--text-muted)]">
-                What we are building next, shaped by what beta users tell us.
+            <div>
+              <h2 className="font-heading text-[36px] font-light leading-[1.08] tracking-[-0.03em] sm:text-[52px]">
+                Stop copies before they spread.
+              </h2>
+              <p className="mt-5 text-[17px] leading-7 text-[var(--text-muted)]">
+                Copies of artwork turn up on marketplaces, print shops and
+                social media every day. TraceMyAssets finds them and gives you
+                the evidence.
               </p>
-
-              <div className="mt-8 grid gap-5 md:grid-cols-3">
-                {COMING_SOON.map((feature) => (
-                  <FeatureCard key={feature.title} feature={feature} />
-                ))}
+              <div className="mt-8">
+                <AuthEntryButton mode="register" size="lg">
+                  Start free
+                </AuthEntryButton>
               </div>
             </div>
           </div>
         </section>
 
         {/* How it works */}
-        <section
+        <Section
           id="how-it-works"
-          className="scroll-mt-20 border-y border-[var(--border)] bg-[var(--surface-muted)] py-20 sm:py-24"
+          eyebrow="How it works"
+          title="Three steps, then we keep watch."
+          tinted
         >
-          <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
-            <SectionHeading
-              eyebrow="How it works"
-              title="From upload to evidence in three steps"
-            />
+          <ol className="mt-14 grid gap-4 md:grid-cols-3">
+            {STEPS.map((step) => (
+              <li key={step.number} className="glass rounded-card border border-[var(--border)] p-7">
+                <span className="font-heading text-[56px] font-light leading-none text-[var(--text-muted)]">
+                  {step.number}
+                </span>
+                <h3 className="mt-8 text-[20px] font-medium">{step.title}</h3>
+                <p className="mt-2 text-[15px] leading-6 text-[var(--text-muted)]">{step.body}</p>
+              </li>
+            ))}
+          </ol>
+        </Section>
 
-            <ol className="mt-14 grid gap-5 md:grid-cols-3">
-              {STEPS.map((step, index) => (
-                <li
-                  key={step.title}
-                  className="relative rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-card"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--primary-soft)] text-[var(--primary)]">
-                      <Icon name={step.icon} className="text-[24px]" />
-                    </span>
-                    <span className="font-heading text-[40px] font-semibold leading-none tracking-[-0.05em] text-[var(--border)]">
-                      {index + 1}
-                    </span>
-                  </div>
-                  <h3 className="mt-5 font-heading text-[19px] font-semibold tracking-[-0.02em]">
-                    {step.title}
-                  </h3>
-                  <p className="mt-2 text-[14px] leading-relaxed text-[var(--text-muted)]">
-                    {step.body}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
+        {/* Two feature rows */}
+        <section className="px-4 py-24 sm:px-6 sm:py-32">
+          <div className="mx-auto grid max-w-[1200px] gap-24">
+            <div className="grid items-center gap-10 lg:grid-cols-2">
+              <div>
+                <Eyebrow>Fewer false alarms</Eyebrow>
+                <h2 className="font-heading text-[36px] font-light leading-[1.08] tracking-[-0.03em] sm:text-[48px]">
+                  Every match is double-checked.
+                </h2>
+                <p className="mt-5 text-[17px] leading-7 text-[var(--text-muted)]">
+                  Search results are only leads. We compare each one with your
+                  original before we show it, so you spend your time on real
+                  copies.
+                </p>
+              </div>
+              <div className="flex justify-center">
+                <GlassArt motif="frames" size="lg" />
+              </div>
+            </div>
 
-        {/* Sources */}
-        <section
-          id="sources"
-          className="scroll-mt-20 py-20 sm:py-24"
-        >
-          <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
-            <SectionHeading
-              eyebrow="Where we look"
-              title="Starting with the web, growing to marketplaces"
-              body="Marketplace sources are being added during the beta, so we list exactly what works today."
-            />
-
-            <div className="mt-14 grid gap-5 md:grid-cols-3">
-              {SOURCES.map((source) => (
-                <article
-                  key={source.name}
-                  className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-card"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <h3 className="font-heading text-[19px] font-semibold tracking-[-0.02em]">
-                      {source.name}
-                    </h3>
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                        source.live
-                          ? "bg-[var(--success-soft)] text-[var(--success)]"
-                          : "bg-[var(--warning-soft)] text-[var(--warning)]"
-                      }`}
-                    >
-                      {source.status}
-                    </span>
-                  </div>
-                  <p className="mt-3 text-[14px] leading-relaxed text-[var(--text-muted)]">
-                    {source.body}
-                  </p>
-                </article>
-              ))}
+            <div className="grid items-center gap-10 lg:grid-cols-2">
+              <div className="order-2 flex justify-center lg:order-1">
+                <GlassArt motif="fingerprint" size="lg" />
+              </div>
+              <div className="order-1 lg:order-2">
+                <Eyebrow>Evidence</Eyebrow>
+                <h2 className="font-heading text-[36px] font-light leading-[1.08] tracking-[-0.03em] sm:text-[48px]">
+                  Proof you can use.
+                </h2>
+                <p className="mt-5 text-[17px] leading-7 text-[var(--text-muted)]">
+                  See where it was found, how strong the match is, and whether
+                  your watermark is inside. Copy a ready-written message and
+                  send it yourself.
+                </p>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Pricing */}
-        <section id="pricing" className="scroll-mt-20 py-20 sm:py-24">
-          <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
-            <SectionHeading
-              eyebrow="Plans"
-              title="Start free. Upgrade when you need more."
-              body="The Free plan needs no card. Paid plans are not open yet."
-            />
+        <Section
+          id="pricing"
+          eyebrow="Pricing"
+          title="Start free. Upgrade when you need more."
+          tinted
+        >
+          <div className="mt-14">
+            <PlanCards compact />
+          </div>
+          <p className="mt-8 text-center text-[14px]">
+            <Link href="/pricing" className="underline underline-offset-4">
+              Compare all plans
+            </Link>
+          </p>
+        </Section>
 
-            <div className="mt-12">
-              <PlanCards compact />
-            </div>
-
-            <p className="mt-6 text-center text-[14px]">
-              <Link
-                href="/pricing"
-                className="font-semibold text-[var(--primary)] underline"
-              >
-                See the full comparison
-              </Link>
+        {/* Honest note */}
+        <section className="px-4 py-20 sm:px-6">
+          <div className="mx-auto max-w-[760px] text-center">
+            <p className="font-heading text-[26px] font-light leading-snug tracking-[-0.02em] sm:text-[32px]">
+              Matches are technical signals, not legal proof. We never contact
+              anyone for you.
             </p>
           </div>
         </section>
 
-        {/* Honest limits */}
-        <section id="limits" className="scroll-mt-20 border-y border-[var(--border)] bg-[var(--surface-muted)] py-20 sm:py-24">
-          <div className="mx-auto max-w-[900px] px-4 sm:px-6">
-            <SectionHeading
-              eyebrow="Straight talk"
-              title="What it can and can't tell you"
-              body="We would rather you trust a modest tool than be misled by a bold one."
-            />
-
-            <ul className="mt-12 space-y-4">
-              {LIMITS.map((limit) => (
-                <li
-                  key={limit}
-                  className="flex gap-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-card"
-                >
-                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--warning-soft)] text-[var(--warning)]">
-                    <Icon name="info" className="text-[18px]" />
-                  </span>
-                  <p className="text-[15px] leading-relaxed text-[var(--text-muted)]">
-                    {limit}
-                  </p>
-                </li>
-              ))}
-            </ul>
+        {/* FAQ */}
+        <Section eyebrow="Questions" title="Frequently asked." tinted>
+          <div className="mt-12 max-w-[820px] divide-y divide-[var(--border)] border-y border-[var(--border)]">
+            {FAQ.map((item) => (
+              <details key={item.question} className="group py-5">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[17px]">
+                  {item.question}
+                  <Icon
+                    name="add"
+                    className="text-[20px] text-[var(--text-muted)] transition group-open:rotate-45"
+                  />
+                </summary>
+                <p className="mt-3 max-w-[680px] text-[15px] leading-7 text-[var(--text-muted)]">
+                  {item.answer}
+                </p>
+              </details>
+            ))}
           </div>
-        </section>
+          <p className="mt-6 text-[14px] text-[var(--text-muted)]">
+            More answers on the{" "}
+            <Link href="/help" className="underline underline-offset-4">
+              Help page
+            </Link>
+            .
+          </p>
+        </Section>
 
         {/* Final call to action */}
-        <section className="px-4 pb-20 sm:px-6 sm:pb-28">
-          <div className="relative mx-auto max-w-[1200px] overflow-hidden rounded-3xl bg-gradient-to-br from-[#2d3fe0] via-[#2331b8] to-[#101a6b] px-6 py-14 text-center text-white shadow-floating sm:px-12 sm:py-20">
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl"
-            />
-            <h2 className="relative font-heading text-[30px] font-semibold leading-tight tracking-[-0.035em] sm:text-[42px]">
-              Start watching over your work
+        <section className="px-4 py-24 sm:px-6 sm:py-32">
+          <div className="glass relative mx-auto max-w-[1200px] overflow-hidden rounded-[28px] border border-[var(--border)] px-8 py-16 text-center sm:py-20">
+            <span aria-hidden className="iris absolute inset-x-0 top-0 h-1" />
+            <div className="flex justify-center">
+              <GlassArt motif="shield" size="sm" />
+            </div>
+            <h2 className="mt-6 font-heading text-[36px] font-light leading-[1.08] tracking-[-0.03em] sm:text-[52px]">
+              Your art deserves to be watched.
             </h2>
-            <p className="relative mx-auto mt-4 max-w-xl text-[16px] leading-relaxed text-white/80">
-              Join the private beta. It is free while we learn what artists
-              actually need.
-            </p>
-            <div className="relative mt-8 flex justify-center">
-              <AuthEntryButton mode="register" variant="onPrimary" size="lg">
-                Create free account
-                <Icon name="arrow_forward" />
+            <div className="mt-8 flex justify-center">
+              <AuthEntryButton mode="register" size="lg">
+                Protect your first artwork
               </AuthEntryButton>
             </div>
           </div>

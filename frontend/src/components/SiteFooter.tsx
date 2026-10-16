@@ -1,11 +1,8 @@
 import Link from "next/link";
 
+import { Wordmark } from "@/components/app/brand";
 import { CookieSettingsLink } from "@/components/CookieSettingsLink";
-import {
-  CONTACT_EMAIL,
-  ETSY_TRADEMARK_NOTICE,
-  SITE_NAME,
-} from "@/lib/site";
+import { CONTACT_EMAIL, SITE_NAME } from "@/lib/site";
 
 type SiteFooterProps = {
   /**
@@ -21,7 +18,7 @@ export function SiteFooter({ tone = "themed" }: SiteFooterProps) {
 
   const wrapper = dark
     ? "border-t border-white/10 text-slate-400"
-    : "border-t border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-muted)]";
+    : "border-t border-[var(--border)] text-[var(--text-muted)]";
 
   const linkClass = dark
     ? "transition hover:text-slate-100"
@@ -29,9 +26,9 @@ export function SiteFooter({ tone = "themed" }: SiteFooterProps) {
 
   return (
     <footer className={wrapper}>
-      <div className="mx-auto flex max-w-[1440px] flex-col gap-3 px-4 py-6 text-[12px] sm:px-6 xl:px-8">
+      <div className="mx-auto flex max-w-[1200px] flex-col gap-4 px-4 py-10 text-[13px] sm:px-6">
         <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
-          <span>© 2026 {SITE_NAME}</span>
+          {dark ? <span>© 2026 {SITE_NAME}</span> : <Wordmark />}
 
           <nav
             aria-label="Legal and support"
@@ -67,9 +64,9 @@ export function SiteFooter({ tone = "themed" }: SiteFooterProps) {
           </nav>
         </div>
 
-        <p className="text-center leading-relaxed sm:text-left">
-          {ETSY_TRADEMARK_NOTICE}
-        </p>
+        {!dark && (
+          <p className="text-center text-[12px] sm:text-left">© 2026 {SITE_NAME}</p>
+        )}
       </div>
     </footer>
   );
