@@ -11,10 +11,13 @@ queue only once scan volume actually requires it.
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from sqlalchemy import select
+from sqlalchemy import select, text
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -36,6 +39,49 @@ FREQUENCY_INTERVALS = {
     "monthly": timedelta(days=30),
 }
 DEFAULT_INTERVAL = FREQUENCY_INTERVALS["weekly"]
+
+# Fixed key for the Postgres advisory lock around a scan round. Any
+# 64-bit number works as long as nothing else in the database uses it.
+SCAN_ROUND_LOCK_KEY = 7_316_041_201
+
+
+@contextmanager
+def scan_round_lock(bind: Engine) -> Iterator[bool]:
+    """
+    Yield whether this instance may run a scan round now.
+
+    During a Railway deploy the old and the new container overlap for a
+    moment and both run the scheduler; without this both would scan the
+    same assets and pay twice for the searches. On Postgres a
+    session-level advisory lock, held on a dedicated connection for the
+    whole round, lets only one of them through. Any other database
+    (SQLite in local development and tests) has a single process, so
+    the lock is a no-op that always succeeds.
+    """
+    if bind.dialect.name != "postgresql":
+        yield True
+        return
+
+    with bind.connect() as connection:
+        acquired = bool(
+            connection.scalar(
+                text("SELECT pg_try_advisory_lock(:key)"),
+                {"key": SCAN_ROUND_LOCK_KEY},
+            )
+        )
+        # A session-level lock outlives the transaction; committing
+        # keeps the connection from sitting "idle in transaction".
+        connection.commit()
+
+        try:
+            yield acquired
+        finally:
+            if acquired:
+                connection.scalar(
+                    text("SELECT pg_advisory_unlock(:key)"),
+                    {"key": SCAN_ROUND_LOCK_KEY},
+                )
+                connection.commit()
 
 
 def last_completed_scan_at(
@@ -101,92 +147,104 @@ def run_due_scans(db: Session | None = None) -> None:
     db = db or SessionLocal()
 
     try:
-        preferences = list(
-            db.scalars(
-                select(MonitoringPreference).where(
-                    MonitoringPreference.enabled.is_(True)
+        with scan_round_lock(db.get_bind()) as acquired:
+            if not acquired:
+                logger.info(
+                    "Scheduler tick skipped: another instance is "
+                    "running a scan round."
                 )
-            )
-        )
+                return
 
-        due_count = 0
-        dormant_count = 0
-
-        for preference in preferences:
-            asset = db.get(Asset, preference.asset_id)
-
-            if asset is None or asset.status != "active":
-                continue
-
-            owner = db.get(User, asset.user_id)
-
-            # A Free account nobody has opened for a long time is not
-            # scanned (each scan costs money). It resumes by itself the
-            # moment the person is active again.
-            if owner is not None and is_dormant(db, owner):
-                dormant_count += 1
-                continue
-
-            last_scan_at = last_completed_scan_at(db, asset.id)
-
-            if not is_due(preference, last_scan_at):
-                continue
-
-            due_count += 1
-
-            try:
-                reference_path = original_file_path(asset)
-                watermarked_path = (
-                    reference_path.parent / "watermarked.png"
-                    if asset.watermarked_url
-                    else None
-                )
-
-                outcome = run_scan_for_asset(
-                    db,
-                    asset=asset,
-                    user_id=asset.user_id,
-                    preference=preference,
-                    reference_path=reference_path,
-                    watermarked_path=watermarked_path,
-                    watermark_secret=load_watermark_secret(),
-                )
-                db.commit()
-            except Exception:
-                db.rollback()
-                logger.exception(
-                    "Scheduled scan failed for asset_id=%s", asset.id
-                )
-                continue
-
-            # Only scheduled scans email: someone who ran a scan by hand
-            # is already looking at the result. Sent after the commit and
-            # isolated, so an email problem never affects the scan.
-            if outcome.new_match_count > 0:
-                try:
-                    user = db.get(User, asset.user_id)
-
-                    if user is not None:
-                        send_new_match_alert(
-                            to_email=user.email,
-                            asset_title=asset.title,
-                            new_match_count=outcome.new_match_count,
-                        )
-                except Exception:
-                    logger.exception(
-                        "Alert email failed for asset_id=%s", asset.id
-                    )
-
-        logger.info(
-            "Scheduler tick: %s of %s enabled asset(s) were due "
-            "(%s skipped: inactive Free account).",
-            due_count,
-            len(preferences),
-            dormant_count,
-        )
+            _scan_due_assets(db)
     finally:
         if owns_session:
             db.close()
+
+
+def _scan_due_assets(db: Session) -> None:
+    preferences = list(
+        db.scalars(
+            select(MonitoringPreference).where(
+                MonitoringPreference.enabled.is_(True)
+            )
+        )
+    )
+
+    due_count = 0
+    dormant_count = 0
+
+    for preference in preferences:
+        asset = db.get(Asset, preference.asset_id)
+
+        if asset is None or asset.status != "active":
+            continue
+
+        owner = db.get(User, asset.user_id)
+
+        # A Free account nobody has opened for a long time is not
+        # scanned (each scan costs money). It resumes by itself the
+        # moment the person is active again.
+        if owner is not None and is_dormant(db, owner):
+            dormant_count += 1
+            continue
+
+        last_scan_at = last_completed_scan_at(db, asset.id)
+
+        if not is_due(preference, last_scan_at):
+            continue
+
+        due_count += 1
+
+        try:
+            reference_path = original_file_path(asset)
+            watermarked_path = (
+                reference_path.parent / "watermarked.png"
+                if asset.watermarked_url
+                else None
+            )
+
+            outcome = run_scan_for_asset(
+                db,
+                asset=asset,
+                user_id=asset.user_id,
+                preference=preference,
+                reference_path=reference_path,
+                watermarked_path=watermarked_path,
+                watermark_secret=load_watermark_secret(),
+            )
+            db.commit()
+        except Exception:
+            db.rollback()
+            logger.exception(
+                "Scheduled scan failed for asset_id=%s", asset.id
+            )
+            continue
+
+        # Only scheduled scans email: someone who ran a scan by hand
+        # is already looking at the result. Sent after the commit and
+        # isolated, so an email problem never affects the scan.
+        if outcome.new_match_count > 0:
+            try:
+                user = db.get(User, asset.user_id)
+
+                if user is not None:
+                    send_new_match_alert(
+                        to_email=user.email,
+                        asset_title=asset.title,
+                        new_match_count=outcome.new_match_count,
+                    )
+            except Exception:
+                logger.exception(
+                    "Alert email failed for asset_id=%s", asset.id
+                )
+
+    logger.info(
+        "Scheduler tick: %s of %s enabled asset(s) were due "
+        "(%s skipped: inactive Free account).",
+        due_count,
+        len(preferences),
+        dormant_count,
+    )
 
 
 def purge_old_events_job() -> None:

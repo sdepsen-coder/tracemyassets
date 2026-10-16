@@ -1,6 +1,7 @@
 import os
 import shutil
 import unittest
+from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from unittest import mock
 
@@ -15,7 +16,7 @@ from app.models.monitoring import MonitoringPreference
 from app.models.scan_job import ScanJob
 from app.models.user import User
 from app.services.asset_ingestion import DEFAULT_STORAGE_ROOT
-from app.services.scheduler import is_due, run_due_scans
+from app.services.scheduler import is_due, run_due_scans, scan_round_lock
 
 
 class IsDueTests(unittest.TestCase):
@@ -289,6 +290,99 @@ class RunDueScansTests(unittest.TestCase):
             side_effect=RuntimeError("boom"),
         ):
             run_due_scans(self.db)  # must not raise
+
+    def test_round_is_skipped_when_another_instance_holds_the_lock(
+        self,
+    ) -> None:
+        self._enabled_asset()
+
+        @contextmanager
+        def lock_held_elsewhere(bind):
+            yield False
+
+        with mock.patch(
+            "app.services.scheduler.scan_round_lock", lock_held_elsewhere
+        ), mock.patch(
+            "app.services.scheduler.run_scan_for_asset"
+        ) as scan, self.assertLogs(
+            "tracemyassets.scheduler", level="INFO"
+        ) as logs:
+            run_due_scans(self.db)
+
+        scan.assert_not_called()
+        self.assertEqual(list(self.db.scalars(select(ScanJob))), [])
+        self.assertTrue(
+            any("another instance" in line for line in logs.output)
+        )
+
+
+class ScanRoundLockTests(unittest.TestCase):
+    def _postgres_bind(self, *, acquired: bool):
+        bind = mock.MagicMock()
+        bind.dialect.name = "postgresql"
+        connection = bind.connect.return_value.__enter__.return_value
+        connection.scalar.return_value = acquired
+
+        return bind, connection
+
+    def _statements(self, connection) -> list[str]:
+        return [str(call.args[0]) for call in connection.scalar.call_args_list]
+
+    def test_postgres_lock_not_acquired_is_not_released(self) -> None:
+        bind, connection = self._postgres_bind(acquired=False)
+
+        with scan_round_lock(bind) as acquired:
+            self.assertFalse(acquired)
+
+        statements = self._statements(connection)
+        self.assertEqual(len(statements), 1)
+        self.assertIn("pg_try_advisory_lock", statements[0])
+
+    def test_postgres_lock_is_released_after_the_round(self) -> None:
+        bind, connection = self._postgres_bind(acquired=True)
+
+        with scan_round_lock(bind) as acquired:
+            self.assertTrue(acquired)
+
+        self.assertIn("pg_advisory_unlock", self._statements(connection)[-1])
+
+    def test_postgres_lock_is_released_after_an_exception(self) -> None:
+        bind, connection = self._postgres_bind(acquired=True)
+
+        with self.assertRaises(RuntimeError):
+            with scan_round_lock(bind):
+                raise RuntimeError("boom")
+
+        statements = self._statements(connection)
+        self.assertEqual(len(statements), 2)
+        self.assertIn("pg_advisory_unlock", statements[1])
+        # Both calls used the same dedicated connection.
+        bind.connect.assert_called_once()
+
+    def test_run_due_scans_releases_the_lock_when_the_round_fails(
+        self,
+    ) -> None:
+        bind, connection = self._postgres_bind(acquired=True)
+        db = mock.Mock()
+        db.get_bind.return_value = bind
+
+        with mock.patch(
+            "app.services.scheduler._scan_due_assets",
+            side_effect=RuntimeError("database went away"),
+        ):
+            with self.assertRaises(RuntimeError):
+                run_due_scans(db)
+
+        self.assertIn("pg_advisory_unlock", self._statements(connection)[-1])
+
+    def test_sqlite_lock_is_a_no_op_that_always_succeeds(self) -> None:
+        engine = create_engine("sqlite:///:memory:")
+
+        with scan_round_lock(engine) as first:
+            # A second, overlapping round is not blocked on SQLite.
+            with scan_round_lock(engine) as second:
+                self.assertTrue(first)
+                self.assertTrue(second)
 
 
 if __name__ == "__main__":
