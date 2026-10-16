@@ -26,13 +26,17 @@ const themeOptions: Array<{
   },
 ];
 
-export function ThemeToggle() {
+export function ThemeToggle({
+  className = "hidden md:flex",
+}: {
+  className?: string;
+}) {
   const { theme, setTheme } = useTheme();
 
   return (
     <div
       aria-label="Theme preference"
-      className="hidden items-center rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] p-1 md:flex"
+      className={`items-center rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] p-1 ${className}`}
     >
       {themeOptions.map((option) => {
         const selected = theme === option.value;

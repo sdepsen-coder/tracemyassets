@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 
 import { AccountMenu } from "@/components/dashboard/AccountMenu";
 import { useAuth } from "@/components/AuthGate";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { api, type MatchSummary } from "@/lib/api";
 import { Icon } from "./Icon";
 import { VerifyEmailBanner } from "./VerifyEmailBanner";
@@ -15,42 +14,39 @@ type NavItem = {
   label: string;
   href: string;
   isActive: (pathname: string) => boolean;
+  showsMatchCount?: boolean;
 };
 
-// Absolute hrefs ("/#...") so the in-page anchors also work from other
-// pages (e.g. /matches), not only from the dashboard itself.
+// The signed-in app has three places; everything else lives in the
+// account menu. "Monitoring" is the home page of a signed-in user.
 const NAV_ITEMS: NavItem[] = [
   {
-    label: "Home",
-    href: "/about",
-    isActive: (pathname) => pathname.startsWith("/about"),
-  },
-  {
-    label: "Dashboard",
+    label: "Monitoring",
     href: "/",
     isActive: (pathname) => pathname === "/",
-  },
-  {
-    label: "My Artworks",
-    href: "/#my-artworks",
-    isActive: () => false,
   },
   {
     label: "Matches",
     href: "/matches",
     isActive: (pathname) => pathname.startsWith("/matches"),
+    showsMatchCount: true,
   },
   {
-    label: "Check an Image",
+    label: "Check an image",
     href: "/check",
     isActive: (pathname) => pathname.startsWith("/check"),
   },
-  {
-    label: "Help",
-    href: "/help",
-    isActive: (pathname) => pathname.startsWith("/help"),
-  },
 ];
+
+function MatchCountBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+
+  return (
+    <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--warning-soft)] px-1.5 text-[11px] font-bold text-[var(--warning)]">
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
 
 export function Topbar() {
   const { user } = useAuth();
@@ -67,38 +63,43 @@ export function Topbar() {
         );
 
         if (!controller.signal.aborted) {
-          setNewMatchCount(summary.new);
+          setNewMatchCount(summary.new + summary.reviewing);
         }
       } catch {
-        // Non-critical: the bell simply shows no count if this fails.
+        // Non-critical: the badge simply shows no count if this fails.
       }
     }
 
     void loadSummary();
 
     return () => controller.abort();
-  }, [user.id]);
+  }, [user.id, pathname]);
+
+  const matchLabel =
+    newMatchCount > 0
+      ? `${newMatchCount} match${newMatchCount === 1 ? "" : "es"} to review`
+      : "No matches to review";
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[color:var(--background)]/90 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-6 xl:px-8">
-        <div className="flex min-w-0 items-center gap-4">
+    <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[color:var(--surface)]/95 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between gap-3 px-4 sm:px-6">
+        <div className="flex min-w-0 items-center gap-6">
           <Link
-            href="/about"
+            href="/"
             className="flex shrink-0 items-center gap-2 text-[var(--text)]"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--primary-soft)] text-[var(--primary)]">
-              <Icon name="shield" />
-            </div>
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--primary-strong)] text-white">
+              <Icon name="shield" className="text-[20px]" />
+            </span>
 
-            <span className="hidden font-heading text-[18px] font-semibold tracking-[-0.03em] sm:block">
+            <span className="hidden font-heading text-[18px] font-semibold tracking-[-0.02em] sm:block">
               TraceMyAssets
             </span>
           </Link>
 
           <nav
             aria-label="Primary navigation"
-            className="hidden items-center gap-1 rounded-lg bg-[var(--surface-muted)] p-1 xl:flex"
+            className="hidden items-center gap-1 md:flex"
           >
             {NAV_ITEMS.map((item) => {
               const active = item.isActive(pathname);
@@ -109,49 +110,40 @@ export function Topbar() {
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={[
-                    "whitespace-nowrap rounded-md px-3.5 py-2 text-[14px] transition",
+                    "inline-flex items-center whitespace-nowrap rounded-lg px-3.5 py-2 text-[15px] transition",
                     active
-                      ? "bg-[var(--surface)] font-semibold text-[var(--primary)] shadow-sm hover:text-[var(--primary-strong)]"
-                      : "font-medium text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]",
+                      ? "bg-[var(--primary-soft)] font-semibold text-[var(--primary-strong)]"
+                      : "font-medium text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)]",
                   ].join(" ")}
                 >
                   {item.label}
+                  {item.showsMatchCount && (
+                    <MatchCountBadge count={newMatchCount} />
+                  )}
                 </Link>
               );
             })}
           </nav>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <Link
-            href="/#asset-upload"
-            className="inline-flex h-10 items-center gap-2 rounded-lg bg-[var(--primary-strong)] px-3 text-[13px] font-semibold text-white shadow-card transition hover:brightness-110 sm:px-4"
+            href="/protect"
+            className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[var(--primary-strong)] px-3 text-[14px] font-semibold text-white transition hover:brightness-110 sm:px-5"
           >
-            <Icon name="add" />
-            <span className="hidden sm:inline">Upload artwork</span>
+            <Icon name="add" className="text-[20px]" />
+            <span className="hidden sm:inline">Protect new artwork</span>
           </Link>
-
-          <ThemeToggle />
 
           <Link
             href="/matches"
-            aria-label={
-              newMatchCount > 0
-                ? `${newMatchCount} new match${newMatchCount === 1 ? "" : "es"} to review`
-                : "No new matches"
-            }
-            title={
-              newMatchCount > 0
-                ? `${newMatchCount} new match${newMatchCount === 1 ? "" : "es"} to review`
-                : "No new matches"
-            }
-            className="relative hidden h-10 w-10 items-center justify-center rounded-lg text-[var(--text-muted)] transition hover:bg-[var(--surface-muted)] hover:text-[var(--text)] sm:flex"
+            aria-label={matchLabel}
+            title={matchLabel}
+            className="relative flex h-10 w-10 items-center justify-center rounded-full text-[var(--text-muted)] transition hover:bg-[var(--surface-muted)] hover:text-[var(--text)]"
           >
-            <Icon name="notifications" />
+            <Icon name="notifications" className="text-[22px]" />
             {newMatchCount > 0 && (
-              <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--primary-strong)] px-1 text-[10px] font-bold text-white ring-2 ring-[var(--background)]">
-                {newMatchCount > 9 ? "9+" : newMatchCount}
-              </span>
+              <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[var(--danger)] ring-2 ring-[var(--surface)]" />
             )}
           </Link>
 
@@ -161,13 +153,13 @@ export function Topbar() {
 
       <VerifyEmailBanner />
 
-      {/* Below the xl breakpoint the pill navigation above is hidden, so
-          the same links are offered here as a scrollable row. */}
+      {/* On small screens the links above are hidden; the same three
+          places are offered as a row of tabs. */}
       <nav
         aria-label="Primary navigation (compact)"
-        className="border-t border-[var(--border)] xl:hidden"
+        className="border-t border-[var(--border)] md:hidden"
       >
-        <div className="mx-auto flex max-w-[1440px] gap-1 overflow-x-auto px-4 py-2 sm:px-6">
+        <div className="mx-auto grid max-w-[1280px] grid-cols-3 px-2">
           {NAV_ITEMS.map((item) => {
             const active = item.isActive(pathname);
 
@@ -177,13 +169,16 @@ export function Topbar() {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={[
-                  "shrink-0 whitespace-nowrap rounded-md px-3.5 py-2 text-[14px] transition",
+                  "flex items-center justify-center border-b-2 px-2 py-2.5 text-[13px] transition",
                   active
-                    ? "bg-[var(--surface-muted)] font-semibold text-[var(--primary)]"
-                    : "font-medium text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)]",
+                    ? "border-[var(--primary-strong)] font-semibold text-[var(--primary-strong)]"
+                    : "border-transparent font-medium text-[var(--text-muted)]",
                 ].join(" ")}
               >
                 {item.label}
+                {item.showsMatchCount && (
+                  <MatchCountBadge count={newMatchCount} />
+                )}
               </Link>
             );
           })}

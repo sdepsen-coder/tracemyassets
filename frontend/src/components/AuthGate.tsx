@@ -12,7 +12,6 @@ import {
 } from "react";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 
-import { FloatingFeedback } from "@/components/dashboard/FloatingFeedback";
 import { SiteFooter } from "@/components/SiteFooter";
 import { api, ApiError, type User } from "@/lib/api";
 
@@ -384,43 +383,16 @@ export function AuthGate({ children, landing }: AuthGateProps) {
         key={session.id}
         value={{ user: session, logout, logoutEverywhere }}
       >
-        <div className="border-b border-white/10 bg-[#161b29] px-4 py-3 text-slate-200">
-          <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-3">
-            <p className="text-sm">
-              {session.email}
-              <span className="ml-2 text-sky-300">
-                {session.plan_type}
-              </span>
-            </p>
-
-            <button
-              type="button"
-              disabled={busy}
-              onClick={logout}
-              className="rounded-lg border border-white/10 px-3 py-1.5 text-sm hover:bg-white/5 disabled:opacity-50"
-            >
-              {busy ? "Signing out..." : "Sign out"}
-            </button>
-          </div>
-
-          <p className="mx-auto mt-2 max-w-[1440px] text-xs text-amber-300">
-            Asset uploads and counts use live account data. Monitoring and
-            evidence panels are demo previews.
+        {error && (
+          <p
+            role="alert"
+            className="bg-[var(--danger-soft)] px-4 py-2 text-center text-sm text-[var(--danger)]"
+          >
+            {error}
           </p>
-
-          {error && (
-            <p
-              role="alert"
-              className="mx-auto mt-2 max-w-[1440px] text-sm text-rose-300"
-            >
-              {error}
-            </p>
-          )}
-        </div>
+        )}
 
         {children}
-
-        <FloatingFeedback />
       </AuthContext.Provider>
     );
   }

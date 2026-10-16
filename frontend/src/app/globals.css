@@ -2,29 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Redesign palette (design/stitch-prompts.md, section 0). */
 :root {
-  --background: #faf8ff;
+  --background: #f7f8fc;
   --surface: #ffffff;
-  --surface-muted: #f2f3ff;
-  --surface-raised: #eaedff;
-  --surface-strong: #e2e7ff;
+  --surface-muted: #f3f5fa;
+  --surface-raised: #e8eeff;
+  --surface-strong: #dfe6f7;
 
-  --text: #131b2e;
-  --text-muted: #454655;
-  --border: #c5c5d8;
+  --text: #0f172a;
+  --text-muted: #5b6475;
+  --border: #e3e6ef;
 
-  --primary: #001bca;
-  --primary-strong: #2d3fe0;
-  --primary-soft: #dfe0ff;
+  --primary: #1e40af;
+  --primary-strong: #1d4ed8;
+  --primary-soft: #e8eeff;
 
-  --success: #00714d;
-  --success-soft: #e6fff3;
+  --success: #047857;
+  --success-soft: #e7f8f1;
 
-  --warning: #8a5000;
-  --warning-soft: #fff3dc;
+  --warning: #b45309;
+  --warning-soft: #fef3e2;
 
-  --danger: #ba1a1a;
-  --danger-soft: #ffdad6;
+  --danger: #dc2626;
+  --danger-soft: #fdecec;
 }
 
 .dark {
@@ -36,11 +37,11 @@
 
   --text: #f8fafc;
   --text-muted: #a7b1c2;
-  --border: #334155;
+  --border: #283548;
 
-  --primary: #aeb8ff;
-  --primary-strong: #4f62ff;
-  --primary-soft: #202d72;
+  --primary: #a9bdff;
+  --primary-strong: #3b63f0;
+  --primary-soft: #1b2a63;
 
   --success: #34d399;
   --success-soft: #064e3b;

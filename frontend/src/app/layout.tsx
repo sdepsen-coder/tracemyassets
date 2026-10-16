@@ -1,9 +1,5 @@
 import type { Metadata } from "next";
-import {
-  Inter,
-  JetBrains_Mono,
-  Plus_Jakarta_Sans,
-} from "next/font/google";
+import { Inter, JetBrains_Mono, Poppins } from "next/font/google";
 
 import { Analytics } from "@/components/Analytics";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
@@ -20,9 +16,10 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const poppins = Poppins({
   subsets: ["latin"],
-  variable: "--font-jakarta",
+  weight: ["500", "600", "700"],
+  variable: "--font-heading",
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -71,7 +68,7 @@ export default function RootLayout({
       <body
         className={[
           inter.variable,
-          plusJakartaSans.variable,
+          poppins.variable,
           jetbrainsMono.variable,
           "font-sans",
         ].join(" ")}

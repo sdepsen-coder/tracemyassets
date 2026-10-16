@@ -1,15 +1,10 @@
 import type { Metadata } from "next";
 
 import { AuthGate } from "@/components/AuthGate";
-import { AssetStatsProvider } from "@/components/dashboard/AssetStatsProvider";
-import { DashboardStats } from "@/components/dashboard/DashboardStats";
-import { HeroBanner } from "@/components/dashboard/HeroBanner";
-import { MatchesSummaryBanner } from "@/components/dashboard/MatchesSummaryBanner";
-import { ProtectedAssetsCard } from "@/components/dashboard/ProtectedAssetsCard";
-import { Topbar } from "@/components/dashboard/Topbar";
+import { AppShell } from "@/components/app/ui";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { JsonLd } from "@/components/JsonLd";
-import { SiteFooter } from "@/components/SiteFooter";
+import { MonitoringPage } from "@/components/monitoring/MonitoringPage";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -51,29 +46,9 @@ export default function HomePage() {
     <>
       <JsonLd data={STRUCTURED_DATA} />
       <AuthGate landing={<LandingPage />}>
-      <AssetStatsProvider>
-        <div className="min-h-screen bg-[var(--background)] text-[var(--text)]">
-          <Topbar />
-
-          <main className="px-4 py-6 sm:px-6 sm:py-8 xl:px-8">
-            <div className="mx-auto flex max-w-[1440px] flex-col gap-6">
-              <HeroBanner />
-
-              <DashboardStats />
-
-              <section id="my-artworks" className="scroll-mt-32">
-                <ProtectedAssetsCard />
-              </section>
-
-              <MatchesSummaryBanner />
-            </div>
-          </main>
-
-          <div className="mt-10">
-            <SiteFooter />
-          </div>
-        </div>
-      </AssetStatsProvider>
+        <AppShell>
+          <MonitoringPage />
+        </AppShell>
       </AuthGate>
     </>
   );

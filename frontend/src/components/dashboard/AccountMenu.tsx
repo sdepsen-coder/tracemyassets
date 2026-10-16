@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { useAuth, useOptionalAuth } from "@/components/AuthGate";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { api } from "@/lib/api";
-import { SITE_NAME } from "@/lib/site";
+
+import { FeedbackDialog } from "./FeedbackDialog";
 
 /** The round account icon and its menu (plan, credits, sign out). */
 export function AccountMenu() {
@@ -14,6 +16,7 @@ export function AccountMenu() {
   const initial = email.trim().charAt(0).toUpperCase() || "U";
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [menuCredits, setMenuCredits] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -97,22 +100,34 @@ export function AccountMenu() {
             </div>
 
             <Link
-              href="/about"
-              role="menuitem"
-              onClick={() => setMenuOpen(false)}
-              className="block w-full rounded-lg px-3 py-2 text-left text-[13px] font-medium text-[var(--text)] transition hover:bg-[var(--surface-muted)]"
-            >
-              About {SITE_NAME}
-            </Link>
-
-            <Link
               href="/account"
               role="menuitem"
               onClick={() => setMenuOpen(false)}
               className="block w-full rounded-lg px-3 py-2 text-left text-[13px] font-medium text-[var(--text)] transition hover:bg-[var(--surface-muted)]"
             >
-              Account and data
+              Account and plan
             </Link>
+
+            <Link
+              href="/help"
+              role="menuitem"
+              onClick={() => setMenuOpen(false)}
+              className="block w-full rounded-lg px-3 py-2 text-left text-[13px] font-medium text-[var(--text)] transition hover:bg-[var(--surface-muted)]"
+            >
+              Help
+            </Link>
+
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setMenuOpen(false);
+                setFeedbackOpen(true);
+              }}
+              className="block w-full rounded-lg px-3 py-2 text-left text-[13px] font-medium text-[var(--text)] transition hover:bg-[var(--surface-muted)]"
+            >
+              Send feedback
+            </button>
 
             {user.is_admin && (
               <Link
@@ -124,6 +139,11 @@ export function AccountMenu() {
                 Admin
               </Link>
             )}
+
+            <div className="mt-1 flex items-center justify-between border-t border-[var(--border)] px-3 pt-2">
+              <span className="text-[12px] text-[var(--text-muted)]">Theme</span>
+              <ThemeToggle className="flex" />
+            </div>
 
             <button
               type="button"
@@ -151,6 +171,11 @@ export function AccountMenu() {
             </button>
           </div>
         )}
+
+        <FeedbackDialog
+          open={feedbackOpen}
+          onClose={() => setFeedbackOpen(false)}
+        />
       </div>
   );
 }
