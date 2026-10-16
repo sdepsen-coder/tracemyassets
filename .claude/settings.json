@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pytest *)",
+      "Bash(py -m pytest *)",
+      "Bash(npx tsc *)",
+      "Bash(npx next build *)",
+      "Bash(npm run build *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git switch *)",
+      "Bash(git checkout -b *)",
+      "PowerShell(git add *)",
+      "PowerShell(git commit *)",
+      "PowerShell(git switch *)"
+    ],
+    "deny": [
+      "Bash(git push *)",
+      "Bash(git * push *)",
+      "Bash(git reset --hard *)",
+      "Bash(rm -rf *)",
+      "PowerShell(git push *)",
+      "PowerShell(git * push *)",
+      "PowerShell(git reset --hard *)",
+      "PowerShell(Remove-Item * -Recurse *)",
+      "Read(.env)",
+      "Read(.env.*)"
+    ]
+  }
+}

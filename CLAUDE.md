@@ -47,10 +47,13 @@ sole trader). Live at https://tracemyassets.com. Payments run on Paddle
 
 ## Git
 - Work on a branch, not `main`. Small commits, English messages.
-- The owner merges and pushes. Do not push to `main` without being asked.
+- The owner merges and pushes. `.claude/settings.json` denies `git push`
+  on purpose and pre-approves tests, `tsc`, `next build`, `git add` and
+  `git commit`. Personal overrides go in `.claude/settings.local.json`
+  (git-ignored).
 - Older work was delivered as numbered patch files (`0001`…`0047`, now in
   the git-ignored `archive/` folder) because the cloud session could not
-  push. Next free number: 0048.
+  push. Next free number: 0049.
 
 ## Domain rules worth knowing
 - Plans: Free $0 (3 artworks, 5 manual Standard scans a month, source links

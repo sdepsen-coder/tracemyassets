@@ -82,3 +82,6 @@ node_modules/
 
 # Archived patch files and old copies (local only)
 /archive/
+
+# Claude Code personal settings
+.claude/settings.local.json
