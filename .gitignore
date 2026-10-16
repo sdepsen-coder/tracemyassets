@@ -79,3 +79,6 @@ node_modules/
 *.bak
 *.bak-*
 /project-review*.txt
+
+# Archived patch files and old copies (local only)
+/archive/
