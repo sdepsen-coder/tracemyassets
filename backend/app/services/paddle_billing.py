@@ -27,13 +27,18 @@ from datetime import datetime, timezone
 from typing import Any
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.plan_limits import DEFAULT_PLAN
-from app.models.paddle import PaddleEvent, PaddleSubscription
+from app.models.paddle import (
+    PaddleAdjustment,
+    PaddleEvent,
+    PaddleSubscription,
+    PaddleTransaction,
+)
 from app.models.user import User
 from app.services.credits import grant_purchase, reverse_purchase
 from app.services.plan_credits import ACCESS_STATUSES, grant_due_plan_credits
@@ -251,6 +256,30 @@ def plan_from_items(items: Any) -> tuple[str | None, str | None, str | None]:
     return None, None, None
 
 
+def pack_credits_from_items(items: Any) -> int:
+    """Deep scan credits bought in a transaction's items (0 if none)."""
+    total = 0
+
+    for item in items if isinstance(items, list) else []:
+        price = item.get("price") if isinstance(item, dict) else None
+
+        if not isinstance(price, dict):
+            continue
+
+        credits = classify_pack(price) or _discovered_packs.get(
+            str(price.get("id")), (0, 0)
+        )[0]
+
+        try:
+            quantity = max(int(item.get("quantity") or 1), 1)
+        except (TypeError, ValueError):
+            quantity = 1
+
+        total += credits * quantity
+
+    return total
+
+
 def _user_id_from(data: dict[str, Any]) -> int | None:
     custom = data.get("custom_data")
 
@@ -393,6 +422,16 @@ def apply_subscription_event(
 
     db.flush()
 
+    # A renewal paid before we could tell whose it was belongs to this user.
+    db.execute(
+        update(PaddleTransaction)
+        .where(
+            PaddleTransaction.subscription_id == subscription_id,
+            PaddleTransaction.user_id.is_(None),
+        )
+        .values(user_id=subscription.user_id)
+    )
+
     if user is not None:
         recompute_plan(db, user)
         grant_due_plan_credits(db, user.id)
@@ -410,25 +449,7 @@ def apply_transaction_event(db: Session, event: dict[str, Any]) -> str:
     if data.get("status") != "completed":
         return "ignored: not completed"
 
-    total = 0
-    items = data.get("items")
-
-    for item in items if isinstance(items, list) else []:
-        price = item.get("price") if isinstance(item, dict) else None
-
-        if not isinstance(price, dict):
-            continue
-
-        credits = classify_pack(price) or _discovered_packs.get(
-            str(price.get("id")), (0, 0)
-        )[0]
-
-        try:
-            quantity = max(int(item.get("quantity") or 1), 1)
-        except (TypeError, ValueError):
-            quantity = 1
-
-        total += credits * quantity
+    total = pack_credits_from_items(data.get("items"))
 
     if total <= 0:
         return "ignored: not a credit pack"
@@ -487,6 +508,220 @@ def apply_adjustment_event(db: Session, event: dict[str, Any]) -> str:
     return f"applied: -{reversed_[1]} credits for user {reversed_[0]}"
 
 
+# ---------------------------------------------------------- payment record
+#
+# Every completed payment and every refund or chargeback is kept as Paddle
+# reported it, so the admin pages can show who paid what and when. The
+# amounts are Paddle's own totals: nothing is computed from our prices.
+
+
+def _minor(value: Any) -> int | None:
+    """Paddle amounts are strings in the lowest currency unit ("1299")."""
+    if value is None or isinstance(value, bool):
+        return None
+
+    try:
+        return int(str(value))
+    except (TypeError, ValueError):
+        return None
+
+
+def match_user_id(db: Session, data: dict[str, Any]) -> int | None:
+    """
+    The account a transaction or adjustment belongs to: the user id the
+    checkout put in custom data, else the owner of its subscription or of
+    an earlier payment by the same Paddle customer.
+    """
+    user_id = _user_id_from(data)
+
+    if user_id and db.get(User, user_id) is not None:
+        return user_id
+
+    subscription_id = data.get("subscription_id")
+
+    if subscription_id:
+        subscription = db.get(PaddleSubscription, str(subscription_id))
+
+        if subscription is not None:
+            return subscription.user_id
+
+    customer_id = data.get("customer_id")
+
+    if customer_id:
+        found = db.scalar(
+            select(PaddleSubscription.user_id)
+            .where(PaddleSubscription.customer_id == str(customer_id))
+            .limit(1)
+        ) or db.scalar(
+            select(PaddleTransaction.user_id)
+            .where(
+                PaddleTransaction.customer_id == str(customer_id),
+                PaddleTransaction.user_id.is_not(None),
+            )
+            .limit(1)
+        )
+
+        if found:
+            return int(found)
+
+    return None
+
+
+def record_transaction(
+    db: Session, data: Any, *, occurred: datetime | None = None
+) -> str:
+    """Keep one completed payment. Once per transaction. Does not commit."""
+    if not isinstance(data, dict) or not data.get("id"):
+        return "not recorded: no transaction"
+
+    if data.get("status") != "completed":
+        return "not recorded: not completed"
+
+    transaction_id = str(data["id"])[:60]
+    existing = db.get(PaddleTransaction, transaction_id)
+
+    if existing is not None:
+        if existing.user_id is None:
+            existing.user_id = match_user_id(db, data)
+
+        return "already recorded"
+
+    details = data.get("details")
+    totals = details.get("totals") if isinstance(details, dict) else None
+    totals = totals if isinstance(totals, dict) else {}
+    currency = str(
+        totals.get("currency_code") or data.get("currency_code") or ""
+    ).upper()[:3]
+
+    items = data.get("items")
+    plan, interval, _ = plan_from_items(items)
+    credits = pack_credits_from_items(items)
+
+    if plan or data.get("subscription_id"):
+        kind = "plan"
+    elif credits > 0:
+        kind = "pack"
+    else:
+        kind = "other"
+
+    user_id = match_user_id(db, data)
+
+    if user_id is None:
+        logger.error(
+            "Paddle transaction %s was paid but has no matching user; "
+            "it is recorded without one.",
+            transaction_id,
+        )
+
+    # grand_total is what the customer paid (after discounts and credit).
+    total = _minor(totals.get("grand_total"))
+
+    if total is None:
+        total = _minor(totals.get("total")) or 0
+
+    try:
+        with db.begin_nested():
+            db.add(
+                PaddleTransaction(
+                    transaction_id=transaction_id,
+                    user_id=user_id,
+                    subscription_id=(
+                        str(data["subscription_id"])[:60]
+                        if data.get("subscription_id")
+                        else None
+                    ),
+                    customer_id=(
+                        str(data["customer_id"])[:60]
+                        if data.get("customer_id")
+                        else None
+                    ),
+                    kind=kind,
+                    plan=plan,
+                    interval=interval,
+                    credits=credits if kind == "pack" else None,
+                    status=str(data.get("status"))[:20],
+                    origin=str(data.get("origin") or "")[:40] or None,
+                    currency_code=currency,
+                    subtotal=_minor(totals.get("subtotal")) or 0,
+                    tax=_minor(totals.get("tax")) or 0,
+                    total=total,
+                    fee=_minor(totals.get("fee")),
+                    earnings=_minor(totals.get("earnings")),
+                    billed_at=(
+                        parse_time(data.get("billed_at"))
+                        or parse_time(data.get("created_at"))
+                        or occurred
+                        or datetime.now(timezone.utc)
+                    ),
+                )
+            )
+    except IntegrityError:
+        return "already recorded"
+
+    return f"recorded {kind} payment {transaction_id}"
+
+
+def record_adjustment(
+    db: Session, data: Any, *, occurred: datetime | None = None
+) -> str:
+    """Keep the latest state of one refund, credit or chargeback."""
+    if not isinstance(data, dict):
+        return "not recorded: no adjustment"
+
+    adjustment_id = str(data.get("id") or "")[:60]
+    transaction_id = str(data.get("transaction_id") or "")[:60]
+
+    if not adjustment_id or not transaction_id:
+        return "not recorded: no adjustment"
+
+    updated = parse_time(data.get("updated_at")) or occurred
+    row = db.get(PaddleAdjustment, adjustment_id)
+
+    if row is not None:
+        last = _aware(row.paddle_updated_at)
+
+        if updated is not None and last is not None and updated < last:
+            return "not recorded: older than the state we have"
+
+    payment = db.get(PaddleTransaction, transaction_id)
+    totals = data.get("totals")
+    totals = totals if isinstance(totals, dict) else {}
+    currency = str(
+        totals.get("currency_code")
+        or data.get("currency_code")
+        or (payment.currency_code if payment else "")
+    ).upper()[:3]
+
+    if row is None:
+        row = PaddleAdjustment(
+            adjustment_id=adjustment_id,
+            transaction_id=transaction_id,
+            user_id=(
+                payment.user_id
+                if payment is not None and payment.user_id
+                else match_user_id(db, data)
+            ),
+            paddle_created_at=(
+                parse_time(data.get("created_at"))
+                or occurred
+                or datetime.now(timezone.utc)
+            ),
+        )
+        db.add(row)
+
+    row.action = str(data.get("action") or "")[:30]
+    row.type = str(data.get("type") or "")[:10] or None
+    row.status = str(data.get("status") or "")[:20]
+    row.reason = str(data.get("reason") or "")[:500] or None
+    row.currency_code = currency
+    row.total = _minor(totals.get("total")) or 0
+    row.paddle_updated_at = updated
+
+    db.flush()
+
+    return f"recorded {row.action} {row.status} on {transaction_id}"
+
+
 HANDLED = {
     "subscription.created",
     "subscription.activated",
@@ -513,12 +748,24 @@ def handle_event(db: Session, event: dict[str, Any]) -> str:
     if db.get(PaddleEvent, event_id) is not None:
         return "duplicate"
 
+    occurred = parse_time(event.get("occurred_at"))
+
     try:
         if event_type in HANDLED:
             result = apply_subscription_event(db, event)
         elif event_type == "transaction.completed":
+            logger.info(
+                "Paddle %s: %s",
+                event_id,
+                record_transaction(db, event.get("data"), occurred=occurred),
+            )
             result = apply_transaction_event(db, event)
         elif event_type in ("adjustment.created", "adjustment.updated"):
+            logger.info(
+                "Paddle %s: %s",
+                event_id,
+                record_adjustment(db, event.get("data"), occurred=occurred),
+            )
             result = apply_adjustment_event(db, event)
         else:
             result = "ignored: not needed"
