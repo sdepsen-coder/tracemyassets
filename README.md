@@ -38,18 +38,39 @@ production-ready. The sections below describe the current state.
 - Monitoring: per-asset scan frequency (daily/weekly/monthly) and alert
   threshold, enforced per plan (see "Plans" below).
 - Automated scanning via a background scheduler (APScheduler), plus an
-  on-demand "run scan now" endpoint.
-- Online candidate discovery via Google Vision Web Detection, with every
-  candidate re-verified through the app's own pHash + watermark + ORB
-  pipeline before it becomes a match — the discovery provider only ever
-  supplies *candidate locations*, never the actual similarity/watermark
-  verdict.
+  on-demand "Standard scan" endpoint (limited per month on Free/Pro/Extra).
+- Online candidate discovery, with every candidate re-verified through the
+  app's own pHash + watermark + ORB pipeline before it becomes a match —
+  a discovery provider only ever supplies *candidate locations*, never the
+  actual similarity/watermark verdict. Providers (see "Discovery
+  providers" below):
+  - Google Vision Web Detection (Standard scan).
+  - Optional marketplace providers for Amazon (via Rainforest API) and
+    Etsy (Open API v3), enabled through `VISUAL_SEARCH_PROVIDER` and
+    aggregated per scan, each match tagged by source.
+  - Deep scan: Google Lens exact matches through SerpApi, paid for with
+    credits.
+- Deep-scan credits: an append-only ledger. A Deep scan costs 1 credit and
+  is refunded if the search could not run. New accounts get 3 welcome
+  credits once; Pro and Extra add monthly credits; one-time credit packs
+  can be bought.
+- Billing on Paddle (currently the sandbox): subscriptions for Pro and
+  Extra, one-time credit packs, a verified and idempotent webhook, and
+  refund/chargeback handling that takes back only unspent pack credits.
+- Daily and monthly caps on paid provider calls (SerpApi and Google
+  Vision), so a runaway loop cannot become a bill.
+- Email alerts for new matches and email verification through Resend, and
+  Sign in with Google.
+- Admin pages (hidden from non-admins) with usage and cost-cap warnings.
+- Optional Sentry error reporting on the backend (no cookies, IP addresses,
+  request bodies or user details are sent).
 - Match review workflow: each match carries a review status (new /
   reviewing / confirmed / dismissed / archived) and optional notes, set by
   the user.
-- Plan-based limits (Free / Pro), enforced server-side, not just in the UI.
+- Plan-based limits (Free / Pro / Extra), enforced server-side, not just in
+  the UI.
 
-### Known limitations of the current discovery provider
+### Known limitations of the discovery providers
 
 Google Vision Web Detection is a general web-crawl reverse-image search,
 not a marketplace-specific one. In practice this means:
@@ -62,17 +83,18 @@ not a marketplace-specific one. In practice this means:
   recompressed variants of an image, which can reduce visual-similarity
   match quality even against a known-source test image.
 
+The Amazon and Etsy providers search by keyword (the asset's title), because
+neither offers image-similarity search, so they only help when a listing
+uses similar wording.
+
 ### Planned
 
-- Marketplace-specific discovery providers (Amazon, Etsy) run alongside
-  Google Vision, aggregated per scan and tagged by source, so the most
-  infringement-heavy marketplaces get targeted coverage rather than
-  relying on general web-crawl discovery alone.
 - A "verify and show the watermark" UI.
 - Technical finding / evidence reports.
 - Draft warning and takedown notices (still requiring explicit user
   approval before anything is sent).
 - Product mockup and regional visual-matching research.
+- Image-based (not keyword-based) marketplace discovery.
 
 ## How the invisible watermark works
 
@@ -130,8 +152,11 @@ A verified watermark does not automatically set the similarity score to 100%.
 - Pillow, ImageHash, NumPy, SciPy, OpenCV (for pHash, watermarking, and ORB
   candidate verification)
 - APScheduler for the background scan scheduler
-- Google Vision Web Detection for online candidate discovery (additional
-  marketplace-specific providers planned — see "Planned" above)
+- Google Vision Web Detection for online candidate discovery, with optional
+  Amazon (Rainforest API) and Etsy providers, and Google Lens through
+  SerpApi for Deep scans (see "Discovery providers" below)
+- Paddle for subscriptions and credit packs
+- Resend for email (HTTPS API)
 - Next.js, React, and TypeScript
 - Tailwind CSS
 
@@ -139,10 +164,45 @@ A verified watermark does not automatically set the similarity score to 100%.
 
 Enforced in `app/core/plan_limits.py`, not hardcoded elsewhere:
 
-| Plan | Monitored assets | Scan frequencies | Match source shown |
-|---|---|---|---|
-| Free | up to 3 | weekly, monthly | No — match strength stays visible, the source site is redacted |
-| Pro | up to 25 | daily, weekly, monthly | Yes |
+| Plan | Price | Monitored assets | Scan frequencies | Manual Standard scans / month | Deep-scan credits | Match source shown |
+|---|---|---|---|---|---|---|
+| Free | $0 | up to 3 | weekly, monthly | 5 | 3 welcome credits, once | No — match strength stays visible, the source site is redacted |
+| Pro | $12.99/mo or $120/yr | up to 40 | daily, weekly, monthly | 30 | 10 per month | Yes |
+| Extra | $29.99/mo or $240/yr | up to 100 | daily, weekly, monthly | 100 | 40 per month | Yes |
+
+Scheduled scans never count against the manual-scan limit. Monthly plan
+credits do not carry over. Prices are recognised by amount and interval in
+`app/services/paddle_billing.py`; the limits come from
+`app/core/plan_limits.py`.
+
+### Deep-scan credits and credit packs
+
+A Deep scan (Google Lens through SerpApi) costs real money per search, so it
+is paid for with credits: 1 credit per scan, refunded if the search could not
+run. One-time credit packs never expire and are spent after the plan's
+monthly credits:
+
+| Pack | Price |
+|---|---|
+| 10 credits | $4.99 |
+| 25 credits | $9.99 |
+| 60 credits | $19.99 |
+
+Payments run on Paddle (the sandbox for now; live prices are set up before
+launch). Refunds and chargebacks take back only the unspent credits of a pack.
+
+### Discovery providers
+
+| Provider | Used for | `VISUAL_SEARCH_PROVIDER` value |
+|---|---|---|
+| Google Vision Web Detection | Standard scans | `google-vision` |
+| Amazon via Rainforest API | Standard scans (keyword search) | `rainforest-amazon` |
+| Etsy Open API v3 | Standard scans (keyword search) | `etsy` |
+| Google Lens via SerpApi | Deep scans only, never in ordinary scans | not listed there; needs `SERPAPI_API_KEY` and `PUBLIC_BACKEND_URL` |
+| Demo provider | Local development, the default | `fake` |
+
+`VISUAL_SEARCH_PROVIDER` takes a comma-separated list; every listed provider
+runs on each scan and their candidates are pooled before verification.
 
 There is also a non-customer-facing **Internal** plan (unlimited, all
 frequencies, source shown) with no signup path — it exists only so the
