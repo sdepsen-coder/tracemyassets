@@ -346,7 +346,7 @@ function CheckImageContent() {
                     suspicious image.
                   </p>
                   <Link
-                    href="/#asset-upload"
+                    href="/protect"
                     className="mt-4 inline-flex h-9 items-center rounded-lg bg-[var(--primary-strong)] px-3 text-[12px] font-semibold text-white"
                   >
                     Upload artwork
