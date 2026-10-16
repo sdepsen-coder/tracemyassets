@@ -201,7 +201,7 @@ export function NextSteps({ match, artworkTitle }: Props) {
                 type="button"
                 data-testid="letter-copy"
                 onClick={() => void handleCopy()}
-                className="inline-flex h-9 items-center rounded-lg bg-[var(--primary-strong)] px-3 text-[12px] font-semibold text-white transition hover:brightness-110"
+                className="inline-flex h-9 items-center rounded-lg bg-[var(--primary-strong)] px-3 text-[12px] font-semibold text-[var(--on-primary)] transition hover:brightness-110"
               >
                 {copied === letter.kind ? "Copied" : "Copy letter"}
               </button>

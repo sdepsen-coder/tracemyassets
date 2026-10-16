@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Outfit:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "status-success-bg": "#E7F8F1", "tertiary-fixed-dim": "#63dca6", "status-danger-bg": "#FDECEC", "border-subtle": "#E6E8F0", "status-muted-bg": "#F1F2F5", "primary-soft": "#E8EEFF", "primary-hover": "#1E40AF", "inverse-on-surface": "#ebf1ff", "primary-fixed": "#dce1ff", "primary": "#0037b0", "secondary-fixed": "#dae2fd", "on-surface": "#131c2a", "error": "#ba1a1a", "on-tertiary": "#ffffff", "surface-dim": "#d1daee", "inverse-surface": "#283140", "on-secondary": "#ffffff", "on-secondary-container": "#5c647a", "tertiary": "#004f35", "on-error-container": "#93000a", "surface-variant": "#dae3f7", "primary-container": "#1d4ed8", "on-primary-container": "cad3ff", "secondary-container": "#dae2fd", "surface-base": "#FFFFFF", "inverse-primary": "#b7c4ff", "surface-container-lowest": "#ffffff", "tertiary-fixed": "#81f9c1", "on-secondary-fixed-variant": "#3f465c", "on-tertiary-container": "#73ecb4", "surface-bright": "#f9f9ff", "outline": "#747686", "surface-container": "#e7eeff", "status-warning-text": "#B45309", "secondary": "#565e74", "on-primary-fixed-variant": "#0039b5", "surface-container-highest": "#dae3f7", "dark-band": "#0B0F19", "on-primary": "#ffffff", "status-danger-text": "#DC2626", "primary-fixed-dim": "#b7c4ff", "surface-container-high": "#dfe8fd", "outline-variant": "#c4c5d7", "on-secondary-fixed": "#131b2e", "surface-soft": "#F5F7FB", "on-background": "#131c2a", "on-tertiary-fixed": "#002113", "status-muted-text": "#6B7280", "tertiary-container": "#006a47", "background": "#f9f9ff", "secondary-fixed-dim": "#bec6e0", "on-tertiary-fixed-variant": "#005236", "status-success-text": "#0E9F6E", "surface-tint": "#2151da", "on-primary-fixed": "#001551", "surface-container-low": "#f0f3ff", "on-error": "#ffffff", "status-warning-bg": "#FEF3E2", "surface": "#f9f9ff", "error-container": "#ffdad6", "on-surface-variant": "#434655" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-md": "1rem", "margin": "2rem", "space-2xl": "4rem", "margin-desktop": "3rem", "space-sm": "0.5rem", "space-xl": "2.5rem", "gutter": "1.5rem", "gutter-mobile": "1rem", "space-lg": "1.5rem", "space-xs": "0.25rem", "margin-mobile": "1rem" }, "fontFamily": { "headline-lg": [ "Outfit" ], "display-hero-mobile": [ "Outfit" ], "headline-lg-mobile": [ "Outfit" ], "display-hero": [ "Outfit" ], "label-lg": [ "Inter" ], "body-md": [ "Inter" ], "headline-sm": [ "Outfit" ], "body-sm": [ "Inter" ], "body-lg": [ "Inter" ], "headline-md": [ "Outfit" ], "label-md": [ "Inter" ], "metric-num": [ "Inter" ] }, "fontSize": { "headline-lg": [ "40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "display-hero-mobile": [ "36px", { "lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "700" } ], "headline-lg-mobile": [ "28px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "700" } ], "display-hero": [ "56px", { "lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "label-lg": [ "14px", { "lineHeight": "20px", "fontWeight": "600" } ], "body-md": [ "15px", { "lineHeight": "22px", "fontWeight": "400" } ], "headline-sm": [ "18px", { "lineHeight": "26px", "letterSpacing": "-0.005em", "fontWeight": "600" } ], "body-sm": [ "13px", { "lineHeight": "18px", "fontWeight": "400" } ], "body-lg": [ "16px", { "lineHeight": "24px", "fontWeight": "400" } ], "headline-md": [ "24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" } ], "label-md": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600" } ], "metric-num": [ "28px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" } ] } } } };</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 w-full z-50 bg-surface-base border-b border-border-subtle"><div class="h-16 max-w-7xl mx-auto px-gutter flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-lg"><a class="flex items-center gap-space-sm" data-path="03-monitoring-dashboard" href="#"><span class="material-symbols-outlined text-primary text-[28px]">verified_user</span><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight font-bold">TraceMyAssets</span></a></div><nav class="hidden md:flex items-center gap-space-xs" data-active-classes="bg-surface-soft text-primary font-bold rounded-lg"><a class="px-space-md py-space-sm font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-soft rounded-lg transition-colors" data-path="03-monitoring-dashboard" href="#">Monitoring</a><a class="px-space-md py-space-sm font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-soft rounded-lg transition-colors flex items-center gap-space-xs" data-path="matches" href="#">Matches<span class="inline-flex items-center justify-center px-1.5 py-0.5 rounded-full font-label-md text-label-md bg-status-warning-bg text-status-warning-text">2</span></a><a aria-current="page" class="px-space-md py-space-sm transition-colors bg-surface-soft text-primary font-bold rounded-lg" data-path="05-check-an-image" href="#">Check an image</a></nav><div class="flex items-center gap-space-md"><a class="inline-flex items-center justify-center h-11 px-6 rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg hover:bg-primary-hover transition-colors shadow-sm gap-space-xs" data-path="protect-artwork" href="#"><span class="material-symbols-outlined text-base">add</span><span>Protect new artwork</span></a><button class="relative p-space-sm text-on-surface-variant hover:text-on-surface rounded-full hover:bg-surface-soft transition-colors" type="button"><span class="material-symbols-outlined">notifications</span><span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-status-danger-text"></span></button><div class="flex items-center pl-space-xs border-l border-border-subtle"><a class="flex items-center focus:outline-none focus:ring-2 focus:ring-primary rounded-full" data-path="account-settings" href="#"><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-1 ring-border-subtle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8pv7FwgmGzBptuYZKbRfYVLK6AibuTrAYN-GkHkDbpkCHg4xRixcTci6k6pofG4gcS0HjBBc2ukN6avjWjwRSO6e14X7NMQppv_nWwgDR8UObYJ9wVgIaBBDf6E1liQBjo9V95zbwsxuTNsegYC8qTFnRpmnYPnw8NigMFn8808wPkxbaPm-e61sgxtDbHdJyLU2SM8qk5QK_lEJU7HH7xq6dA3MZuEARBE__MnF92FXYcjVKeuyG"/></a></div></div></div></header><main class="w-full pt-16 bg-surface min-h-[calc(100vh-64px)]"><div class="flex flex-col w-full">
+<!-- Content Canvas Container -->
+<div class="w-full max-w-7xl mx-auto px-gutter py-space-xl">
+<!-- Top Headline Section with Status Snippet -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md pb-space-lg">
+<div class="space-y-space-xs">
+<div class="inline-flex items-center gap-space-xs px-2.5 py-1 rounded-full bg-primary-soft text-primary font-label-md text-label-md">
+<span class="material-symbols-outlined text-sm">shield_person</span>
+<span>Artist Account Center</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Account &amp; Settings</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
+          Manage your protection subscription, scan credits, security preferences, and registered visual identity data.
+        </p>
+</div>
+<!-- Quick Status Badges -->
+<div class="flex items-center gap-space-sm bg-surface-base p-2 rounded-xl shadow-sm">
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-soft">
+<span class="w-2 h-2 rounded-full bg-status-success-text"></span>
+<span class="font-label-md text-label-md text-on-surface font-medium">Registry Active</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-soft">
+<span class="material-symbols-outlined text-base text-primary">toll</span>
+<span class="font-label-md text-label-md text-on-surface font-medium"><span id="credit-counter-pill">3</span> Deep Credits</span>
+</div>
+</div>
+</div>
+<!-- Main Master Layout Grid: Sidebar + Extended Content -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-start pt-space-sm">
+<!-- LEFT SUB-NAVIGATION SIDEBAR (approx 260px desktop) -->
+<aside class="lg:col-span-3 flex flex-col gap-space-lg sticky top-24">
+<nav aria-label="Account Sub Navigation" class="bg-surface-base rounded-2xl p-space-sm shadow-sm space-y-1">
+<button class="w-full flex items-center justify-between px-space-md py-3 rounded-xl font-label-lg text-label-lg transition-all duration-200 bg-primary-soft text-primary font-semibold" id="tab-btn-plan-credits" onclick="switchAccountTab('plan-credits')" type="button">
+<span class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-xl">workspace_premium</span>
+<span>Plan &amp; credits</span>
+</span>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between px-space-md py-3 rounded-xl font-label-lg text-label-lg transition-all duration-200 text-on-surface-variant hover:text-on-surface hover:bg-surface-soft" id="tab-btn-profile-security" onclick="switchAccountTab('profile-security')" type="button">
+<span class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-xl">security</span>
+<span>Profile &amp; security</span>
+</span>
+<span class="material-symbols-outlined text-sm opacity-50">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between px-space-md py-3 rounded-xl font-label-lg text-label-lg transition-all duration-200 text-on-surface-variant hover:text-on-surface hover:bg-surface-soft" id="tab-btn-your-data" onclick="switchAccountTab('your-data')" type="button">
+<span class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-xl">database</span>
+<span>Your data &amp; export</span>
+</span>
+<span class="material-symbols-outlined text-sm opacity-50">chevron_right</span>
+</button>
+<div class="pt-space-xs">
+<a class="w-full flex items-center justify-between px-space-md py-3 rounded-xl font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-soft transition-colors" href="#">
+<span class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-xl">receipt_long</span>
+<span>Invoices &amp; tax</span>
+</span>
+<span class="material-symbols-outlined text-sm opacity-50">arrow_outward</span>
+</a>
+</div>
+</nav>
+<!-- Artist Care Box -->
+<div class="bg-surface-soft rounded-2xl p-space-md shadow-sm space-y-space-sm">
+<div class="flex items-center gap-space-xs text-primary font-label-md text-label-md">
+<span class="material-symbols-outlined text-base">support_agent</span>
+<span>Studio Concierge</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            Need legal takedown templates or invoice support? Read our <a class="text-primary underline font-medium hover:text-primary-hover" href="#">Billing FAQ</a> or contact our specialist support team.
+          </p>
+<a class="inline-flex items-center gap-1 font-label-md text-label-md text-on-surface hover:text-primary transition-colors font-medium" href="#">
+<span>Contact artist support</span>
+<span class="material-symbols-outlined text-xs">arrow_forward</span>
+</a>
+</div>
+<!-- System Verification Stamp -->
+<div class="px-space-xs py-space-xs text-on-surface-variant font-label-md text-label-md flex items-center gap-2 opacity-70">
+<span class="material-symbols-outlined text-sm">enhanced_encryption</span>
+<span>SHA-256 Tamper Registry v4.2</span>
+</div>
+</aside>
+<!-- RIGHT MAIN CONTENT (max-w ~880px) -->
+<main class="lg:col-span-9 flex flex-col gap-space-xl">
+<!-- ======================================================== -->
+<!-- TAB 1: PLAN & CREDITS SECTION                           -->
+<!-- ======================================================== -->
+<div class="flex flex-col gap-space-xl" id="section-plan-credits">
+<!-- Current Subscription Overview Card -->
+<div class="bg-surface-base rounded-2xl p-space-lg shadow-sm space-y-space-lg">
+<!-- Card Top Bar: Free / Pro Interactive Switcher -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md pb-space-sm">
+<div class="space-y-1">
+<div class="flex items-center gap-space-sm">
+<h2 class="font-headline-md text-headline-md text-on-surface tracking-tight" id="plan-display-name">Free Plan</h2>
+<span class="inline-flex items-center px-3 py-0.5 rounded-full font-label-md text-label-md bg-status-success-bg text-status-success-text font-semibold" id="plan-badge-status">
+                    Current Plan
+                  </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant" id="plan-summary-line">
+                  Essential defense for individual creators · Basic visual footprint monitoring.
+                </p>
+</div>
+<!-- Interactive Simulator Pill for Demo Review -->
+<div class="flex items-center bg-surface-soft p-1 rounded-full self-start sm:self-auto shadow-inner">
+<button class="px-3.5 py-1.5 rounded-full font-label-md text-label-md transition-all duration-200 bg-surface-base text-primary shadow-sm font-semibold" id="toggle-state-free" onclick="setPlanState('free')" type="button">
+                  Free Tier
+                </button>
+<button class="px-3.5 py-1.5 rounded-full font-label-md text-label-md transition-all duration-200 text-on-surface-variant hover:text-on-surface" id="toggle-state-pro" onclick="setPlanState('pro')" type="button">
+                  Pro View Preview
+                </button>
+</div>
+</div>
+<!-- FREE PLAN CONTENT VIEW -->
+<div class="space-y-space-lg" id="view-free-plan">
+<!-- Visual Usage Bars -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md bg-surface-soft rounded-xl p-space-md">
+<!-- Metric 1: Protected Artwork -->
+<div class="bg-surface-base rounded-xl p-space-md shadow-sm space-y-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant font-medium">Artworks protected</span>
+<span class="inline-flex items-center gap-1 font-label-md text-label-md text-status-warning-text bg-status-warning-bg px-2 py-0.5 rounded-full font-semibold">
+<span class="material-symbols-outlined text-xs">error</span> Limit reached
+                    </span>
+</div>
+<div class="flex items-baseline justify-between">
+<div class="font-metric-num text-metric-num text-on-surface font-bold">3 <span class="font-body-md text-body-md text-on-surface-variant font-normal">of 3 used</span></div>
+<span class="font-label-md text-label-md text-status-warning-text font-semibold">100%</span>
+</div>
+<!-- Progress Bar -->
+<div class="w-full h-2 rounded-full bg-surface-soft overflow-hidden">
+<div class="h-full bg-status-warning-text rounded-full w-full transition-all duration-500"></div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant pt-0.5">
+                    Upgrade to Pro to register up to 100 artworks with forensic signatures.
+                  </p>
+</div>
+<!-- Metric 2: Monthly Scans -->
+<div class="bg-surface-base rounded-xl p-space-md shadow-sm space-y-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant font-medium">Monthly web checks</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Resets in 11 days</span>
+</div>
+<div class="flex items-baseline justify-between">
+<div class="font-metric-num text-metric-num text-on-surface font-bold">2 <span class="font-body-md text-body-md text-on-surface-variant font-normal">of 5 used</span></div>
+<span class="font-label-md text-label-md text-on-surface font-semibold">40%</span>
+</div>
+<!-- Progress Bar -->
+<div class="w-full h-2 rounded-full bg-surface-soft overflow-hidden">
+<div class="h-full bg-primary-container rounded-full w-2/5 transition-all duration-500"></div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant pt-0.5">
+                    Scheduled crawler checks refresh automatically on 1 Nov.
+                  </p>
+</div>
+</div>
+<!-- Included Features Mini-Bento -->
+<div class="space-y-space-sm">
+<span class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Active Features on your free account</span>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-sm">
+<div class="flex items-start gap-2.5 p-3 rounded-xl bg-surface-soft">
+<span class="material-symbols-outlined text-status-success-text text-lg">check_circle</span>
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">Automatic weekly scans</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Standard public domain index</p>
+</div>
+</div>
+<div class="flex items-start gap-2.5 p-3 rounded-xl bg-surface-soft">
+<span class="material-symbols-outlined text-status-success-text text-lg">check_circle</span>
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">Invisible watermarking</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Frequency domain encoding</p>
+</div>
+</div>
+<div class="flex items-start gap-2.5 p-3 rounded-xl bg-surface-soft">
+<span class="material-symbols-outlined text-status-warning-text text-lg">info</span>
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">Basic match alerts</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Host site URLs blurred</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Bar -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md pt-space-xs">
+<div class="flex flex-wrap items-center gap-space-sm">
+<button class="inline-flex items-center justify-center h-11 px-6 rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg hover:bg-primary-hover transition-colors shadow-sm gap-2" onclick="setPlanState('pro')" type="button">
+<span class="material-symbols-outlined text-base">bolt</span>
+<span>Upgrade to Pro ($12.99/mo)</span>
+</button>
+<a class="inline-flex items-center justify-center h-11 px-5 rounded-full bg-surface-base text-on-surface font-label-lg text-label-lg hover:bg-surface-soft transition-colors shadow-sm" href="#">
+                    View Studio &amp; Team Plans
+                  </a>
+</div>
+<a class="inline-flex items-center gap-1 font-label-lg text-label-lg text-primary hover:text-primary-hover font-semibold" href="#">
+<span>Compare all plans &amp; features</span>
+<span class="material-symbols-outlined text-base">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- PRO PLAN CONTENT VIEW (Toggleable preview for complete UX fidelity) -->
+<div class="hidden space-y-space-lg" id="view-pro-plan">
+<div class="bg-primary-soft rounded-xl p-space-md flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">Pro Creator Membership</span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-status-success-bg text-status-success-text font-semibold">Renews 16 Nov</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                    Billed $12.99 monthly to Mastercard ending in <span class="font-semibold text-on-surface">4092</span>.
+                  </p>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="inline-flex items-center justify-center h-10 px-5 rounded-full bg-surface-base text-on-surface font-label-lg text-label-lg hover:bg-surface-soft transition-colors shadow-sm" type="button">
+                    Manage billing
+                  </button>
+<button class="inline-flex items-center justify-center h-10 px-5 rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg hover:bg-primary-hover transition-colors shadow-sm" type="button">
+                    Change tier
+                  </button>
+</div>
+</div>
+<!-- Pro usage statistics -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md bg-surface-soft rounded-xl p-space-md">
+<div class="bg-surface-base rounded-xl p-space-md shadow-sm space-y-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant font-medium">Artworks protected</span>
+<span class="font-label-md text-label-md text-status-success-text bg-status-success-bg px-2 py-0.5 rounded-full font-semibold">Healthy</span>
+</div>
+<div class="flex items-baseline justify-between">
+<div class="font-metric-num text-metric-num text-on-surface font-bold">24 <span class="font-body-md text-body-md text-on-surface-variant font-normal">of 100 capacity</span></div>
+<span class="font-label-md text-label-md text-on-surface font-semibold">24%</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-soft overflow-hidden">
+<div class="h-full bg-primary-container rounded-full w-1/4"></div>
+</div>
+</div>
+<div class="bg-surface-base rounded-xl p-space-md shadow-sm space-y-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant font-medium">Daily AI marketplace scans</span>
+<span class="font-label-md text-label-md text-status-success-text bg-status-success-bg px-2 py-0.5 rounded-full font-semibold">Unlimited active</span>
+</div>
+<div class="flex items-baseline justify-between">
+<div class="font-metric-num text-metric-num text-on-surface font-bold">382 <span class="font-body-md text-body-md text-on-surface-variant font-normal">scans completed this cycle</span></div>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-soft overflow-hidden">
+<div class="h-full bg-status-success-text rounded-full w-4/5"></div>
+</div>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5">
+<span class="material-symbols-outlined text-base text-status-success-text">verified</span>
+<span>Cancel anytime; your plan and full infringement takedown tooling stay active until the end of the paid billing period.</span>
+</p>
+</div>
+</div>
+<!-- Deep Scan Credits Card & Packs -->
+<div class="bg-surface-base rounded-2xl p-space-lg shadow-sm space-y-space-lg">
+<!-- Hero Stat for Credits -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md pb-space-sm">
+<div class="space-y-space-xs max-w-xl">
+<div class="flex items-center gap-space-xs text-primary font-label-md text-label-md">
+<span class="material-symbols-outlined text-base">saved_search</span>
+<span>Forensic Visual Inspection</span>
+</div>
+<div class="flex items-baseline gap-space-sm">
+<h3 class="font-headline-md text-headline-md text-on-surface tracking-tight" id="active-credits-val">3 Deep scan credits</h3>
+<span class="font-label-lg text-label-lg text-status-success-text bg-status-success-bg px-2.5 py-0.5 rounded-full font-semibold">Available now</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                  Deep scans search deeper index layers, re-cropped art, color-shifted copies, and heavily compressed marketplace products (e.g. print-on-demand). Credits never expire and transfer across renewals.
+                </p>
+</div>
+<!-- Quick Action / Diagnostic Graphic -->
+<div class="flex items-center gap-space-md p-space-md bg-surface-soft rounded-2xl self-start md:self-auto">
+<div class="w-12 h-12 rounded-xl bg-primary-soft flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-2xl">lens_blur</span>
+</div>
+<div>
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">Non-expiring buffer</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Lifetime asset validity</div>
+</div>
+</div>
+</div>
+<!-- Pack Cards: 3 Columns -->
+<div class="space-y-space-md">
+<div class="flex items-center justify-between">
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Need more Deep scans? Buy a credit pack</h4>
+<span class="font-label-md text-label-md text-on-surface-variant">Instant activation</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Pack 1: 10 Credits -->
+<div class="bg-surface-soft rounded-2xl p-space-md flex flex-col justify-between gap-space-lg transition-transform duration-200 hover:-translate-y-1">
+<div class="space-y-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Starter Pack</span>
+<span class="font-label-md text-label-md text-on-surface-variant">$0.50 / scan</span>
+</div>
+<div>
+<div class="font-headline-lg text-headline-lg text-on-surface tracking-tight">10 <span class="font-body-md text-body-md text-on-surface-variant font-normal">credits</span></div>
+<div class="font-metric-num text-metric-num text-primary font-bold pt-1">$4.99</div>
+</div>
+<ul class="space-y-2 pt-space-xs font-body-sm text-body-sm text-on-surface-variant">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-status-success-text text-base">check</span>
+<span>High-res neural matching</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-status-success-text text-base">check</span>
+<span>Crop &amp; distortion recovery</span>
+</li>
+</ul>
+</div>
+<button class="w-full inline-flex items-center justify-center h-11 px-5 rounded-full bg-surface-base text-on-surface font-label-lg text-label-lg hover:bg-primary-soft hover:text-primary transition-colors shadow-sm font-semibold" onclick="purchaseCredits(10, 'Starter Pack (10)')" type="button">
+                    Buy 10 credits
+                  </button>
+</div>
+<!-- Pack 2: 25 Credits (POPULAR) -->
+<div class="relative bg-surface-base rounded-2xl p-space-md shadow-md flex flex-col justify-between gap-space-lg transition-transform duration-200 hover:-translate-y-1">
+<!-- Highlight Floating Pill -->
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-primary-container text-on-primary font-label-md text-label-md shadow-sm uppercase tracking-wider font-bold">
+                    Most popular
+                  </div>
+<div class="space-y-space-sm pt-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-primary font-bold">Studio Standard</span>
+<span class="font-label-md text-label-md text-status-success-text font-semibold">$0.40 / scan</span>
+</div>
+<div>
+<div class="font-headline-lg text-headline-lg text-on-surface tracking-tight">25 <span class="font-body-md text-body-md text-on-surface-variant font-normal">credits</span></div>
+<div class="font-metric-num text-metric-num text-primary font-bold pt-1">$9.99</div>
+</div>
+<ul class="space-y-2 pt-space-xs font-body-sm text-body-sm text-on-surface-variant">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-status-success-text text-base">check</span>
+<span>High-res neural matching</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-status-success-text text-base">check</span>
+<span>Print marketplace catalog scan</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-status-success-text text-base">check</span>
+<span>Official infringement PDF logs</span>
+</li>
+</ul>
+</div>
+<button class="w-full inline-flex items-center justify-center h-11 px-5 rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg hover:bg-primary-hover transition-colors shadow-sm font-semibold" onclick="purchaseCredits(25, 'Studio Standard (25)')" type="button">
+                    Buy 25 credits
+                  </button>
+</div>
+<!-- Pack 3: 60 Credits (BEST VALUE) -->
+<div class="bg-surface-soft rounded-2xl p-space-md flex flex-col justify-between gap-space-lg transition-transform duration-200 hover:-translate-y-1">
+<div class="space-y-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold">Agency Reserve</span>
+<span class="font-label-md text-label-md text-status-success-text font-semibold">$0.33 / scan</span>
+</div>
+<div>
+<div class="font-headline-lg text-headline-lg text-on-surface tracking-tight">60 <span class="font-body-md text-body-md text-on-surface-variant font-normal">credits</span></div>
+<div class="font-metric-num text-metric-num text-primary font-bold pt-1">$19.99</div>
+</div>
+<ul class="space-y-2 pt-space-xs font-body-sm text-body-sm text-on-surface-variant">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-status-success-text text-base">check</span>
+<span>Deep multi-network search</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-status-success-text text-base">check</span>
+<span>Raw archival vector comparison</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-status-success-text text-base">check</span>
+<span>Priority server queue</span>
+</li>
+</ul>
+</div>
+<button class="w-full inline-flex items-center justify-center h-11 px-5 rounded-full bg-surface-base text-on-surface font-label-lg text-label-lg hover:bg-primary-soft hover:text-primary transition-colors shadow-sm font-semibold" onclick="purchaseCredits(60, 'Agency Reserve (60)')" type="button">
+                    Buy 60 credits
+                  </button>
+</div>
+</div>
+<!-- Footnote -->
+<div class="flex items-center justify-center gap-2 pt-space-xs text-on-surface-variant font-body-sm text-body-sm text-center">
+<span class="material-symbols-outlined text-sm">lock</span>
+<span>One-time purchase · Instant activation · VAT added at checkout where applicable.</span>
+</div>
+</div>
+</div>
+<!-- Proof of Registry Card Banner -->
+<div class="bg-surface-base rounded-2xl p-space-lg shadow-sm flex flex-col md:flex-row items-center gap-space-lg">
+<div class="w-full md:w-48 h-32 rounded-xl overflow-hidden relative shrink-0">
+<img class="w-full h-full object-cover" data-alt="Close up photograph of a digital artist signing a certificate of visual authenticity with a sleek stylus pen on an OLED tablet, soft blue studio backlighting, high detail minimalist aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBL_zt6NrEFH1Bimi8CHdXQlRLpeWB48LatHdCTk2YvPXynGlt17uRDATF5ftJqUluJXFHstLICKRiS6u8kZgGPyb7Luy8YcVaNlphuRM6BkuE1kQY7sB-UEjKqOccJ3FjalrpdEfCEAYxV8IcSh5z_URo47prpafdjwMhtu7VkpYq5TAdVh7slc-gDCENRu3CPmev04yIQcf-7hNSArBFuf7gPceL78_x9YTDatQh7UDE3Zq4kZ-Ja"/>
+<div class="absolute inset-0 bg-primary/20 backdrop-blur-[1px] flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-3xl">verified</span>
+</div>
+</div>
+<div class="space-y-1.5 flex-1">
+<div class="inline-flex items-center gap-1 font-label-md text-label-md text-primary font-bold uppercase tracking-wider">
+                Blockchain Visual Anchor
+              </div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Independent Legal Evidentiary Package</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                Every protected asset registered under your account receives an indisputable RFC 3161 cryptographic timestamp recognized in US and EU copyright tribunals.
+              </p>
+</div>
+<button class="shrink-0 inline-flex items-center justify-center h-11 px-5 rounded-full bg-surface-soft text-on-surface font-label-lg text-label-lg hover:bg-surface-dim transition-colors" type="button">
+              Sample Certificate
+            </button>
+</div>
+</div>
+<!-- ======================================================== -->
+<!-- TAB 2: PROFILE & SECURITY SECTION                       -->
+<!-- ======================================================== -->
+<div class="flex flex-col gap-space-xl" id="section-profile-security">
+<div class="bg-surface-base rounded-2xl p-space-lg shadow-sm space-y-space-lg">
+<div class="space-y-1 pb-space-xs">
+<h2 class="font-headline-md text-headline-md text-on-surface tracking-tight">Profile &amp; Security Credentials</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                Manage your verified artist email, encrypted passphrase, and active authentication hardware.
+              </p>
+</div>
+<div class="space-y-space-md">
+<!-- Field 1: Email Address -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between p-space-md rounded-xl bg-surface-soft gap-space-md">
+<div class="space-y-1">
+<span class="font-label-md text-label-md text-on-surface-variant font-medium">Registered artist email</span>
+<div class="flex items-center gap-space-sm">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold" id="artist-email-text">eleanor.reed@studio-art.com</span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-label-md text-label-md bg-status-success-bg text-status-success-text font-semibold">
+<span class="material-symbols-outlined text-xs">verified</span> Verified
+                    </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Receives instantaneous infringement alerts and takedown receipts.</p>
+</div>
+<button class="shrink-0 inline-flex items-center justify-center h-10 px-5 rounded-full bg-surface-base text-on-surface font-label-lg text-label-lg hover:bg-surface-soft transition-colors shadow-sm" onclick="promptEmailUpdate()" type="button">
+                  Update email
+                </button>
+</div>
+<!-- Field 2: Password -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between p-space-md rounded-xl bg-surface-soft gap-space-md">
+<div class="space-y-1">
+<span class="font-label-md text-label-md text-on-surface-variant font-medium">Password</span>
+<div class="font-label-lg text-label-lg text-on-surface font-mono tracking-widest">••••••••••••••••</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Last updated 3 months ago (July 2024)</p>
+</div>
+<button class="shrink-0 inline-flex items-center justify-center h-10 px-5 rounded-full bg-surface-base text-on-surface font-label-lg text-label-lg hover:bg-surface-soft transition-colors shadow-sm" onclick="alert('Password reset link sent to your registered artist inbox.')" type="button">
+                  Change password
+                </button>
+</div>
+<!-- Field 3: Two-Factor Authentication -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between p-space-md rounded-xl bg-surface-soft gap-space-md">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-on-surface-variant font-medium">Two-Factor Authentication (2FA)</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full font-label-md text-label-md bg-status-success-bg text-status-success-text font-semibold">
+                      Enabled
+                    </span>
+</div>
+<div class="font-label-lg text-label-lg text-on-surface font-medium flex items-center gap-1.5">
+<span class="material-symbols-outlined text-base text-primary">smartphone</span>
+<span>Authenticator App (TOTP / 1Password)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Protects registered artwork metadata and private watermark hashes from account takeover.</p>
+</div>
+<button class="shrink-0 inline-flex items-center justify-center h-10 px-5 rounded-full bg-surface-base text-on-surface font-label-lg text-label-lg hover:bg-surface-soft transition-colors shadow-sm" type="button">
+                  Configure 2FA
+                </button>
+</div>
+<!-- Field 4: Active Sessions -->
+<div class="p-space-md rounded-xl bg-surface-soft space-y-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div class="space-y-0.5">
+<span class="font-label-md text-label-md text-on-surface-variant font-medium">Active Devices &amp; Sessions</span>
+<div class="font-label-lg text-label-lg text-on-surface font-semibold flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-status-success-text"></span>
+<span>Chrome 128 on macOS (San Francisco, US) · Current session</span>
+</div>
+</div>
+<button class="self-start sm:self-auto inline-flex items-center justify-center h-10 px-5 rounded-full bg-surface-base text-on-surface font-label-lg text-label-lg hover:bg-surface-soft transition-colors shadow-sm" onclick="alert('Signed out from 2 other active browser sessions.')" type="button">
+                    Sign out of all other devices
+                  </button>
+</div>
+<div class="flex items-center gap-2 pt-1 font-body-sm text-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-base">history</span>
+<span>Last secondary session recorded from iPadOS Safari in Portland, US 4 days ago.</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Studio Team Access Teaser Card -->
+<div class="bg-surface-base rounded-2xl p-space-lg shadow-sm flex flex-col md:flex-row items-center justify-between gap-space-md">
+<div class="space-y-1">
+<span class="inline-flex items-center gap-1 font-label-md text-label-md text-primary font-bold">Studio Multi-Seat Access</span>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Collaborate with your agency or studio assistant</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-xl">
+                Invite gallery representatives and copyright lawyers with granular read-only or DMCA-submission permissions.
+              </p>
+</div>
+<button class="inline-flex items-center justify-center h-11 px-6 rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg hover:bg-primary-hover transition-colors shadow-sm whitespace-nowrap" type="button">
+              Invite collaborator
+            </button>
+</div>
+</div>
+<!-- ======================================================== -->
+<!-- TAB 3: YOUR DATA & EXPORT (Includes Danger Zone)         -->
+<!-- ======================================================== -->
+<div class="flex flex-col gap-space-xl" id="section-your-data">
+<!-- Data Ownership Card -->
+<div class="bg-surface-base rounded-2xl p-space-lg shadow-sm space-y-space-lg">
+<div class="space-y-1 pb-space-xs">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xl">folder_zip</span>
+<h2 class="font-headline-md text-headline-md text-on-surface tracking-tight">Your Data &amp; Legal Ownership</h2>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                You retain complete, exclusive ownership of your intellectual property, visual signatures, and metadata archives.
+              </p>
+</div>
+<!-- Export Archive Box -->
+<div class="p-space-md rounded-2xl bg-surface-soft flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
+<div class="space-y-1 max-w-xl">
+<div class="font-label-lg text-label-lg text-on-surface font-semibold">Download Master Forensic Archive</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                  Export a cryptographically signed ZIP containing all registered artwork fingerprints, RFC 3161 receipts, raw scan match histories, and DMCA notice logs formatted in structured JSON and CSV.
+                </p>
+<div class="flex items-center gap-3 pt-1 font-label-md text-label-md text-on-surface-variant">
+<span>Size: ~4.2 MB</span>
+<span>•</span>
+<span>Format: ZIP (.json + .csv)</span>
+</div>
+</div>
+<button class="shrink-0 inline-flex items-center justify-center h-11 px-6 rounded-full bg-surface-base text-on-surface font-label-lg text-label-lg hover:bg-surface-soft transition-colors shadow-sm gap-2" onclick="triggerDataArchiveDownload()" type="button">
+<span class="material-symbols-outlined text-base">download</span>
+<span>Download archive (ZIP)</span>
+</button>
+</div>
+<!-- GDPR / CCPA Compliance Details -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md pt-space-xs">
+<div class="p-space-md rounded-xl bg-surface-soft space-y-1">
+<div class="font-label-lg text-label-lg text-on-surface font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-status-success-text text-base">security</span>
+<span>Zero Training Guarantee</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                  TraceMyAssets never licenses, feeds, or exposes your protected artworks to commercial AI models or external training sets.
+                </p>
+</div>
+<div class="p-space-md rounded-xl bg-surface-soft space-y-1">
+<div class="font-label-lg text-label-lg text-on-surface font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-status-success-text text-base">cloud_sync</span>
+<span>Right to Rectification</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                  Update original authorship records or revoke public visual hashing records at any time with one click.
+                </p>
+</div>
+</div>
+</div>
+<!-- DANGER ZONE CARD -->
+<div class="bg-surface-base rounded-2xl p-space-lg shadow-sm space-y-space-md border-l-4 border-status-danger-text">
+<div class="space-y-1">
+<div class="flex items-center gap-2 text-status-danger-text">
+<span class="material-symbols-outlined text-xl">warning</span>
+<h3 class="font-headline-sm text-headline-sm font-bold">Danger Zone</h3>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                Irreversible account actions and forensic registry deletion.
+              </p>
+</div>
+<div class="p-space-md rounded-xl bg-status-danger-bg flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
+<div class="space-y-1 max-w-xl">
+<div class="font-label-lg text-label-lg text-status-danger-text font-bold">Delete account &amp; visual registry</div>
+<p class="font-body-sm text-body-sm text-status-danger-text leading-relaxed opacity-90">
+                  Permanently erase your account, all cryptographic watermarked fingerprints, scheduled web crawlers, and takedown records. Active infringements will no longer be tracked. This action cannot be undone.
+                </p>
+</div>
+<button class="shrink-0 inline-flex items-center justify-center h-11 px-6 rounded-full bg-status-danger-text text-surface-base font-label-lg text-label-lg hover:bg-error transition-colors shadow-sm font-semibold" onclick="confirmDeleteAccount()" type="button">
+                Delete account
+              </button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+<!-- Quick Toast Confirmation Container -->
+<div class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none bg-dark-band text-inverse-on-surface px-5 py-3 rounded-full shadow-xl flex items-center gap-3" id="account-toast">
+<span class="material-symbols-outlined text-status-success-text text-base" id="toast-icon">check_circle</span>
+<span class="font-label-md text-label-md" id="toast-message">Update successful</span>
+</div>
+</div>
+<!-- Interactive Client-side Scripting -->
+<script>
+  // Simple tab switching logic for multi-section presentation
+  function switchAccountTab(tabKey) {
+    const tabs = ['plan-credits', 'profile-security', 'your-data'];
+    
+    tabs.forEach(t => {
+      const section = document.getElementById('section-' + t);
+      const btn = document.getElementById('tab-btn-' + t);
+      
+      if (t === tabKey) {
+        if (section) section.classList.remove('hidden');
+        if (btn) {
+          btn.className = "w-full flex items-center justify-between px-space-md py-3 rounded-xl font-label-lg text-label-lg transition-all duration-200 bg-primary-soft text-primary font-semibold";
+          const chev = btn.querySelector('.material-symbols-outlined:last-child');
+          if (chev) chev.classList.remove('opacity-50');
+        }
+      } else {
+        if (section) section.classList.add('hidden');
+        if (btn) {
+          btn.className = "w-full flex items-center justify-between px-space-md py-3 rounded-xl font-label-lg text-label-lg transition-all duration-200 text-on-surface-variant hover:text-on-surface hover:bg-surface-soft";
+          const chev = btn.querySelector('.material-symbols-outlined:last-child');
+          if (chev) chev.classList.add('opacity-50');
+        }
+      }
+    });
+
+    // Scroll gracefully on mobile
+    if (window.innerWidth < 1024) {
+      const mainEl = document.querySelector('main');
+      if (mainEl) mainEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  // Plan State Preview Switcher (Free vs Pro)
+  function setPlanState(state) {
+    const freeView = document.getElementById('view-free-plan');
+    const proView = document.getElementById('view-pro-plan');
+    const planTitle = document.getElementById('plan-display-name');
+    const planBadge = document.getElementById('plan-badge-status');
+    const btnFree = document.getElementById('toggle-state-free');
+    const btnPro = document.getElementById('toggle-state-pro');
+
+    if (state === 'pro') {
+      freeView.classList.add('hidden');
+      proView.classList.remove('hidden');
+      planTitle.textContent = "Pro Plan";
+      planBadge.textContent = "Active · Renews 16 Nov";
+      planBadge.className = "inline-flex items-center px-3 py-0.5 rounded-full font-label-md text-label-md bg-status-success-bg text-status-success-text font-semibold";
+
+      btnPro.className = "px-3.5 py-1.5 rounded-full font-label-md text-label-md transition-all duration-200 bg-surface-base text-primary shadow-sm font-semibold";
+      btnFree.className = "px-3.5 py-1.5 rounded-full font-label-md text-label-md transition-all duration-200 text-on-surface-variant hover:text-on-surface";
+      showToast("Pro plan preview loaded");
+    } else {
+      proView.classList.add('hidden');
+      freeView.classList.remove('hidden');
+      planTitle.textContent = "Free Plan";
+      planBadge.textContent = "Current Plan";
+      planBadge.className = "inline-flex items-center px-3 py-0.5 rounded-full font-label-md text-label-md bg-status-warning-bg text-status-warning-text font-semibold";
+
+      btnFree.className = "px-3.5 py-1.5 rounded-full font-label-md text-label-md transition-all duration-200 bg-surface-base text-primary shadow-sm font-semibold";
+      btnPro.className = "px-3.5 py-1.5 rounded-full font-label-md text-label-md transition-all duration-200 text-on-surface-variant hover:text-on-surface";
+      showToast("Viewing Free tier");
+    }
+  }
+
+  // Credit purchasing simulation
+  let currentCredits = 3;
+  function purchaseCredits(amount, packName) {
+    currentCredits += amount;
+    const headerPill = document.getElementById('credit-counter-pill');
+    const activeVal = document.getElementById('active-credits-val');
+    
+    if (headerPill) headerPill.textContent = currentCredits;
+    if (activeVal) activeVal.textContent = currentCredits + " Deep scan credits";
+
+    showToast("Added " + amount + " credits via " + packName);
+  }
+
+  function promptEmailUpdate() {
+    const current = document.getElementById('artist-email-text').textContent;
+    const next = prompt("Enter your new artist contact email:", current);
+    if (next && next.trim() !== "" && next.includes("@")) {
+      document.getElementById('artist-email-text').textContent = next.trim();
+      showToast("Verification link sent to " + next.trim());
+    }
+  }
+
+  function triggerDataArchiveDownload() {
+    showToast("Generating SHA-256 signed archive... download starting");
+  }
+
+  function confirmDeleteAccount() {
+    const verified = confirm("Are you certain you want to delete your entire TraceMyAssets account and cryptographic registry? This will permanently disable live scraping alerts.");
+    if (verified) {
+      alert("Please check your email for the final deletion verification code.");
+    }
+  }
+
+  // Toast feedback helper
+  let toastTimer = null;
+  function showToast(msg) {
+    const toast = document.getElementById('account-toast');
+    const msgEl = document.getElementById('toast-message');
+    if (!toast || !msgEl) return;
+
+    msgEl.textContent = msg;
+    toast.classList.remove('translate-y-24', 'opacity-0');
+    toast.classList.add('translate-y-0', 'opacity-100');
+
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.classList.add('translate-y-24', 'opacity-0');
+      toast.classList.remove('translate-y-0', 'opacity-100');
+    }, 3200);
+  }
+</script></main><footer class="w-full bg-surface-base border-t border-border-subtle py-space-xl"><div class="max-w-7xl mx-auto px-gutter flex flex-col md:flex-row items-center justify-between gap-space-md text-on-surface-variant font-body-sm text-body-sm"><div class="flex items-center gap-space-sm"><span class="font-headline-sm text-headline-sm text-on-surface">TraceMyAssets</span><span class="text-outline-variant">•</span><span>Forensic Visual Registry &amp; Copyright Protection</span></div><div class="flex items-center gap-space-lg"><a class="hover:text-on-surface transition-colors" href="#">Documentation</a><a class="hover:text-on-surface transition-colors" href="#">Security Standards</a><a class="hover:text-on-surface transition-colors" href="#">Terms of Service</a><a class="hover:text-on-surface transition-colors" href="#">Privacy Policy</a></div></div></footer></body></html>

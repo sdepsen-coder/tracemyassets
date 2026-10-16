@@ -160,7 +160,7 @@ export function CreditPacks({
                 data-testid={`credit-pack-${pack.credits}`}
                 disabled={busy !== null}
                 onClick={() => void buy(pack)}
-                className="mt-4 inline-flex h-10 items-center justify-center rounded-lg bg-[var(--primary-strong)] px-4 text-[13px] font-semibold text-white transition hover:brightness-110 disabled:opacity-60"
+                className="mt-4 inline-flex h-10 items-center justify-center rounded-lg bg-[var(--primary-strong)] px-4 text-[13px] font-semibold text-[var(--on-primary)] transition hover:brightness-110 disabled:opacity-60"
               >
                 {busy === pack.price_id ? "Opening..." : "Buy credits"}
               </button>

@@ -7,12 +7,12 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-inter)", "Arial", "sans-serif"],
+        sans: ["var(--font-geist)", "Arial", "sans-serif"],
         heading: ["var(--font-heading)", "Arial", "sans-serif"],
         mono: ["var(--font-mono)", "monospace"],
       },
       borderRadius: {
-        card: "16px",
+        card: "20px",
       },
       boxShadow: {
         card: "0 1px 3px 0 rgba(15, 23, 42, 0.05)",

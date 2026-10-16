@@ -36,6 +36,7 @@ export const PLANS: PlanCard[] = [
     tagline: "Try it on your own work.",
     features: [
       "Up to 3 artworks",
+      "Automatic checks weekly or monthly",
       "5 hand-started Standard scans a month",
       "3 Deep scan credits when you sign up (once)",
       "You see that a match exists and how strong it is; the page it was found on is hidden",
@@ -79,4 +80,4 @@ export const PLANS: PlanCard[] = [
 ];
 
 export const PRICING_NOTE =
-  "Prices are in US dollars; taxes such as VAT are added at checkout where they apply. A paid plan can be bought once its button says \u201cChoose plan\u201d; until then it says \u201cOpens soon\u201d and nothing is charged.";
+  "Prices are in US dollars; taxes such as VAT are added at checkout where they apply. Nothing is charged until you confirm in the payment window.";

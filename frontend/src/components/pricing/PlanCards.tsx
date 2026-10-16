@@ -91,7 +91,7 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
         role="group"
         aria-label="Billing period"
         data-testid="billing-toggle"
-        className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-1 text-[13px] font-semibold"
+        className="inline-flex rounded-full border border-[var(--border)] bg-[var(--surface-muted)] p-1 text-[13px] font-semibold"
       >
         {(["monthly", "yearly"] as Billing[]).map((option) => (
           <button
@@ -101,9 +101,9 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
             aria-pressed={billing === option}
             onClick={() => setBilling(option)}
             className={[
-              "rounded-lg px-4 py-1.5 transition",
+              "rounded-full px-4 py-1.5 transition",
               billing === option
-                ? "bg-[var(--surface)] text-[var(--text)] shadow-card"
+                ? "bg-[var(--surface)] text-[var(--text)] shadow-sm"
                 : "text-[var(--text-muted)] hover:text-[var(--text)]",
             ].join(" ")}
           >
@@ -124,14 +124,20 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
               key={plan.id}
               data-testid={`plan-${plan.id}`}
               className={[
-                "flex flex-col rounded-2xl border bg-[var(--surface)] p-6 shadow-card",
+                "glass relative flex flex-col overflow-hidden rounded-card border p-7",
                 plan.highlight
-                  ? "border-[var(--primary)] ring-1 ring-[var(--primary)]"
+                  ? "border-[var(--line-strong)] shadow-[0_30px_80px_-40px_rgb(60_50_120/0.35)]"
                   : "border-[var(--border)]",
               ].join(" ")}
             >
-              <h3 className="font-heading text-[20px] font-semibold">
+              {plan.highlight && <span aria-hidden className="iris absolute inset-x-0 top-0 h-1" />}
+              <h3 className="flex items-center justify-between font-heading text-[22px] font-normal">
                 {plan.name}
+                {plan.highlight && (
+                  <span className="iris rounded-full px-2.5 py-1 font-sans text-[10.5px] font-medium uppercase tracking-[0.08em] text-[#111111]">
+                    Most popular
+                  </span>
+                )}
               </h3>
               <p className="mt-1 text-[13px] text-[var(--text-muted)]">
                 {plan.tagline}
@@ -140,7 +146,7 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
               <p className="mt-5 flex items-baseline gap-2">
                 <span
                   data-testid={`plan-${plan.id}-price`}
-                  className="font-heading text-[36px] font-bold tracking-[-0.03em]"
+                  className="font-heading text-[48px] font-light tracking-[-0.03em]"
                 >
                   {yearly ? dollars(plan.yearlyUsd as number) : plan.price}
                 </span>
@@ -163,8 +169,8 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
                 {features.map((feature) => (
                   <li key={feature} className="flex gap-2.5">
                     <Icon
-                      name="check_circle"
-                      className="mt-0.5 shrink-0 text-[18px] text-[var(--success)]"
+                      name="check"
+                      className="mt-0.5 shrink-0 text-[18px] text-[var(--text)]"
                     />
                     <span>{feature}</span>
                   </li>
@@ -174,22 +180,22 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
               {free ? (
                 <Link
                   href="/?auth=register"
-                  className="mt-6 inline-flex h-11 items-center justify-center rounded-xl bg-[var(--primary-strong)] px-4 text-[14px] font-semibold text-white shadow-floating transition hover:brightness-110"
+                  className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-[var(--primary-strong)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85"
                 >
                   Create free account
                 </Link>
               ) : !open || account === undefined ? (
                 <span
                   data-testid={`plan-${plan.id}-status`}
-                  className="mt-6 inline-flex h-11 items-center justify-center rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface-muted)] px-4 text-[14px] font-semibold text-[var(--text-muted)]"
+                  className="mt-6 inline-flex h-11 items-center justify-center rounded-full border border-dashed border-[var(--border)] bg-[var(--surface-muted)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text-muted)]"
                 >
-                  {open ? "Checking..." : "Opens soon"}
+                  {open ? "Checking..." : "Not available yet"}
                 </span>
               ) : account === null ? (
                 <Link
                   href="/?auth=register"
                   data-testid={`plan-${plan.id}-signup`}
-                  className="mt-6 inline-flex h-11 items-center justify-center rounded-xl bg-[var(--primary-strong)] px-4 text-[14px] font-semibold text-white shadow-floating transition hover:brightness-110"
+                  className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-[var(--primary-strong)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85"
                 >
                   Sign up to choose
                 </Link>
@@ -198,7 +204,7 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
                   <Link
                     href="/account"
                     data-testid={`plan-${plan.id}-current`}
-                    className="mt-6 inline-flex h-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 text-[14px] font-semibold"
+                    className="mt-6 inline-flex h-11 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-muted)] px-4 text-[11px] font-medium uppercase tracking-[0.08em]"
                   >
                     Your plan · manage
                   </Link>
@@ -206,7 +212,7 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
                   <Link
                     href="/account"
                     data-testid={`plan-${plan.id}-change`}
-                    className="mt-6 inline-flex h-11 items-center justify-center rounded-xl border border-[var(--border)] px-4 text-[14px] font-semibold text-[var(--text-muted)]"
+                    className="mt-6 inline-flex h-11 items-center justify-center rounded-full border border-[var(--border)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text-muted)]"
                   >
                     Change on your Account page
                   </Link>
@@ -217,7 +223,7 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
                   data-testid={`plan-${plan.id}-choose`}
                   disabled={busyPlan !== null}
                   onClick={() => void choose(plan.id as "pro" | "extra")}
-                  className="mt-6 inline-flex h-11 items-center justify-center rounded-xl bg-[var(--primary-strong)] px-4 text-[14px] font-semibold text-white shadow-floating transition hover:brightness-110 disabled:opacity-60"
+                  className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-[var(--primary-strong)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85 disabled:opacity-60"
                 >
                   {busyPlan === plan.id ? "Opening..." : "Choose plan"}
                 </button>

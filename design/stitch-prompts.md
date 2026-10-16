@@ -1,22 +1,25 @@
-# Stitch prompt'ları (sürüm 2)
+# Stitch prompt'ları (sürüm 3: "cam" template stili)
 
-Bu sürüm senin anlattığın akışa göre yazıldı:
-- Kullanıcı bir eser yüklediğinde **sadece o eser** ekranda olur. Ekran onu adım adım yönlendirir: yükle → koru → taramayı seç → tara → sonucu gör.
-- Tarama bitince eser **Monitoring** sayfasına geçer. Bu sayfada tüm eserler kutular hâlinde durur. Her kutuda şunlar görünür: otomatik tarama sıklığı, bir sonraki tarama, son sonuç, durdurma ve devam ettirme, "şimdi tara" ve bunun neye mal olacağı.
-- İşi biten eserler arşive alınır ya da silinir.
-- Kullanıcı hiçbir şeyi aramaz. Her ekranda "sıradaki adım" tek ve belirgin bir butondur.
-- Görsel tarz sellingpilot.com'dan esinlenildi: beyaz zemin, büyük ve kalın başlıklar, yuvarlak (hap biçimli) butonlar, her bölümde tek mesaj, bol boşluk.
+**Ne değişti:** Görsel stil artık sellingpilot değil, v0-modern-agentic.vercel.app tarzı. Bu stil tüm sitede, bir template gibi tutarlı kullanılacak. Akış ve ekranlar aynı kalıyor:
+- Tek eserlik Protect akışı
+- Monitoring kutuları
+- Eşleşmeler ve karşılaştırma paneli
+- Landing, Pricing, Account, Check, Auth
+
+Ekran prompt'ları (1–9) içeriği tarif ediyor; görünümü 0. bölümdeki yeni tasarım dili belirliyor. Bir ekran prompt'unda "blue pill" ya da "bold heading" geçiyorsa, **yeni tasarım dili geçerlidir.**
 
 ## Kullanım
-1. https://stitch.withgoogle.com adresini aç ve **Web** modunu seç.
-2. İlk ekranda "0. Tasarım dili" ve "1. Yükleme akışı" bloklarını birlikte yapıştır. Sonraki ekranların başına şu cümleyi ekle: *"Same design system, header and components as the previous screens."*
-3. Landing için (7. ekran) gönderdiğin hırsız görselini Stitch'e referans resim olarak yükle. Dosya projede şurada duruyor: `design/images/hero-thief-stop.webp`
-4. Her ekranı bitirdiğinde **Code** olarak dışa aktar ve ekran görüntüsünü indir. İkisini şöyle bir klasöre koy: `design/stitch/<numara-ad>/code.html` ve `screen.png`
-5. Göndereceğin sıra: **1 → 2 → 3 → 4 → 7 → 5, 6, 8, 9.** İlk ekran gelir gelmez koda uygulamaya başlarım.
 
-**Kredi ve tarama kuralları.** Ekranlarda bu kuralların doğru yazılması önemli; prompt'lar bunlara göre hazırlandı:
-- Elle başlatılan Standard scan, aylık hakkından düşer (Free planda ayda 5).
-- Otomatik (zamanlanmış) taramalar plana dahildir ve hiçbir haktan düşmez.
+1. Stitch'te **"TraceMyAssets redesign"** projesini aç.
+2. **Önce tasarım sistemini güncelle:** "0. Tasarım dili" bloğunu yapıştır ve şunu ekle: *"Replace the project's design system with this one."* Stil referansı olarak v0 sitesinin bir ekran görüntüsünü de yükleyebilirsin. Ama o sitenin görsellerini, metinlerini ve rakamlarını kopyalatma.
+3. **Mevcut 4 ekranı yeniden stillendir:** Her ekran için "R. Yeniden stillendirme" bloğunu kullan.
+4. **Kalan ekranları üret:** 5–9 numaralı ekran prompt'larını kullan. Sıra: 7 (Landing) → 8 → 9 → 6 → 5.
+5. **Cam görseller:** "G. Cam görseller" bölümündeki prompt'larla üret. Beğendiklerini koda uygularken projeye indirip kaydedeceğim; Stitch'in bağlantıları kalıcı değil.
+6. **Kaydetme:** Her ekran bitince Stitch oturumuna "ekran X hazır" de. Ekran `design/stitch/` klasörüne kaydedilir ve ben koda uygularım.
+
+**Kredi ve tarama kuralları.** Ekranlarda bunlar doğru yazılmalı:
+- Elle başlatılan Standard scan aylık hakkından düşer (Free planda ayda 5).
+- Otomatik taramalar plana dahildir; hiçbir haktan düşmez.
 - Deep scan 1 kredi harcar.
 
 ---
@@ -24,28 +27,68 @@ Bu sürüm senin anlattığın akışa göre yazıldı:
 ## 0. Tasarım dili
 
 ```
-Design system for "TraceMyAssets", a web app that protects artists' work: it adds an invisible watermark to an artwork and keeps scanning the web for copies. Users are independent artists, not technical people. The product must guide them: every screen has ONE obvious next step, nothing to search for.
+Design system for "TraceMyAssets", a web app that protects artists' work: it adds an invisible watermark to an artwork and keeps scanning the web for copies. Users are independent artists, not technical people. Every screen has ONE obvious next step; nothing to search for.
 
-Visual style: clean, bright and confident, like sellingpilot.com — white backgrounds, very large bold headings, lots of whitespace, one message per section, rounded pill buttons, real product UI shown as rounded screenshots with soft shadows.
+Visual style: calm, premium, editorial — a light "glass and crystal" template used consistently on every page (marketing and app). Inspired by modern AI-product landing pages: warm off-white canvas, very large LIGHT-weight headlines, generous whitespace, frosted-glass surfaces, and iridescent glass 3D objects as imagery. Quiet and confident, never loud.
 
-Colors: background #FFFFFF, soft section background #F5F7FB, borders #E6E8F0, text #0F172A, secondary text #5B6475.
-Primary #1D4ED8 (pill buttons, links, active states), primary hover #1E40AF, primary soft #E8EEFF.
-Status: success #0E9F6E on #E7F8F1, warning #B45309 on #FEF3E2, danger #DC2626 on #FDECEC, paused grey #6B7280 on #F1F2F5.
-Dark band color for dramatic sections: #0B0F19.
+Colors:
+- Canvas #F5F4F0 (warm off-white), surfaces #FFFFFF at 70–90% opacity with backdrop blur (frosted glass), soft section tint #EEECE6.
+- Text #111111, secondary text #6B6A66, hairline borders #E2E0DA.
+- Primary action: solid near-black pill #111111 with white text. Secondary action: transparent pill with a 1px border in #111111 at 20% opacity.
+- Accent: an iridescent gradient (lavender #C9C3F5 → sky #BFD9F7 → pearl #F3E9F7) used only for highlights, selected states, progress and imagery — never for body text.
+- Status (muted, small): success #2F7A55 on #E6F2EA, attention #9A5B12 on #F7EEDD, danger #B4322B on #F8E5E3, neutral #6B6A66 on #EEECE6.
+Dark mode: canvas #0E0E10, surfaces #17171A with blur, text #F2F1EE, secondary #A3A19C, borders #2A2A2E, primary pill #F2F1EE with dark text.
 
-Typography: headings "Poppins" 700 (hero 56px, section 40px, card titles 18px 600), body "Inter" 15-16px, numbers tabular.
-Shape: pill buttons (fully rounded, 44px tall, 600 weight), cards 16px radius with 1px border and no shadow, floating elements (menus, dialogs) with soft shadow.
-Icons: thin outline icons (Lucide style), always next to a text label on buttons.
-Cost labels: any action that uses up something shows it right under or inside the button in small text, e.g. "Uses 1 of your 5 monthly scans" or "Uses 1 Deep scan credit · 3 left".
-Status chips: small pills, e.g. "Auto-scan weekly" (green), "Paused" (grey), "Scanning…" (blue with spinner), "2 copies found" (amber), "No copies found" (green).
-App header (signed in): white, 64px, logo left ("TraceMyAssets" with a small shield icon); nav center: "Monitoring", "Matches" (with count badge), "Check an image"; right: primary pill "+ Protect new artwork", bell, avatar menu. Only one header bar.
-All UI text in English.
+Typography:
+- Headlines "IBM Plex Sans" weight 300, tight letter-spacing (-2%): hero 80–96px, page titles 48px, section titles 40px.
+- Body and UI "Geist" 15–16px weight 400; card titles 18px weight 500.
+- Small labels: 11px uppercase with wide letter-spacing (+8%), e.g. "MONITORING", "STEP 2 OF 4", shown inside a subtle rounded tag.
+- Numbers tabular.
+
+Shape and surfaces:
+- Header: a floating frosted-glass bar with rounded corners (16px), inset 16px from the screen edges, sticky.
+- Cards: 20px radius, frosted white, 1px hairline border, no heavy shadows (a very soft, wide shadow only on floating panels and menus).
+- Buttons: pills, 44px tall (36px small), uppercase 12px tracked labels for primary and secondary actions ("PROTECT NEW ARTWORK", "SCAN NOW").
+- Inputs: 48px, 12px radius, hairline border, white.
+- Icons: thin 1.5px outline icons, always next to a text label on buttons.
+
+App header (signed in): floating glass bar; left the wordmark "TRACEMYASSETS" in spaced uppercase with a small glass shield icon; center links "Monitoring", "Matches" (with a small count), "Check an image"; right a black pill "+ PROTECT NEW ARTWORK", a bell, an avatar menu. Only one header.
+
+Cost labels: any action that uses something up shows its cost in small secondary text right under the button, e.g. "Uses 1 of your 5 monthly scans · 3 left" or "Uses 1 Deep scan credit · 3 left".
+Status chips: small rounded tags, e.g. "AUTO-SCAN WEEKLY", "AUTO-SCAN OFF", "SCANNING…" (with an iridescent shimmer), "2 COPIES", "NO COPIES FOUND".
+Motion: gentle fade-up on scroll, soft shimmer on progress; nothing bouncy.
 
 Imagery rules:
-- Marketing pages (landing, pricing, sign-in): add visuals where they help — rounded product screenshots of the app, and a few illustrations for empty or explanatory spots. Illustration style: clean, modern, slightly dimensional (3D-ish), cool palette that matches the colors above, about art, artists, shields and searching. One dramatic photographic image is allowed only in the landing's dark band.
-- App screens (protect flow, monitoring, matches, account, check): no decorative images. Show only artwork thumbnails and, in empty states or success/"nothing found" moments, one small friendly illustration.
-- Never use stock photos of people, fake customer logos, fake testimonials or fake statistics.
+- Imagery is iridescent glass/crystal 3D objects on soft light backgrounds: a glass shield, a glass magnifying glass, a glass picture frame, glass prisms, a glass fingerprint, soft light caustics. Use them in heroes, feature cards, empty states and success moments.
+- App screens stay focused: the user's artwork thumbnails are the main images; glass objects only in empty states, the scanning moment and results.
+- Never use stock photos of people, fake customer logos, fake testimonials or fake statistics (no "50M+ users", no uptime numbers).
+All UI text in English.
 ```
+
+---
+
+## R. Yeniden stillendirme (mevcut 4 ekran için)
+
+Ekranı seçip şunu yaz:
+
+```
+Restyle this screen with the project's new design system: warm off-white canvas, floating frosted-glass header, IBM Plex Sans Light headlines, Geist body, black and outlined pill buttons with uppercase labels, frosted white cards with 20px radius, iridescent glass accents. Keep every piece of content, every state and the layout order exactly as they are. Remove any claim that isn't in the content (no "court-admissible", no "SHA-256", no engine or domain counts).
+```
+
+---
+
+## G. Cam görseller
+
+Her birini ayrı üret. İstediğin kadar varyasyon dene; beğendiklerini bana söyle.
+
+1. **Hero:** `An iridescent glass shield floating above a glass picture frame that holds a soft abstract painting, light caustics and prism reflections, warm off-white background, soft studio light, 3D render, high detail, no text`
+2. **Search:** `An iridescent glass magnifying glass hovering over small glass picture frames, rainbow light refractions, warm off-white background, 3D render, no text`
+3. **Watermark:** `A transparent glass fingerprint embedded in a frosted glass pane, subtle iridescent edges, warm off-white background, 3D render, no text`
+4. **Protected (success):** `A small iridescent glass shield with a soft glow, minimal composition, warm off-white background, 3D render, no text`
+5. **Nothing found (calm):** `A clear glass sphere resting on a white surface with gentle rainbow caustics, minimal, calm, warm off-white background, 3D render, no text`
+6. **Matches / comparison:** `Two glass picture frames side by side connected by a thin beam of prismatic light, warm off-white background, 3D render, no text`
+
+> Senin gönderdiğin hırsız görseli bu açık ve camlı stile uymuyor (koyu ve fotoğraf gibi). Landing'deki koyu bandı da bu yüzden cam görsellerle değiştirdim. Yine de kullanmak istersen söyle; ayrı bir bölüme koyarız.
 
 ---
 
@@ -121,7 +164,7 @@ No checkboxes, no ID numbers, no more than one primary button per card.
 ```
 Web screen: "Check an image" page. Same header.
 Heading "Found a suspicious image?", subtext "Compare it with one of your artworks. The image you upload is only used for this check."
-Left: "1. Pick your artwork" — grid of the user's artwork thumbnails, one selected with a blue ring.
+Left: "1. Pick your artwork" — grid of the user's artwork thumbnails, one selected with an iridescent ring.
 Right: "2. Add the image you found" — dashed drop area, primary pill "Compare".
 Result frame below: side-by-side images, "Strong match · 92%", "Watermark found — this image came from your protected file", and 3 plain-language check rows with check icons.
 ```
@@ -137,24 +180,24 @@ Web screen: "Account" page. Same header. Left sub-navigation: "Plan & credits" (
 "Profile & security" variation: email, "Change password", "Sign out of all devices". "Your data" variation: "Download my data", and a red-bordered danger area "Delete account".
 ```
 
-## 7. Landing (sellingpilot tarzı) → `07-landing`
+## 7. Landing → `07-landing`
 
 > Bu prompt doldurulmuş, olduğu gibi yapıştırabilirsin. Verilen kararlar:
 > - Beta etiketi yok. Sitenin hiçbir yerinde "Coming soon" ya da "beta" ifadesi kullanılmayacak, çünkü ürün yarım işliyormuş gibi bir izlenim veriyor.
 > - Kaynaklar: Google web araması (Standard scan) ve Google Lens (Deep scan). Etsy ve Amazon ilanları Google üzerinden bulunuyor; ayrı bir Etsy/Amazon entegrasyonu iddia edilmiyor.
 
 ```
-Web screen: marketing landing page for TraceMyAssets in the style of sellingpilot.com: white, very large bold Poppins headings, pill buttons, generous whitespace, one idea per section, real product screenshots in rounded frames with soft shadows.
+Web screen: marketing landing page for TraceMyAssets using the project's glass design system: warm off-white canvas, floating frosted-glass header, huge IBM Plex Sans Light headlines, one idea per section, iridescent glass 3D images and real product screenshots in frosted frames.
 
 Header: logo left; links "How it works", "Pricing", "Help"; right "Sign in" (text) and primary pill "Start free".
-1. Hero (two columns): no badge or label above the headline; headline "Someone is using your art. Find out where." with "Find out where." in primary blue; subtext "Add an invisible watermark to your artwork and let us keep scanning the web for copies. When we find one, we show you the proof — you decide what to do."; primary pill "Protect your first artwork — free", secondary pill "See how it works"; tiny "No credit card needed". Right: a rounded screenshot of the Monitoring page with artwork boxes and a "2 copies found" chip.
+1. Hero (two columns): no badge or label above the headline; headline "Someone is using your art. Find out where." with "Find out where." on its own line; subtext "Add an invisible watermark to your artwork and let us keep scanning the web for copies. When we find one, we show you the proof — you decide what to do."; primary pill "Protect your first artwork — free", secondary pill "See how it works"; tiny "No credit card needed". Right: a rounded screenshot of the Monitoring page with artwork boxes and a "2 copies found" chip.
 2. Sources strip (text and simple icons, no third-party logos): "Where we look" — three items, each with a simple icon (no status chips): "Web search — billions of indexed pages and images (Standard scan)", "Visual search — finds re-cropped and edited copies (Deep scan)", and "Marketplace listings — copies on shops such as Etsy and Amazon show up when their pages are indexed". Small grey note under the strip: "We search the public web, so we find copies wherever search engines can see them."
-3. Dramatic dark band (#0B0F19), full width: use the uploaded reference image (a hand stopping a thief carrying a laptop with a copyright symbol, a house model and a camera) on the left half; right half white text: heading "Stop copies before they spread.", text "Copies of artwork turn up on marketplaces, print shops and social media every day. TraceMyAssets finds them and gives you the evidence.", pill "Start free".
+3. Wide feature band: a large iridescent glass image (glass magnifying glass over glass picture frames) on the left half; right half: heading "Stop copies before they spread.", text "Copies of artwork turn up on marketplaces, print shops and social media every day. TraceMyAssets finds them and gives you the evidence.", black pill "START FREE".
 4. "How it works" — three big numbered steps with small product UI crops: "1. Upload and protect" (invisible watermark), "2. We keep watching" (weekly or monthly automatic scans), "3. Review the proof" (side-by-side comparison, watermark found).
 5. Two alternating feature rows (text left, screenshot right, then reversed): "Every match is double-checked" — "Search results are only leads. We compare each one with your original before we show it." / "Proof you can use" — "See where it was found, how strong the match is, and whether your watermark is inside. Copy a ready-written message to send yourself."
 6. Pricing teaser: three compact cards Free $0 / Pro $12.99 / Extra $29.99 with one line each and link "Compare plans".
 7. Honest note band (soft grey): "Matches are technical signals, not legal proof. We never contact anyone for you."
-8. FAQ accordion (5 questions) and a final blue band "Your art deserves to be watched." with pill "Protect your first artwork".
+8. FAQ accordion (5 questions) and a final frosted-glass band with a glass shield image, "Your art deserves to be watched." and a black pill "PROTECT YOUR FIRST ARTWORK".
 Footer: About · Pricing · Help · Privacy · Terms · Refunds · Support.
 Do not use the words "beta", "early access", "coming soon" or "on the way" anywhere on the page.
 ```
@@ -162,7 +205,7 @@ Do not use the words "beta", "early access", "coming soon" or "on the way" anywh
 ## 8. Fiyatlandırma → `08-pricing`
 
 ```
-Web screen: "Pricing" page in the same sellingpilot-like style.
+Web screen: "Pricing" page in the project's glass design system.
 Heading "Simple plans for working artists", Monthly/Yearly pill switch ("Yearly — save about 23%").
 Three plan cards, Pro highlighted "Most popular":
 - Free $0 — Up to 3 artworks · 5 hand-started scans a month · Automatic weekly or monthly scans · 3 Deep scan credits once · See that a match exists and how strong it is (website hidden) — pill "Start free"
@@ -175,7 +218,7 @@ Comparison table, FAQ accordion, small print "Prices in US dollars; VAT added at
 ## 9. Giriş ve kayıt → `09-auth`
 
 ```
-Web screen: "Create your account" page, white, same style. Two columns: left a soft blue panel with the logo, the line "Your art, watched over." and a small product screenshot; right the form.
+Web screen: "Create your account" page in the glass design system. Two columns: left a soft iridescent glass panel (a glass shield image) with the logo, the line "Your art, watched over." and a small product screenshot; right the form.
 Form: heading "Create your account", full-width pill "Continue with Google" (Google logo), divider "or", Email, Password (with Show toggle, helper "At least 8 characters"), primary pill "Create account", note "No credit card needed", link "Already have an account? Sign in".
 Second frame: "Sign in" with the same layout and a "Forgot password?" link.
 After sign-up the user lands directly in step 1 of "Protect new artwork" (no second sign-in).

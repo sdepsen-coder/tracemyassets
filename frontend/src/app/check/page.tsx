@@ -347,7 +347,7 @@ function CheckImageContent() {
                   </p>
                   <Link
                     href="/protect"
-                    className="mt-4 inline-flex h-9 items-center rounded-lg bg-[var(--primary-strong)] px-3 text-[12px] font-semibold text-white"
+                    className="mt-4 inline-flex h-9 items-center rounded-lg bg-[var(--primary-strong)] px-3 text-[12px] font-semibold text-[var(--on-primary)]"
                   >
                     Upload artwork
                   </Link>
@@ -478,7 +478,7 @@ function CheckImageContent() {
                   !selectedAsset ||
                   !candidate
                 }
-                className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-[var(--primary-strong)] px-4 text-[13px] font-semibold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-[var(--primary-strong)] px-4 text-[13px] font-semibold text-[var(--on-primary)] shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-[18px]">
                   search_check

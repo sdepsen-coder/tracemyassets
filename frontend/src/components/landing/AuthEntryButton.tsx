@@ -14,22 +14,22 @@ type AuthEntryButtonProps = {
 
 const VARIANTS = {
   primary:
-    "bg-[var(--primary-strong)] text-white shadow-floating hover:brightness-110",
+    "bg-[var(--primary-strong)] text-[var(--on-primary)] hover:opacity-85",
   ghost:
     "text-[var(--text)] hover:bg-[var(--surface-muted)]",
-  onPrimary: "bg-white text-[#1a2bc0] shadow-floating hover:bg-white/90",
+  onPrimary: "bg-white text-[#111111] hover:bg-white/90",
 } as const;
 
 const SIZES = {
-  md: "h-10 px-4 text-[13px]",
-  lg: "h-12 px-6 text-[15px]",
+  md: "h-10 px-5 text-[11px]",
+  lg: "h-12 px-7 text-[12px]",
 } as const;
 
 /**
  * Opens the sign-in / registration form from the public landing page.
  * When the visitor is already signed in (the page is also reachable from
  * inside the app) there is nothing to sign in to: the sign-in button
- * disappears and the sign-up buttons become "Open dashboard".
+ * disappears and the sign-up buttons become "Open Monitoring".
  */
 export function AuthEntryButton({
   mode,
@@ -39,7 +39,7 @@ export function AuthEntryButton({
 }: AuthEntryButtonProps) {
   const { openAuth } = useAuthEntry();
   const auth = useOptionalAuth();
-  const className = `inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition ${VARIANTS[variant]} ${SIZES[size]}`;
+  const className = `inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium uppercase tracking-[0.08em] transition ${VARIANTS[variant]} ${SIZES[size]}`;
 
   if (auth) {
     if (mode === "login") {
@@ -48,7 +48,7 @@ export function AuthEntryButton({
 
     return (
       <Link href="/" className={className}>
-        Open dashboard
+        Open Monitoring
       </Link>
     );
   }

@@ -150,7 +150,7 @@ export function FeedbackDialog({ open, onClose }: Props) {
             <button
               type="button"
               onClick={close}
-              className="mt-5 inline-flex h-9 items-center rounded-lg bg-[var(--primary-strong)] px-4 text-[12px] font-semibold text-white"
+              className="mt-5 inline-flex h-9 items-center rounded-lg bg-[var(--primary-strong)] px-4 text-[12px] font-semibold text-[var(--on-primary)]"
             >
               Close
             </button>
@@ -241,7 +241,7 @@ export function FeedbackDialog({ open, onClose }: Props) {
               <button
                 type="submit"
                 disabled={status === "sending"}
-                className="inline-flex h-9 items-center rounded-lg bg-[var(--primary-strong)] px-4 text-[12px] font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-9 items-center rounded-lg bg-[var(--primary-strong)] px-4 text-[12px] font-semibold text-[var(--on-primary)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {status === "sending" ? "Sending..." : "Send feedback"}
               </button>

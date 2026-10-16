@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Poppins } from "next/font/google";
+import { Geist, IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 
 import { Analytics } from "@/components/Analytics";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
@@ -11,14 +11,14 @@ import {
 } from "@/lib/site";
 import "./globals.css";
 
-const inter = Inter({
+const geist = Geist({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-geist",
 });
 
-const poppins = Poppins({
+const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["300", "400", "500"],
   variable: "--font-heading",
 });
 
@@ -67,8 +67,8 @@ export default function RootLayout({
 
       <body
         className={[
-          inter.variable,
-          poppins.variable,
+          geist.variable,
+          plexSans.variable,
           jetbrainsMono.variable,
           "font-sans",
         ].join(" ")}

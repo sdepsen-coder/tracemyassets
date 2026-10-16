@@ -54,7 +54,7 @@ function EmptyState() {
       <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--primary-soft)] text-[var(--primary-strong)]">
         <Icon name="shield" className="text-[30px]" />
       </span>
-      <h2 className="mt-6 font-heading text-[30px] font-bold tracking-[-0.02em]">
+      <h2 className="mt-6 font-heading text-[30px] font-light tracking-[-0.02em]">
         Let&apos;s protect your first artwork
       </h2>
       <ol className="mt-6 space-y-4">
@@ -64,7 +64,7 @@ function EmptyState() {
               className={[
                 "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[14px] font-bold",
                 index === 0
-                  ? "bg-[var(--primary-strong)] text-white"
+                  ? "bg-[var(--primary-strong)] text-[var(--on-primary)]"
                   : "bg-[var(--surface-muted)] text-[var(--text-muted)]",
               ].join(" ")}
             >
@@ -327,7 +327,7 @@ export function MonitoringPage() {
                   <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--surface-muted)] text-[var(--text-muted)]">
                     <Icon name="add" className="text-[28px]" />
                   </span>
-                  <span className="mt-4 font-heading text-[18px] font-semibold">
+                  <span className="mt-4 font-heading text-[18px] font-normal">
                     Protect new artwork
                   </span>
                   <span className="mt-1 max-w-[260px] text-[14px] text-[var(--text-muted)]">

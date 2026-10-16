@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { Wordmark } from "@/components/app/brand";
 import { AccountMenu } from "@/components/dashboard/AccountMenu";
 import { useAuth } from "@/components/AuthGate";
 import { api, type MatchSummary } from "@/lib/api";
@@ -42,7 +43,7 @@ function MatchCountBadge({ count }: { count: number }) {
   if (count <= 0) return null;
 
   return (
-    <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--warning-soft)] px-1.5 text-[11px] font-bold text-[var(--warning)]">
+    <span className="iris ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-medium text-[#111111]">
       {count > 99 ? "99+" : count}
     </span>
   );
@@ -81,25 +82,15 @@ export function Topbar() {
       : "No matches to review";
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[color:var(--surface)]/95 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between gap-3 px-4 sm:px-6">
+    <header className="sticky top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4">
+      <div className="glass mx-auto max-w-[1280px] rounded-2xl border border-[var(--border)] shadow-[0_10px_40px_rgb(0_0_0/0.05)]">
+      <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-5">
         <div className="flex min-w-0 items-center gap-6">
-          <Link
-            href="/"
-            className="flex shrink-0 items-center gap-2 text-[var(--text)]"
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--primary-strong)] text-white">
-              <Icon name="shield" className="text-[20px]" />
-            </span>
-
-            <span className="hidden font-heading text-[18px] font-semibold tracking-[-0.02em] sm:block">
-              TraceMyAssets
-            </span>
-          </Link>
+          <Wordmark />
 
           <nav
             aria-label="Primary navigation"
-            className="hidden items-center gap-1 md:flex"
+            className="hidden items-center gap-1 lg:flex"
           >
             {NAV_ITEMS.map((item) => {
               const active = item.isActive(pathname);
@@ -110,10 +101,10 @@ export function Topbar() {
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={[
-                    "inline-flex items-center whitespace-nowrap rounded-lg px-3.5 py-2 text-[15px] transition",
+                    "inline-flex items-center whitespace-nowrap rounded-full px-3.5 py-1.5 text-[14px] transition",
                     active
-                      ? "bg-[var(--primary-soft)] font-semibold text-[var(--primary-strong)]"
-                      : "font-medium text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)]",
+                      ? "bg-[var(--surface-muted)] text-[var(--text)]"
+                      : "text-[var(--text-muted)] hover:text-[var(--text)]",
                   ].join(" ")}
                 >
                   {item.label}
@@ -129,9 +120,9 @@ export function Topbar() {
         <div className="flex shrink-0 items-center gap-2">
           <Link
             href="/protect"
-            className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[var(--primary-strong)] px-3 text-[14px] font-semibold text-white transition hover:brightness-110 sm:px-5"
+            className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[var(--primary-strong)] px-3 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85 sm:px-5"
           >
-            <Icon name="add" className="text-[20px]" />
+            <Icon name="add" className="text-[18px]" />
             <span className="hidden sm:inline">Protect new artwork</span>
           </Link>
 
@@ -157,9 +148,9 @@ export function Topbar() {
           places are offered as a row of tabs. */}
       <nav
         aria-label="Primary navigation (compact)"
-        className="border-t border-[var(--border)] md:hidden"
+        className="border-t border-[var(--border)] lg:hidden"
       >
-        <div className="mx-auto grid max-w-[1280px] grid-cols-3 px-2">
+        <div className="grid grid-cols-3 px-2">
           {NAV_ITEMS.map((item) => {
             const active = item.isActive(pathname);
 
@@ -171,8 +162,8 @@ export function Topbar() {
                 className={[
                   "flex items-center justify-center border-b-2 px-2 py-2.5 text-[13px] transition",
                   active
-                    ? "border-[var(--primary-strong)] font-semibold text-[var(--primary-strong)]"
-                    : "border-transparent font-medium text-[var(--text-muted)]",
+                    ? "border-[var(--text)] text-[var(--text)]"
+                    : "border-transparent text-[var(--text-muted)]",
                 ].join(" ")}
               >
                 {item.label}
@@ -184,6 +175,7 @@ export function Topbar() {
           })}
         </div>
       </nav>
+      </div>
     </header>
   );
 }

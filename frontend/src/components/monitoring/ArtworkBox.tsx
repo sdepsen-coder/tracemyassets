@@ -326,7 +326,7 @@ export function ArtworkBox({
                           className={[
                             "flex-1 rounded-full px-2 py-1.5 text-[12px] font-semibold disabled:cursor-not-allowed disabled:opacity-40",
                             frequency === option
-                              ? "bg-[var(--primary-strong)] text-white"
+                              ? "bg-[var(--primary-strong)] text-[var(--on-primary)]"
                               : "bg-[var(--surface-muted)] text-[var(--text-muted)]",
                           ].join(" ")}
                         >
@@ -394,7 +394,7 @@ export function ArtworkBox({
         <span className="absolute left-3 top-3">{statusChip}</span>
 
         {!archived && preference && enabled && !scanning && (
-          <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-lg bg-black/60 px-2.5 py-1 text-[12px] font-semibold text-white">
+          <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-lg bg-black/60 px-2.5 py-1 text-[12px] font-semibold text-[var(--on-primary)]">
             <Icon name="event" className="text-[15px]" />
             {nextScanLabel(preference)}
           </span>
@@ -412,7 +412,7 @@ export function ArtworkBox({
       </div>
 
       <div className="mt-4 flex items-start justify-between gap-2">
-        <h2 className="truncate font-heading text-[18px] font-semibold" title={asset.title}>
+        <h2 className="truncate font-heading text-[18px] font-normal" title={asset.title}>
           {asset.title}
         </h2>
         {copiesToReview > 0 && (

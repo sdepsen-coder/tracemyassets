@@ -22,7 +22,7 @@ const QUESTIONS: Array<{ question: string; answer: string }> = [
   {
     question: "When can I upgrade?",
     answer:
-      "Create a free account, then choose Pro or Extra on this page. While the buttons say \u201cOpens soon\u201d, paid plans are not open yet. Nothing is charged until you confirm in the payment window.",
+      "Create a free account, then choose Pro or Extra on this page. Nothing is charged until you confirm in the payment window.",
   },
   {
     question: "What is a Deep scan, and what are credits?",
@@ -58,7 +58,7 @@ export default function PricingPage() {
       <PlanCards />
 
       <section data-testid="credit-packs-section" className="space-y-3">
-        <h2 className="text-lg font-semibold text-[var(--text)]">
+        <h2 className="font-heading text-[26px] font-light tracking-[-0.02em] text-[var(--text)]">
           Need more Deep scans?
         </h2>
         <p className="max-w-2xl text-[14px] leading-relaxed text-[var(--text-muted)]">
@@ -71,16 +71,16 @@ export default function PricingPage() {
 
       <p
         data-testid="pricing-note"
-        className="rounded-xl bg-[var(--surface-muted)] p-4 text-[13px] leading-relaxed text-[var(--text-muted)]"
+        className="rounded-card bg-[var(--surface-muted)] p-5 text-[13px] leading-relaxed text-[var(--text-muted)]"
       >
         {PRICING_NOTE}
       </p>
 
       <LegalSection heading="Questions about plans">
-        <div className="divide-y divide-[var(--border)] rounded-xl border border-[var(--border)] bg-[var(--surface)]">
+        <div className="glass divide-y divide-[var(--border)] rounded-card border border-[var(--border)]">
           {QUESTIONS.map((item) => (
-            <div key={item.question} className="px-4 py-4">
-              <h3 className="text-[15px] font-semibold text-[var(--text)]">
+            <div key={item.question} className="px-5 py-5">
+              <h3 className="text-[16px] font-medium text-[var(--text)]">
                 {item.question}
               </h3>
               <p className="mt-1 text-[14px] leading-relaxed text-[var(--text-muted)]">

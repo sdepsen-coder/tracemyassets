@@ -337,7 +337,7 @@ function DownloadSection() {
         data-testid="download-data"
         disabled={busy}
         onClick={() => void download()}
-        className="mt-4 inline-flex h-10 items-center rounded-lg bg-[var(--primary-strong)] px-4 text-[13px] font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 inline-flex h-10 items-center rounded-lg bg-[var(--primary-strong)] px-4 text-[13px] font-semibold text-[var(--on-primary)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {busy ? "Preparing your file..." : "Download my data"}
       </button>
@@ -438,7 +438,7 @@ function DeleteSection({ email, isAdmin }: { email: string; isAdmin: boolean }) 
             data-testid="delete-account"
             disabled={!matches || busy}
             onClick={() => void remove()}
-            className="inline-flex h-10 items-center rounded-lg bg-[var(--danger)] px-4 text-[13px] font-semibold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-10 items-center rounded-lg bg-[var(--danger)] px-4 text-[13px] font-semibold text-[var(--on-primary)] transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busy ? "Deleting..." : "Delete my account permanently"}
           </button>
