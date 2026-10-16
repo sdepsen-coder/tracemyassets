@@ -19,7 +19,7 @@ from app.models.feedback import FeedbackEntry
 from app.models.user import User
 from app.models.user_event import UserEvent
 from app.models.user_suspension import UserSuspension
-from app.services import user_events
+from app.services import paddle_billing, user_events
 
 ORIGIN = "http://localhost:3000"
 GOOD = "correct-horse-battery"
@@ -436,6 +436,238 @@ class AdminTests(unittest.TestCase):
         self.assertEqual(
             self.post("/users/999/credits", {"amount": 1}).status_code, 404
         )
+
+
+    # --- billing ---------------------------------------------------------
+
+    def paddle(self, payload):
+        with self.Session() as db:
+            return paddle_billing.handle_event(db, payload)
+
+    def subscribe(self, email, *, sub, amount="1299", interval="month",
+                  status="active", scheduled=None, event_id=None):
+        now = datetime.now(timezone.utc)
+        return self.paddle({
+            "event_id": event_id or f"evt_{sub}",
+            "event_type": "subscription.created",
+            "occurred_at": now.isoformat(),
+            "data": {
+                "id": sub,
+                "status": status,
+                "customer_id": f"ctm_{sub}",
+                "custom_data": {"user_id": str(self.ids[email])},
+                "started_at": (now - timedelta(days=3)).isoformat(),
+                "items": [{"price": {
+                    "id": f"pri_{amount}",
+                    "unit_price": {"amount": amount, "currency_code": "USD"},
+                    "billing_cycle": {"interval": interval, "frequency": 1},
+                }}],
+                "current_billing_period": {
+                    "ends_at": (now + timedelta(days=27)).isoformat(),
+                },
+                "scheduled_change": scheduled,
+            },
+        })
+
+    def pay(self, email, *, txn, total, billed_at=None, sub=None,
+            amount="499", currency="USD"):
+        price = {
+            "id": f"pri_{amount}",
+            "unit_price": {"amount": amount, "currency_code": "USD"},
+            "billing_cycle": (
+                {"interval": "month", "frequency": 1} if sub else None
+            ),
+        }
+        return self.paddle({
+            "event_id": f"evt_{txn}",
+            "event_type": "transaction.completed",
+            "occurred_at": datetime.now(timezone.utc).isoformat(),
+            "data": {
+                "id": txn,
+                "status": "completed",
+                "customer_id": f"ctm_{sub or txn}",
+                "subscription_id": sub,
+                "custom_data": {"user_id": str(self.ids[email])},
+                "billed_at": (
+                    billed_at or datetime.now(timezone.utc)
+                ).isoformat(),
+                "items": [{"quantity": 1, "price": price}],
+                "details": {"totals": {
+                    "subtotal": total, "tax": "0", "total": total,
+                    "grand_total": total, "currency_code": currency,
+                }},
+            },
+        })
+
+    def refund_payment(self, txn, *, total, action="refund"):
+        now = datetime.now(timezone.utc).isoformat()
+        return self.paddle({
+            "event_id": f"evt_adj_{txn}",
+            "event_type": "adjustment.updated",
+            "occurred_at": now,
+            "data": {
+                "id": f"adj_{txn}",
+                "transaction_id": txn,
+                "action": action,
+                "type": "full",
+                "status": "approved",
+                "reason": "Asked for it",
+                "created_at": now,
+                "updated_at": now,
+                "totals": {"total": total, "currency_code": "USD"},
+            },
+        })
+
+    def test_user_detail_shows_subscription_and_payments(self):
+        ann = self.ids["ann@example.com"]
+        self.subscribe("ann@example.com", sub="sub_a")
+        self.pay("ann@example.com", txn="txn_plan", total="1299",
+                 sub="sub_a", amount="1299")
+        self.pay("ann@example.com", txn="txn_pack", total="499")
+        self.refund_payment("txn_pack", total="499")
+
+        detail = self.get(f"/users/{ann}").json()
+
+        [subscription] = detail["subscriptions"]
+        self.assertEqual(
+            (subscription["status"], subscription["plan"],
+             subscription["interval"]),
+            ("active", "Pro", "month"),
+        )
+        self.assertTrue(subscription["has_access"])
+        self.assertIsNotNone(subscription["current_period_end"])
+
+        payments = {p["transaction_id"]: p for p in detail["payments"]}
+        self.assertEqual(payments["txn_plan"]["kind"], "plan")
+        self.assertEqual(payments["txn_plan"]["total"], 1299)
+        self.assertEqual(payments["txn_plan"]["refunded"], 0)
+        self.assertEqual(payments["txn_pack"]["kind"], "pack")
+        self.assertEqual(payments["txn_pack"]["credits"], 10)
+        self.assertEqual(payments["txn_pack"]["refunded"], 499)
+        self.assertEqual(
+            payments["txn_pack"]["adjustments"][0]["reason"], "Asked for it"
+        )
+        self.assertEqual(
+            detail["paid_totals"],
+            [{"currency_code": "USD", "payments": 2, "total": 1798,
+              "refunded": 499}],
+        )
+
+        row = detail["user"]
+        self.assertEqual(row["plan_type"], "Pro")
+        self.assertEqual(row["subscription_status"], "active")
+        self.assertIsNotNone(row["renews_at"])
+        self.assertIsNone(row["cancels_at"])
+
+        # Someone who never paid has empty billing sections.
+        bob = self.get(f"/users/{self.ids['bob@example.com']}").json()
+        self.assertEqual(
+            (bob["subscriptions"], bob["payments"], bob["paid_totals"]),
+            ([], [], []),
+        )
+        self.assertIsNone(bob["user"]["subscription_status"])
+
+    def test_a_scheduled_cancellation_shows_the_end_date(self):
+        ends = (datetime.now(timezone.utc) + timedelta(days=5)).isoformat()
+        self.subscribe(
+            "ann@example.com", sub="sub_a",
+            scheduled={"action": "cancel", "effective_at": ends},
+        )
+
+        row = self.get(f"/users/{self.ids['ann@example.com']}").json()["user"]
+
+        self.assertIsNotNone(row["cancels_at"])
+        self.assertIsNone(row["renews_at"])
+
+    def test_user_list_filters_by_plan_subscription_and_payment(self):
+        ends = (datetime.now(timezone.utc) + timedelta(days=5)).isoformat()
+        self.subscribe("ann@example.com", sub="sub_a")
+        self.subscribe(
+            "bob@example.com", sub="sub_b", amount="2999",
+            scheduled={"action": "cancel", "effective_at": ends},
+        )
+        self.pay("bob@example.com", txn="txn_b", total="2999",
+                 sub="sub_b", amount="2999")
+
+        def emails(**params):
+            items = self.get("/users", params=params).json()["items"]
+            return sorted(u["email"] for u in items)
+
+        self.assertEqual(emails(plan="Extra"), ["bob@example.com"])
+        self.assertEqual(emails(subscription="active"), ["ann@example.com"])
+        self.assertEqual(emails(subscription="canceling"), ["bob@example.com"])
+        self.assertEqual(emails(subscription="none"), [ADMIN])
+        self.assertEqual(emails(paid="true"), ["bob@example.com"])
+        self.assertEqual(
+            emails(paid="false"), sorted([ADMIN, "ann@example.com"])
+        )
+        self.assertEqual(
+            emails(plan="Pro", q="bob"), [],
+        )
+        self.assertEqual(
+            self.get("/users", params={"subscription": "x"}).status_code, 422
+        )
+
+        listed = {
+            u["email"]: u for u in self.get("/users").json()["items"]
+        }
+        self.assertEqual(listed["bob@example.com"]["subscription_plan"], "Extra")
+        self.assertEqual(
+            listed["ann@example.com"]["subscription_interval"], "month"
+        )
+
+    def test_overview_revenue_and_subscribers(self):
+        now = datetime.now(timezone.utc)
+        last_month = (now.replace(day=1) - timedelta(days=3))
+        ends = (now + timedelta(days=5)).isoformat()
+
+        self.subscribe("ann@example.com", sub="sub_a")
+        self.subscribe(
+            "bob@example.com", sub="sub_b", amount="2999",
+            scheduled={"action": "cancel", "effective_at": ends},
+        )
+        self.subscribe(
+            ADMIN, sub="sub_c", status="canceled", event_id="evt_c",
+        )
+        self.pay("ann@example.com", txn="txn_1", total="1299",
+                 sub="sub_a", amount="1299")
+        self.pay("bob@example.com", txn="txn_2", total="2999",
+                 sub="sub_b", amount="2999")
+        self.pay("bob@example.com", txn="txn_3", total="499")
+        self.pay("bob@example.com", txn="txn_old", total="1299",
+                 billed_at=last_month, sub="sub_b", amount="1299")
+        self.pay("ann@example.com", txn="txn_eur", total="1100",
+                 currency="EUR")
+        self.refund_payment("txn_3", total="499")
+
+        body = self.get("/overview").json()
+
+        self.assertEqual(body["paid_subscribers"], 2)
+        self.assertEqual(
+            body["paid_subscribers_by_plan"], {"Extra": 1, "Pro": 1}
+        )
+        self.assertEqual(body["subscriptions_canceling"], 1)
+        self.assertEqual(body["subscriptions_past_due"], 0)
+
+        revenue = {r["currency_code"]: r for r in body["revenue_this_month"]}
+        self.assertEqual(
+            revenue["USD"],
+            {"currency_code": "USD", "payments": 3, "total": 4797,
+             "refunded": 499, "net": 4298},
+        )
+        self.assertEqual(revenue["EUR"]["total"], 1100)
+        self.assertEqual(
+            body["revenue_last_month"],
+            [{"currency_code": "USD", "payments": 1, "total": 1299,
+              "refunded": 0, "net": 1299}],
+        )
+
+    def test_overview_without_payments(self):
+        body = self.get("/overview").json()
+
+        self.assertEqual(body["revenue_this_month"], [])
+        self.assertEqual(body["paid_subscribers"], 0)
+        self.assertEqual(body["paid_subscribers_by_plan"], {})
 
 
 if __name__ == "__main__":

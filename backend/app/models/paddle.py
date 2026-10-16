@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, func
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -72,4 +72,96 @@ class PaddleEvent(Base):
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
+    )
+
+
+class PaddleTransaction(Base):
+    """
+    One completed Paddle payment (a plan or a credit pack), as Paddle's
+    transaction.completed webhook reported it. Amounts are Paddle's own
+    totals in the lowest unit of the currency ("1299" USD = $12.99);
+    nothing here is computed from our price list. Kept for the admin
+    pages: who paid what and when.
+    """
+
+    __tablename__ = "paddle_transactions"
+
+    transaction_id: Mapped[str] = mapped_column(String(60), primary_key=True)
+
+    # None when no account could be matched (logged; fixed up later if the
+    # subscription arrives).
+    user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"), index=True, nullable=True
+    )
+
+    subscription_id: Mapped[str | None] = mapped_column(
+        String(60), index=True, nullable=True
+    )
+    customer_id: Mapped[str | None] = mapped_column(String(60), nullable=True)
+
+    # plan, pack or other.
+    kind: Mapped[str] = mapped_column(String(10), nullable=False)
+    plan: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    interval: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    credits: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    # Paddle's status (completed) and origin (web, subscription_recurring...).
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+    origin: Mapped[str | None] = mapped_column(String(40), nullable=True)
+
+    currency_code: Mapped[str] = mapped_column(String(3), nullable=False)
+    subtotal: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    tax: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    total: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # Paddle's fee and what is left for us; not always reported.
+    fee: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    earnings: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    billed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), index=True, nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+
+class PaddleAdjustment(Base):
+    """
+    A refund, credit or chargeback Paddle made against a transaction, as
+    its adjustment.* webhooks last reported it. Amounts as in
+    PaddleTransaction.
+    """
+
+    __tablename__ = "paddle_adjustments"
+
+    adjustment_id: Mapped[str] = mapped_column(String(60), primary_key=True)
+
+    # No foreign key: the payment may predate PaddleTransaction.
+    transaction_id: Mapped[str] = mapped_column(
+        String(60), index=True, nullable=False
+    )
+    user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"), index=True, nullable=True
+    )
+
+    # refund, credit, chargeback, chargeback_reverse, ...
+    action: Mapped[str] = mapped_column(String(30), nullable=False)
+    # full or partial.
+    type: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    # pending_approval, approved, rejected, reversed.
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+    reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    currency_code: Mapped[str] = mapped_column(String(3), nullable=False)
+    total: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+    # Paddle's own times; updated_at keeps a late, older event from
+    # overwriting a newer status.
+    paddle_created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), index=True, nullable=False
+    )
+    paddle_updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
     )

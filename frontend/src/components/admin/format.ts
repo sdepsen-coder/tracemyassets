@@ -52,3 +52,57 @@ export function eventTone(type: string): string {
 
   return "bg-[var(--surface-muted)] text-[var(--text-muted)]";
 }
+
+/**
+ * Money in the lowest unit of its currency (cents for USD), as Paddle
+ * reports it, shown in the currency's own format.
+ */
+export function formatMoney(minor: number, currency: string): string {
+  if (!currency) return String(minor);
+
+  try {
+    const format = new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency,
+    });
+    const digits = format.resolvedOptions().maximumFractionDigits ?? 2;
+
+    return format.format(minor / 10 ** digits);
+  } catch {
+    return `${minor} ${currency}`;
+  }
+}
+
+export const SUBSCRIPTION_LABELS: Record<string, string> = {
+  active: "Active",
+  trialing: "Trial",
+  past_due: "Payment failed",
+  paused: "Paused",
+  canceled: "Canceled",
+};
+
+export function subscriptionLabel(status: string | null): string {
+  if (!status) return "None";
+
+  return SUBSCRIPTION_LABELS[status] ?? status;
+}
+
+/** Colour for a subscription state; a scheduled cancel counts as a warning. */
+export function subscriptionTone(
+  status: string | null,
+  cancelling = false,
+): string {
+  if (status === "past_due") {
+    return "bg-[var(--danger-soft)] text-[var(--danger)]";
+  }
+
+  if (cancelling || status === "paused") {
+    return "bg-[var(--warning-soft)] text-[var(--warning)]";
+  }
+
+  if (status === "active" || status === "trialing") {
+    return "bg-[var(--success-soft)] text-[var(--success)]";
+  }
+
+  return "bg-[var(--surface-muted)] text-[var(--text-muted)]";
+}

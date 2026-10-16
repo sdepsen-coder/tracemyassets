@@ -38,6 +38,21 @@ export type AdminOverview = {
     monthly_limit: number;
   };
   event_retention_days: number;
+  revenue_this_month: AdminRevenue[];
+  revenue_last_month: AdminRevenue[];
+  paid_subscribers: number;
+  paid_subscribers_by_plan: Record<string, number>;
+  subscriptions_canceling: number;
+  subscriptions_past_due: number;
+};
+
+/** Money in the lowest unit of the currency (cents for USD), as Paddle reports it. */
+export type AdminRevenue = {
+  currency_code: string;
+  payments: number;
+  total: number;
+  refunded: number;
+  net: number;
 };
 
 export type AdminEvent = {
@@ -62,6 +77,66 @@ export type AdminUserRow = {
   suspended: boolean;
   is_admin: boolean;
   email_verified: boolean;
+  subscription_status: string | null;
+  subscription_plan: string | null;
+  subscription_interval: string | null;
+  renews_at: string | null;
+  cancels_at: string | null;
+};
+
+export type AdminSubscription = {
+  subscription_id: string;
+  customer_id: string;
+  status: string;
+  plan: string | null;
+  interval: string | null;
+  price_id: string | null;
+  started_at: string | null;
+  current_period_end: string | null;
+  scheduled_action: string | null;
+  scheduled_at: string | null;
+  has_access: boolean;
+  updated_at: string;
+};
+
+export type AdminAdjustment = {
+  adjustment_id: string;
+  transaction_id: string;
+  action: string;
+  type: string | null;
+  status: string;
+  reason: string | null;
+  currency_code: string;
+  total: number;
+  created_at: string;
+};
+
+export type AdminPayment = {
+  transaction_id: string;
+  kind: "plan" | "pack" | "other" | string;
+  plan: string | null;
+  interval: string | null;
+  credits: number | null;
+  status: string;
+  origin: string | null;
+  subscription_id: string | null;
+  currency_code: string;
+  subtotal: number;
+  tax: number;
+  total: number;
+  fee: number | null;
+  earnings: number | null;
+  billed_at: string;
+  refunded: number;
+  adjustments: AdminAdjustment[];
+};
+
+export type AdminUserFilters = {
+  q?: string;
+  plan?: string;
+  subscription?: string;
+  paid?: "true" | "false";
+  offset?: number;
 };
 
 export type AdminFeedbackRow = {
@@ -80,6 +155,15 @@ export type AdminFeedbackRow = {
 
 export type AdminUserDetail = {
   user: AdminUserRow;
+  subscriptions: AdminSubscription[];
+  payments: AdminPayment[];
+  other_adjustments: AdminAdjustment[];
+  paid_totals: Array<{
+    currency_code: string;
+    payments: number;
+    total: number;
+    refunded: number;
+  }>;
   suspension_reason: string | null;
   assets_list: Array<{
     id: number;
@@ -733,13 +817,15 @@ export const api = {
     overview: (signal?: AbortSignal) =>
       request<AdminOverview>("/api/v1/admin/overview", { signal }),
 
-    users: (
-      params: { q?: string; offset?: number },
-      signal?: AbortSignal,
-    ) =>
+    users: (params: AdminUserFilters, signal?: AbortSignal) =>
       request<AdminPage<AdminUserRow>>(
         `/api/v1/admin/users?${new URLSearchParams({
           ...(params.q ? { q: params.q } : {}),
+          ...(params.plan ? { plan: params.plan } : {}),
+          ...(params.subscription
+            ? { subscription: params.subscription }
+            : {}),
+          ...(params.paid ? { paid: params.paid } : {}),
           offset: String(params.offset ?? 0),
           limit: "50",
         })}`,

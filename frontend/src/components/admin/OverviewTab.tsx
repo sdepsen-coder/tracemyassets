@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { api, type AdminOverview } from "@/lib/api";
 import { Panel } from "@/components/ui/Panel";
+import { formatMoney } from "./format";
 import { ErrorLine, Stat } from "./ui";
 
 function percent(used: number, limit: number): number {
@@ -51,6 +52,31 @@ function AllowancePanel({ title, budget }: { title: string; budget: Budget }) {
   );
 }
 
+type Revenue = AdminOverview["revenue_this_month"];
+
+/** Net amounts per currency ("$120.00 · €11.00"); "$0" when nothing came in. */
+function netLine(rows: Revenue): string {
+  if (rows.length === 0) return formatMoney(0, "USD");
+
+  return rows.map((row) => formatMoney(row.net, row.currency_code)).join(" · ");
+}
+
+function revenueHint(rows: Revenue, last: Revenue): string {
+  const payments = rows.reduce((sum, row) => sum + row.payments, 0);
+  const refunded = rows
+    .filter((row) => row.refunded !== 0)
+    .map((row) => formatMoney(row.refunded, row.currency_code))
+    .join(" · ");
+
+  return [
+    `${payments} payment(s)`,
+    refunded ? `${refunded} refunded` : "",
+    `last month ${netLine(last)}`,
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
+
 function nearLimit(budget: Budget): boolean {
   return (
     percent(budget.used_today, budget.daily_limit) >= 80 ||
@@ -95,6 +121,34 @@ export function OverviewTab() {
           the limit (SERPAPI_/VISION_ DAILY and MONTHLY LIMIT in Railway).
         </p>
       ) : null}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Stat
+          label="Revenue this month"
+          value={netLine(data.revenue_this_month)}
+          hint={revenueHint(data.revenue_this_month, data.revenue_last_month)}
+        />
+        <Stat
+          label="Paid subscribers"
+          value={data.paid_subscribers}
+          hint={
+            Object.entries(data.paid_subscribers_by_plan)
+              .map(([plan, count]) => `${plan} ${count}`)
+              .join(" · ") || "None yet"
+          }
+        />
+        <Stat
+          label="Cancelling at period end"
+          value={data.subscriptions_canceling}
+          hint="Still paid up; will not renew"
+        />
+        <Stat
+          label="Payment failed"
+          value={data.subscriptions_past_due}
+          hint="Paddle is retrying the card"
+          tone={data.subscriptions_past_due > 0 ? "danger" : undefined}
+        />
+      </div>
+
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat
           label="Accounts"
