@@ -650,7 +650,7 @@ def change_plan(
 
     if payload.plan_type not in PLAN_LIMITS:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Unknown plan. Choose one of: "
             + ", ".join(sorted(PLAN_LIMITS)),
         )
@@ -703,7 +703,7 @@ def suspend_user(
 
     if is_admin_email(user.email):
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="An admin account cannot be suspended.",
         )
 
