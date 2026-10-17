@@ -136,7 +136,7 @@ export function AccountMenu() {
                 onClick={() => setMenuOpen(false)}
                 className="block w-full rounded-lg px-3 py-2 text-left text-[13px] font-medium text-[var(--text)] transition hover:bg-[var(--surface-muted)]"
               >
-                Admin
+                Staff
               </Link>
             )}
 

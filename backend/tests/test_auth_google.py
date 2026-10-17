@@ -58,15 +58,17 @@ class GoogleSignInTests(unittest.TestCase):
 
         self.client = TestClient(app, follow_redirects=False)
 
-    def _start(self):
-        response = self.client.get("/api/v1/auth/google/start")
+    def _start(self, **params):
+        response = self.client.get("/api/v1/auth/google/start", params=params)
         self.assertEqual(response.status_code, 302)
         query = parse_qs(urlparse(response.headers["location"]).query)
         return response, query
 
-    def _callback(self, *, state=None, token=None, info=None, **params):
+    def _callback(
+        self, *, state=None, token=None, info=None, start_params=None, **params
+    ):
         """Run /start, then /callback with Google's replies faked."""
-        _, query = self._start()
+        _, query = self._start(**(start_params or {}))
         sent = {}
 
         def fake_post(url, data=None, **kwargs):
@@ -161,6 +163,20 @@ class GoogleSignInTests(unittest.TestCase):
         self.assertIn("tma_oauth_state", response.cookies)
         self.assertEqual(response.cookies["tma_oauth_state"], query["state"][0])
         self.assertNotIn("client_secret", response.headers["location"])
+
+    def test_callback_returns_to_the_admin_page_when_asked(self) -> None:
+        response, _ = self._callback(start_params={"next": "/admin"})
+
+        self.assertEqual(response.headers["location"], "/admin")
+        self.assertIn("tma_session", response.cookies)
+
+    def test_unknown_next_falls_back_to_monitoring(self) -> None:
+        for target in ("https://evil.example", "//evil.example", "/account"):
+            response, _ = self._start(next=target)
+            self.assertNotIn("tma_oauth_next", response.cookies)
+
+        response, _ = self._callback(start_params={"next": "//evil.example"})
+        self.assertEqual(response.headers["location"], "/monitoring")
 
     def test_start_when_not_configured_goes_home_with_an_error(self) -> None:
         with mock.patch.object(settings, "google_client_id", ""):

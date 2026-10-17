@@ -83,7 +83,7 @@ export function AdminApp() {
               if your password leaks.
             </p>
             <a
-              href="/api/v1/auth/google/start"
+              href="/api/v1/auth/google/start?next=%2Fadmin"
               className="mt-6 inline-block rounded-xl bg-[var(--primary-strong)] px-5 py-2.5 text-[14px] font-semibold text-[var(--on-primary)]"
             >
               Continue with Google

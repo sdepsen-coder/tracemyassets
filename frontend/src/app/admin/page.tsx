@@ -3,7 +3,7 @@ import { AdminApp } from "@/components/admin/AdminApp";
 
 export default function AdminPage() {
   return (
-    <AuthGate>
+    <AuthGate googleNext="/admin">
       <AdminApp />
     </AuthGate>
   );

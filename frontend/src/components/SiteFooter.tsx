@@ -56,6 +56,11 @@ export function SiteFooter({ tone = "themed" }: SiteFooterProps) {
               Support
             </Link>
             <CookieSettingsLink className={linkClass} />
+            {/* The admin area under a quiet name; it signs in from there
+                and stays "page not found" for everyone who is not an admin. */}
+            <Link href="/admin" className={linkClass}>
+              Staff
+            </Link>
             {CONTACT_EMAIL && (
               <a href={`mailto:${CONTACT_EMAIL}`} className={linkClass}>
                 {CONTACT_EMAIL}

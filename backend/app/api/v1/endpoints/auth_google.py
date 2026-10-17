@@ -54,6 +54,12 @@ USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo"
 
 STATE_COOKIE = "tma_oauth_state"
 VERIFIER_COOKIE = "tma_oauth_verifier"
+NEXT_COOKIE = "tma_oauth_next"
+
+# Where a successful sign-in may continue. Only these fixed paths are
+# accepted, so the "next" parameter can never send anyone off-site.
+DEFAULT_NEXT = "/monitoring"
+ALLOWED_NEXT = {DEFAULT_NEXT, "/admin"}
 COOKIE_PATH = "/api/v1/auth/google"
 COOKIE_MAX_AGE = 600
 HTTP_TIMEOUT = 10.0
@@ -80,7 +86,7 @@ def _failure(reason: str) -> RedirectResponse:
 
 
 def _clear_flow_cookies(response: RedirectResponse) -> None:
-    for name in (STATE_COOKIE, VERIFIER_COOKIE):
+    for name in (STATE_COOKIE, VERIFIER_COOKIE, NEXT_COOKIE):
         response.delete_cookie(
             key=name,
             path=COOKIE_PATH,
@@ -116,7 +122,7 @@ def read_providers() -> ProvidersRead:
 
 
 @router.get("/google/start")
-def google_start() -> RedirectResponse:
+def google_start(next: str | None = None) -> RedirectResponse:
     if not google_enabled():
         return _failure("google_unavailable")
 
@@ -139,6 +145,8 @@ def google_start() -> RedirectResponse:
     response = RedirectResponse(f"{AUTHORIZE_URL}?{query}", status_code=302)
     _set_flow_cookie(response, STATE_COOKIE, state)
     _set_flow_cookie(response, VERIFIER_COOKIE, verifier)
+    if next in ALLOWED_NEXT:
+        _set_flow_cookie(response, NEXT_COOKIE, next)
     return response
 
 
@@ -300,7 +308,11 @@ def google_callback(
         email=user.email,
     )
 
-    response = RedirectResponse("/monitoring", status_code=302)
+    next_path = request.cookies.get(NEXT_COOKIE)
+    if next_path not in ALLOWED_NEXT:
+        next_path = DEFAULT_NEXT
+
+    response = RedirectResponse(next_path, status_code=302)
     set_session_cookie(
         response, create_access_token(user.id, via="google")
     )

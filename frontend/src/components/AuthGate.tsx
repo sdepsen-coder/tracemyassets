@@ -67,6 +67,8 @@ type AuthGateProps = {
    * password sign-in from it continues to Monitoring. Only "/" passes this.
    */
   landing?: ReactNode;
+  /** Page a Google sign-in returns to (the server allows only known ones). */
+  googleNext?: string;
 };
 
 const GOOGLE_ERRORS: Record<string, string> = {
@@ -82,7 +84,7 @@ const GOOGLE_ERRORS: Record<string, string> = {
     "Too many accounts have been created from your network today. Please try again tomorrow.",
 };
 
-export function AuthGate({ children, landing }: AuthGateProps) {
+export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
   const router = useRouter();
   const [screen, setScreen] = useState<"landing" | "auth">("landing");
   const [session, setSession] = useState<User | null>(null);
@@ -486,7 +488,11 @@ export function AuthGate({ children, landing }: AuthGateProps) {
         {googleEnabled && mode !== "forgot" && (
           <>
             <a
-              href="/api/v1/auth/google/start"
+              href={
+                googleNext
+                  ? `/api/v1/auth/google/start?next=${encodeURIComponent(googleNext)}`
+                  : "/api/v1/auth/google/start"
+              }
               className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[var(--line-strong)] text-[12px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)]"
             >
               <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4">
