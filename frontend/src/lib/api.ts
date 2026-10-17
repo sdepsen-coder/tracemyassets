@@ -370,7 +370,8 @@ export type CreditsInfo = {
       | "plan"
       | "expiry"
       | "purchase"
-      | "purchase_refund";
+      | "purchase_refund"
+      | "removal";
     created_at: string;
   }>;
 };

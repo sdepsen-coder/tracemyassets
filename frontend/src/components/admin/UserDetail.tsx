@@ -282,6 +282,8 @@ export function UserDetailView({
 
   const [credits, setCredits] = useState("5");
   const [note, setNote] = useState("");
+  const [removeAmount, setRemoveAmount] = useState("1");
+  const [removeNote, setRemoveNote] = useState("");
   const [plan, setPlan] = useState("Free");
   const [reason, setReason] = useState("");
   const [confirming, setConfirming] = useState<string | null>(null);
@@ -610,6 +612,51 @@ export function UserDetailView({
             </label>
             <button type="submit" disabled={busy} className={smallButton}>
               Add credits
+            </button>
+          </form>
+
+          {/* For partial refunds: Paddle reports them, but only a full
+              refund takes pack credits back automatically. */}
+          <form
+            className="flex flex-wrap items-end gap-2"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void act(
+                "remove-credits",
+                {
+                  amount: Number(removeAmount),
+                  note: removeNote.trim() || null,
+                },
+                `Removed ${removeAmount} credit(s).`,
+              );
+            }}
+          >
+            <label className="text-[12px] text-[var(--text-muted)]">
+              Remove credits
+              <input
+                type="number"
+                min={1}
+                max={Math.max(1, Math.min(1000, user.credits))}
+                value={removeAmount}
+                onChange={(event) => setRemoveAmount(event.target.value)}
+                className={`${inputClass} mt-1 block w-24`}
+              />
+            </label>
+            <label className="text-[12px] text-[var(--text-muted)]">
+              Reason (e.g. partial refund)
+              <input
+                value={removeNote}
+                maxLength={300}
+                onChange={(event) => setRemoveNote(event.target.value)}
+                className={`${inputClass} mt-1 block w-64`}
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={busy || user.credits <= 0}
+              className={smallButton}
+            >
+              Remove credits
             </button>
           </form>
 

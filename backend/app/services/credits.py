@@ -12,7 +12,8 @@ paid for with credits. The rules, kept deliberately simple:
   * If no search could be made at all (the provider was down, or our own
     spending limit was reached), the credit is given back.
   * Paid plans add their monthly credits (services.plan_credits); other
-    credits can be added by hand (scripts/grant_credits.py).
+    credits can be added by hand (scripts/grant_credits.py) and taken
+    back by hand (admin, e.g. after a partial refund).
 
 The balance is the sum of an append-only ledger (models.credit_entry).
 """
@@ -190,6 +191,52 @@ def grant_credits(
         user_id=user_id,
         delta=amount,
         reason="grant",
+        note=note,
+    )
+
+    db.add(entry)
+    db.commit()
+    db.refresh(entry)
+
+    return entry
+
+
+def remove_credits(
+    db: Session,
+    *,
+    user_id: int,
+    amount: int,
+    note: str | None = None,
+) -> CreditEntry:
+    """
+    Take credits back by hand (admin), for example after a partial refund
+    that Paddle reports but we do not reverse automatically. `amount` must
+    be positive. Raises InsufficientCredits rather than take the balance
+    below zero. Commits on its own.
+
+    Like a deep scan charge, the user's row is locked while the balance is
+    read and the entry written.
+    """
+    if amount <= 0:
+        raise ValueError("amount must be positive")
+
+    db.execute(
+        select(User.id).where(User.id == user_id).with_for_update()
+    )
+
+    ensure_welcome_grant(db, user_id)
+    grant_due_plan_credits(db, user_id)
+
+    balance = get_balance(db, user_id)
+
+    if balance < amount:
+        db.commit()  # keeps any grant made above, releases the lock
+        raise InsufficientCredits(balance, amount)
+
+    entry = CreditEntry(
+        user_id=user_id,
+        delta=-amount,
+        reason="removal",
         note=note,
     )
 

@@ -34,7 +34,12 @@ from app.models.user import User
 from app.models.user_event import UserEvent
 from app.models.user_suspension import UserSuspension
 from app.services import email_verification, user_events
-from app.services.credits import get_balance, grant_credits
+from app.services.credits import (
+    InsufficientCredits,
+    get_balance,
+    grant_credits,
+    remove_credits,
+)
 from app.services.paddle_billing import PAID_PLANS, has_access
 from app.services.plan_credits import ACCESS_STATUSES
 from app.services.provider_budget import get_budget_status
@@ -1077,6 +1082,39 @@ def add_credits(
         request,
         admin,
         f"+{payload.amount} credits to #{user.id} {user.email}",
+    )
+
+    return Done()
+
+
+@router.post("/users/{user_id}/remove-credits", response_model=Done)
+def take_back_credits(
+    user_id: int,
+    payload: CreditGrant,
+    request: Request,
+    admin: User = Depends(get_admin_user),
+    db: Session = Depends(get_db),
+) -> Done:
+    user = _require_user(db, user_id)
+
+    try:
+        remove_credits(
+            db,
+            user_id=user.id,
+            amount=payload.amount,
+            note=payload.note or "Removed by admin",
+        )
+    except InsufficientCredits as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Only {exc.balance} credit(s) left to take back.",
+        ) from exc
+
+    _log_admin(
+        db,
+        request,
+        admin,
+        f"-{payload.amount} credits from #{user.id} {user.email}",
     )
 
     return Done()

@@ -23,6 +23,7 @@ class CreditEntry(Base):
     reason is one of:
       welcome    the one-time beta credits every account starts with
       grant      credits added by hand (see scripts/grant_credits.py)
+      removal    credits taken back by hand (admin), never below zero
       deep_scan  one credit taken when a deep scan starts (delta -1)
       refund     that credit given back because no search could be made
 

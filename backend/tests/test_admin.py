@@ -345,6 +345,52 @@ class AdminTests(unittest.TestCase):
         self.assertEqual(actions[0].user_id, self.ids[ADMIN])
         self.assertIn("+5 credits", actions[0].detail)
 
+    def test_removing_credits_never_goes_below_zero_and_is_logged(self):
+        ann = self.ids["ann@example.com"]
+
+        def balance():
+            with self.Session() as db:
+                return sum(
+                    db.scalars(
+                        select(CreditEntry.delta).where(
+                            CreditEntry.user_id == ann
+                        )
+                    )
+                )
+
+        self.post(f"/users/{ann}/credits", {"amount": 5})
+        self.assertEqual(
+            self.post(
+                f"/users/{ann}/remove-credits",
+                {"amount": 2, "note": "Partial refund"},
+            ).status_code,
+            200,
+        )
+        before = balance()
+
+        too_many = self.post(
+            f"/users/{ann}/remove-credits", {"amount": before + 1}
+        )
+        self.assertEqual(too_many.status_code, 400)
+        self.assertIn(f"Only {before} credit(s)", too_many.json()["detail"])
+        self.assertEqual(
+            self.post(f"/users/{ann}/remove-credits", {"amount": 0}).status_code,
+            422,
+        )
+        self.assertEqual(balance(), before)
+
+        with self.Session() as db:
+            removal = db.scalars(
+                select(CreditEntry).where(
+                    CreditEntry.user_id == ann, CreditEntry.reason == "removal"
+                )
+            ).one()
+        self.assertEqual(removal.delta, -2)
+        self.assertEqual(removal.note, "Partial refund")
+
+        details = [e.detail for e in self.events(event_type=user_events.ADMIN_ACTION)]
+        self.assertTrue(any("-2 credits" in d for d in details))
+
     def test_plan_change(self):
         ann = self.ids["ann@example.com"]
 
