@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 
 import { AuthGate } from "@/components/AuthGate";
-import { AppShell } from "@/components/app/ui";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { JsonLd } from "@/components/JsonLd";
-import { MonitoringPage } from "@/components/monitoring/MonitoringPage";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -45,11 +43,7 @@ export default function HomePage() {
   return (
     <>
       <JsonLd data={STRUCTURED_DATA} />
-      <AuthGate landing={<LandingPage />}>
-        <AppShell>
-          <MonitoringPage />
-        </AppShell>
-      </AuthGate>
+      <AuthGate landing={<LandingPage />} />
     </>
   );
 }

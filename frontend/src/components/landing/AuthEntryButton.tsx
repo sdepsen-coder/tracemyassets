@@ -47,7 +47,7 @@ export function AuthEntryButton({
     }
 
     return (
-      <Link href="/" className={className}>
+      <Link href="/monitoring" className={className}>
         Open Monitoring
       </Link>
     );

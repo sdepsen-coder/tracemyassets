@@ -9,6 +9,8 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: [
         "/admin",
+        "/monitoring",
+        "/protect",
         "/account",
         "/matches",
         "/check",

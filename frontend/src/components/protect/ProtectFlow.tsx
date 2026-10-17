@@ -690,7 +690,7 @@ export function ProtectFlow() {
             {error && <div className="mt-6"><Notice tone="error">{error}</Notice></div>}
 
             <div className="mt-8 flex flex-col-reverse items-stretch justify-between gap-3 sm:flex-row sm:items-center">
-              <PillLink href="/" variant="secondary">
+              <PillLink href="/monitoring" variant="secondary">
                 Skip for now
               </PillLink>
               <div className="text-right">
@@ -761,7 +761,7 @@ export function ProtectFlow() {
                   <Pill variant="secondary" onClick={() => setStep("scan")}>
                     Choose another scan
                   </Pill>
-                  <PillLink href="/">Go to Monitoring</PillLink>
+                  <PillLink href="/monitoring">Go to Monitoring</PillLink>
                 </div>
               </>
             ) : copies > 0 ? (
@@ -800,7 +800,7 @@ export function ProtectFlow() {
                 </ul>
 
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                  <PillLink href="/" variant="secondary">Go to Monitoring</PillLink>
+                  <PillLink href="/monitoring" variant="secondary">Go to Monitoring</PillLink>
                   <PillLink href="/matches" icon="arrow_forward">Review the copies</PillLink>
                 </div>
               </>
@@ -819,7 +819,7 @@ export function ProtectFlow() {
                   <Pill variant="secondary" onClick={startOver}>
                     Protect another artwork
                   </Pill>
-                  <PillLink href="/">Go to Monitoring</PillLink>
+                  <PillLink href="/monitoring">Go to Monitoring</PillLink>
                 </div>
               </>
             )}

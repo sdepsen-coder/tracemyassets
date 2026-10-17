@@ -19,12 +19,13 @@ type NavItem = {
 };
 
 // The signed-in app has three places; everything else lives in the
-// account menu. "Monitoring" is the home page of a signed-in user.
+// account menu. "Monitoring" is the home page of a signed-in user; the
+// logo leads to the public landing page at "/".
 const NAV_ITEMS: NavItem[] = [
   {
     label: "Monitoring",
-    href: "/",
-    isActive: (pathname) => pathname === "/",
+    href: "/monitoring",
+    isActive: (pathname) => pathname.startsWith("/monitoring"),
   },
   {
     label: "Matches",
@@ -39,6 +40,13 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
+// Shown only to admins; the server still hides the admin API from others.
+const ADMIN_ITEM: NavItem = {
+  label: "Admin",
+  href: "/admin",
+  isActive: (pathname) => pathname.startsWith("/admin"),
+};
+
 function MatchCountBadge({ count }: { count: number }) {
   if (count <= 0) return null;
 
@@ -52,6 +60,7 @@ function MatchCountBadge({ count }: { count: number }) {
 export function Topbar() {
   const { user } = useAuth();
   const pathname = usePathname() ?? "/";
+  const navItems = user.is_admin ? [...NAV_ITEMS, ADMIN_ITEM] : NAV_ITEMS;
 
   const [newMatchCount, setNewMatchCount] = useState(0);
   useEffect(() => {
@@ -92,7 +101,7 @@ export function Topbar() {
             aria-label="Primary navigation"
             className="hidden items-center gap-1 lg:flex"
           >
-            {NAV_ITEMS.map((item) => {
+            {navItems.map((item) => {
               const active = item.isActive(pathname);
 
               return (
@@ -145,13 +154,15 @@ export function Topbar() {
       <VerifyEmailBanner />
 
       {/* On small screens the links above are hidden; the same three
-          places are offered as a row of tabs. */}
+          places (plus Admin for admins) are offered as a row of tabs. */}
       <nav
         aria-label="Primary navigation (compact)"
         className="border-t border-[var(--border)] lg:hidden"
       >
-        <div className="grid grid-cols-3 px-2">
-          {NAV_ITEMS.map((item) => {
+        <div
+          className={`grid px-2 ${navItems.length > 3 ? "grid-cols-4" : "grid-cols-3"}`}
+        >
+          {navItems.map((item) => {
             const active = item.isActive(pathname);
 
             return (

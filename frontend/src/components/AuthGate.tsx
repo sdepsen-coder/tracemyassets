@@ -59,10 +59,12 @@ export function useAuth(): AuthContextValue {
 }
 
 type AuthGateProps = {
-  children: ReactNode;
+  /** The signed-in page. Not used when `landing` is given. */
+  children?: ReactNode;
   /**
-   * Optional public page shown to signed-out visitors instead of going
-   * straight to the sign-in form. Only the dashboard route passes this.
+   * Optional public page shown instead of going straight to the sign-in
+   * form. Signed-in visitors see it too (with their account menu), and a
+   * password sign-in from it continues to Monitoring. Only "/" passes this.
    */
   landing?: ReactNode;
 };
@@ -357,6 +359,10 @@ export function AuthGate({ children, landing }: AuthGateProps) {
 
       setPassword("");
       setSession(user);
+
+      if (landing) {
+        router.push("/monitoring");
+      }
     } catch (err) {
       setError(
         err instanceof Error
@@ -406,7 +412,7 @@ export function AuthGate({ children, landing }: AuthGateProps) {
           </p>
         )}
 
-        {children}
+        {landing ?? children}
       </AuthContext.Provider>
     );
   }

@@ -433,7 +433,7 @@ export function MatchesPage() {
               : "Matches you decide on move here."}
           </p>
           <div className="mt-6">
-            <PillLink href="/" variant="secondary">Go to Monitoring</PillLink>
+            <PillLink href="/monitoring" variant="secondary">Go to Monitoring</PillLink>
           </div>
         </Card>
       ) : (

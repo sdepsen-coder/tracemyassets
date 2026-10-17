@@ -300,7 +300,7 @@ def google_callback(
         email=user.email,
     )
 
-    response = RedirectResponse("/", status_code=302)
+    response = RedirectResponse("/monitoring", status_code=302)
     set_session_cookie(
         response, create_access_token(user.id, via="google")
     )

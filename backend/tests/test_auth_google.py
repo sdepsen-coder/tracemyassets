@@ -124,7 +124,7 @@ class GoogleSignInTests(unittest.TestCase):
         response, _ = self._callback(
             info=_resp(200, {"email": "new@example.com", "email_verified": True})
         )
-        self.assertEqual(response.headers["location"], "/")
+        self.assertEqual(response.headers["location"], "/monitoring")
 
         with self.Session() as db:
             user = db.scalar(select(User).where(User.email == "new@example.com"))
@@ -175,7 +175,7 @@ class GoogleSignInTests(unittest.TestCase):
         response, sent = self._callback()
 
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.headers["location"], "/")
+        self.assertEqual(response.headers["location"], "/monitoring")
         self.assertIn("tma_session", response.cookies)
         self.assertEqual([u.email for u in self._users()], ["semsi@example.com"])
         self.assertEqual(sent["auth_header"], "Bearer at-123")
@@ -198,7 +198,7 @@ class GoogleSignInTests(unittest.TestCase):
 
         response, _ = self._callback()
 
-        self.assertEqual(response.headers["location"], "/")
+        self.assertEqual(response.headers["location"], "/monitoring")
         self.assertEqual(len(self._users()), 1)
 
     def test_google_account_has_no_usable_password(self) -> None:
