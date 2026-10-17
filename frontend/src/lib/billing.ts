@@ -35,7 +35,8 @@ function loadPaddle(config: BillingConfig): Promise<PaddleGlobal> {
         return;
       }
 
-      if (config.environment !== "live") {
+      // The server says "production"; older servers said "live".
+      if (config.environment !== "production" && config.environment !== "live") {
         paddle.Environment.set("sandbox");
       }
 

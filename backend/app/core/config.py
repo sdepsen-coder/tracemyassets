@@ -25,6 +25,17 @@ def parse_origins(value: str | None) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
+def parse_paddle_environment(value: str | None) -> str:
+    """"production" or "sandbox". "live" is accepted as another name for
+    production (Paddle.js calls it "production", the checklist says so too);
+    anything else stays on the sandbox, so a typo can never take real money.
+    """
+    if (value or "").strip().lower() in {"production", "live"}:
+        return "production"
+
+    return "sandbox"
+
+
 load_env_file(Path(__file__).resolve().parents[2] / ".env")
 
 
@@ -146,9 +157,9 @@ class Settings:
         # Paddle Billing (payments). Everything comes from the environment:
         # nothing here is a secret in the code. Payments stay switched off
         # until PADDLE_WEBHOOK_SECRET is set.
-        self.paddle_environment = os.getenv(
-            "PADDLE_ENVIRONMENT", "sandbox"
-        ).strip().lower()
+        self.paddle_environment = parse_paddle_environment(
+            os.getenv("PADDLE_ENVIRONMENT")
+        )
         # Public by design (Paddle.js needs it in the browser).
         self.paddle_client_token = os.getenv(
             "PADDLE_CLIENT_TOKEN", ""

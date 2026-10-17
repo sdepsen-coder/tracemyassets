@@ -458,6 +458,23 @@ class EndpointTests(PaddleCase):
 
         self.assertEqual(response.status_code, 503)
 
+    def test_production_and_live_both_use_the_live_api(self) -> None:
+        from app.core.config import parse_paddle_environment
+
+        for value in ("production", "live", " Production "):
+            self.assertEqual(parse_paddle_environment(value), "production")
+        for value in (None, "", "sandbox", "prod", "liv"):
+            self.assertEqual(parse_paddle_environment(value), "sandbox")
+
+        with mock.patch.object(settings, "paddle_environment", "production"):
+            self.assertEqual(paddle_billing.api_base(), "https://api.paddle.com")
+            data = self.client().get("/api/v1/billing/config").json()
+            self.assertEqual(data["environment"], "production")
+
+        self.assertEqual(
+            paddle_billing.api_base(), "https://sandbox-api.paddle.com"
+        )
+
     def test_config_lists_prices_only_when_ready(self) -> None:
         data = self.client().get("/api/v1/billing/config").json()
 

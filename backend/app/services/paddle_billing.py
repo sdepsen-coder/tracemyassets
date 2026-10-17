@@ -54,7 +54,7 @@ def billing_enabled() -> bool:
 
 
 def api_base() -> str:
-    if settings.paddle_environment == "live":
+    if settings.paddle_environment == "production":
         return "https://api.paddle.com"
 
     return "https://sandbox-api.paddle.com"
