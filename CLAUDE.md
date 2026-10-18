@@ -55,6 +55,10 @@ sole trader). Live at https://tracemyassets.com. Payments run on Paddle
   the git-ignored `archive/` folder) because the cloud session could not
   push. Next free number: 0049.
 
+## What to work on next
+See `docs/next-steps.md` (agreed plan, launch blockers and the copy and
+honesty work).
+
 ## Domain rules worth knowing
 - Plans: Free $0 (3 artworks, 5 manual Standard scans a month, source links
   hidden, 3 welcome Deep-scan credits once), Pro $12.99/mo or $120/yr (up to
