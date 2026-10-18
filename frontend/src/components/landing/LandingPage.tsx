@@ -231,8 +231,19 @@ export function LandingPage() {
                 you both images side by side — you decide what to do.
               </p>
               <p className="mt-4 max-w-[560px] text-[14px] leading-6 text-[var(--text-muted)]">
-                For illustrators, photographers, designers, Etsy sellers and
-                other digital creators.
+                For{" "}
+                <Link href="/for/illustrators" className="underline underline-offset-4">
+                  illustrators
+                </Link>
+                ,{" "}
+                <Link href="/for/photographers" className="underline underline-offset-4">
+                  photographers
+                </Link>
+                , designers,{" "}
+                <Link href="/for/etsy-sellers" className="underline underline-offset-4">
+                  Etsy sellers
+                </Link>{" "}
+                and other digital creators.
               </p>
               <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <AuthEntryButton mode="register" size="lg">
