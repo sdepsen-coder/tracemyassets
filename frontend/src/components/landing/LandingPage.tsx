@@ -9,6 +9,11 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { LandingAccountMenu } from "@/components/dashboard/AccountMenu";
 import { Icon } from "@/components/dashboard/Icon";
 
+import { CannotSeeDiagram } from "@/components/diagrams/CannotSeeDiagram";
+import { HowItWorksDiagram } from "@/components/diagrams/HowItWorksDiagram";
+import { ScanComparison } from "@/components/diagrams/ScanComparison";
+import { WatermarkLimits } from "@/components/diagrams/WatermarkLimits";
+
 import { ArtworkSample } from "./ArtworkSample";
 import { AuthEntryButton } from "./AuthEntryButton";
 
@@ -272,6 +277,7 @@ export function LandingPage() {
               </div>
             ))}
           </div>
+          <ScanComparison className="mt-6 max-w-[720px]" />
         </Section>
 
         {/* Feature band */}
@@ -316,6 +322,8 @@ export function LandingPage() {
               </li>
             ))}
           </ol>
+          <HowItWorksDiagram />
+          <WatermarkLimits className="mt-6" />
         </Section>
 
         {/* Two feature rows */}
@@ -378,6 +386,7 @@ export function LandingPage() {
         <section className="px-4 py-20 sm:px-6">
           <div className="glass mx-auto max-w-[820px] rounded-card border border-[var(--border)] p-7 sm:p-10">
             <Eyebrow>What we cannot see</Eyebrow>
+            <CannotSeeDiagram className="mb-8 mt-2" />
             <ul className="mt-2 space-y-3 text-[16px] leading-7 text-[var(--text-muted)]">
               <li>
                 We look only at public web pages that a search engine has

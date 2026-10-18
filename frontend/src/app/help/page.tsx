@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { ScanComparison } from "@/components/diagrams/ScanComparison";
+import { WatermarkSurvival } from "@/components/diagrams/WatermarkSurvival";
 import { JsonLd } from "@/components/JsonLd";
 import { LegalPage } from "@/components/legal/LegalPage";
 import { cleanText, nodeToText } from "@/lib/reactText";
@@ -61,6 +63,7 @@ const GROUPS: Group[] = [
               mirroring, a brightness change, JPEG below quality 85, or a
               screenshot-like copy (smaller and recompressed).
             </p>
+            <WatermarkSurvival />
             <p>
               That is why the watermark is only one signal. Every result is
               also compared with your original by how it looks, and that
@@ -136,8 +139,9 @@ const GROUPS: Group[] = [
             <p>
               Either way, every result is checked against your original in
               the same way before it counts as a match. We have not measured
-              how many copies each scan finds, so we do not quote a number.
+              how many copies each scan finds, so we do not quote a rate.
             </p>
+            <ScanComparison />
           </>
         ),
       },

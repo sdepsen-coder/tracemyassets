@@ -203,3 +203,75 @@ html {
     animation: none;
   }
 }
+
+/* "How it works" diagram: each step lights up in turn and a dot runs along
+   the arrow to the next one. One 9 s loop, 1.5 s per step. */
+@keyframes tma-step-glow {
+  0% {
+    opacity: 0;
+  }
+  4%,
+  14% {
+    opacity: 0.85;
+  }
+  18%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes tma-dot-x {
+  0%,
+  10% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  14% {
+    opacity: 1;
+  }
+  20%,
+  100% {
+    opacity: 0;
+    transform: translateX(26px);
+  }
+}
+
+@keyframes tma-dot-y {
+  0%,
+  10% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  14% {
+    opacity: 1;
+  }
+  20%,
+  100% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+.tma-step-glow {
+  opacity: 0;
+  animation: tma-step-glow 9s ease-in-out infinite;
+}
+
+.tma-dot-x {
+  opacity: 0;
+  animation: tma-dot-x 9s ease-in-out infinite;
+}
+
+.tma-dot-y {
+  opacity: 0;
+  animation: tma-dot-y 9s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tma-step-glow,
+  .tma-dot-x,
+  .tma-dot-y {
+    animation: none;
+    opacity: 0;
+  }
+}
