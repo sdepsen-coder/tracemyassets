@@ -46,13 +46,58 @@ const GROUPS: Group[] = [
       {
         question: "What is the invisible watermark?",
         answer: (
-          <p>
-            A pattern woven into the protected copy that you cannot see. If
-            a copy of that file turns up online, the watermark can link it
-            back to your artwork. It is designed to survive everyday changes
-            such as resizing, but how well it survives heavy editing is
-            still being tested, so treat it as one signal among several.
-          </p>
+          <>
+            <p>
+              A signed code woven into the fine detail of the protected copy.
+              You cannot see it. If an unchanged or only lightly compressed
+              copy of that file turns up online, the code can be read back and
+              links it to your artwork.
+            </p>
+            <p>
+              It is fragile. In our tests it survived saving as PNG, JPEG at
+              quality 85 or higher, WEBP at quality 90 or higher, a contrast
+              increase and black and white. It did <strong>not</strong>{" "}
+              survive resizing (smaller or larger), cropping, rotating,
+              mirroring, a brightness change, JPEG below quality 85, or a
+              screenshot-like copy (smaller and recompressed).
+            </p>
+            <p>
+              That is why the watermark is only one signal. Every result is
+              also compared with your original by how it looks, and that
+              comparison does not need the watermark. See &ldquo;Which edited
+              copies can you recognise?&rdquo; below.
+            </p>
+          </>
+        ),
+      },
+      {
+        question: "Which edited copies can you recognise?",
+        answer: (
+          <>
+            <p>
+              We compared an artwork with edited copies of it. These were
+              generated test images, not real artwork, so treat the list as a
+              guide. In our tests a copy was flagged for your review when it
+              was:
+            </p>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>an unchanged file, black and white, or recoloured;</li>
+              <li>resized to half its size;</li>
+              <li>recompressed as a lower-quality JPEG;</li>
+              <li>screenshot-like (half size and recompressed);</li>
+              <li>brighter;</li>
+              <li>cropped to the middle 60 percent;</li>
+              <li>framed and hung in a room mockup.</li>
+            </ul>
+            <p>
+              Very small copies (a quarter of the size), a small corner of the
+              artwork and small mockups were recognised only some of the time,
+              so expect to miss some of those. Unrelated images were never
+              flagged. These tests measure how a found image is judged; they
+              do not tell you how often a search finds the page in the first
+              place.
+            </p>
+          </>
         ),
       },
       {
@@ -75,16 +120,23 @@ const GROUPS: Group[] = [
           <>
             <p>
               A <strong>Standard scan</strong> is free and also runs on the
-              schedule you choose for each artwork. You can also start one
-              by hand; a Free account has 5 of those a month (the count
-              resets on the 1st, and scheduled scans do not use it). A{" "}
-              <strong>Deep scan</strong> looks further, using an additional
-              image-search source, and uses 1 credit. Matches a deep scan
-              recorded carry a small <strong>Deep scan</strong> tag.
+              schedule you choose for each artwork. It asks Google&apos;s web
+              detection for public pages that show your image or part of it.
+              You can also start one by hand; a Free account has 5 of those a
+              month (the count resets on the 1st, and scheduled scans do not
+              use it).
             </p>
             <p>
-              Either way, every result is checked against your original
-              before it counts as a match.
+              A <strong>Deep scan</strong> uses 1 credit. It asks Google Lens
+              for exact matches of your image. That is a different source
+              from the Standard scan, so each can list pages the other does
+              not. Matches a Deep scan recorded carry a small{" "}
+              <strong>Deep scan</strong> tag.
+            </p>
+            <p>
+              Either way, every result is checked against your original in
+              the same way before it counts as a match. We have not measured
+              how many copies each scan finds, so we do not quote a number.
             </p>
           </>
         ),
@@ -93,9 +145,14 @@ const GROUPS: Group[] = [
         question: "What are credits?",
         answer: (
           <p>
-            Credits pay for Deep scans: one credit per scan. During the
-            private beta every account starts with a few free credits, given
-            once your email address is confirmed. If a
+            Credits pay for Deep scans: one credit per scan. Every new
+            account gets 3 free credits, given once your email address is
+            confirmed. Pro and Extra add credits every month, and you can
+            buy credit packs on the{" "}
+            <Link href="/pricing" className="text-[var(--primary)] underline">
+              Pricing
+            </Link>{" "}
+            page. If a
             Deep scan could not run at all (for example the search service
             was unavailable), the credit is returned automatically. If you
             run out, contact us.
@@ -107,7 +164,8 @@ const GROUPS: Group[] = [
         answer: (
           <p>
             Each artwork has its own monitoring settings: you choose the
-            frequency (Free accounts: weekly or monthly) and the similarity
+            frequency (daily on Pro and Extra, weekly or monthly on every
+            plan, Free included) and the similarity
             level at which a result is worth flagging. You can also run a
             scan yourself (within your monthly allowance of hand-started
             Standard scans). To save resources, automatic scans of a Free
@@ -124,9 +182,25 @@ const GROUPS: Group[] = [
             that no search engine has indexed cannot be found, and a result
             whose page does not actually show your image is left out on
             purpose. No match is encouraging, but it is not proof that no
-            copy exists. A Deep scan sometimes finds what a Standard scan
-            missed.
+            copy exists. The Standard and Deep scans use different sources,
+            so one can list a page the other does not.
           </p>
+        ),
+      },
+      {
+        question: "What can't you see?",
+        answer: (
+          <>
+            <p>
+              We only look at public web pages that a search engine has
+              indexed. Private groups, closed apps and some social networks
+              are out of scope, and so is any page nobody has indexed.
+            </p>
+            <p>
+              A match is a possible match, never proof of copying or
+              unlicensed use. You review it and decide.
+            </p>
+          </>
         ),
       },
       {
@@ -343,11 +417,16 @@ const GROUPS: Group[] = [
         ),
       },
       {
-        question: "When will email alerts arrive?",
+        question: "Do you send email alerts?",
         answer: (
           <p>
-            Email alerts are on the way. Until then, the bell at the top of
-            the page and the Matches page show anything new.
+            Yes, after a scheduled scan that finds something new. The email
+            only says how many new possible matches there are for which
+            artwork and links to your Matches page; it never includes the
+            page where a copy was found. Scans you start by hand do not send
+            an email, because you are already looking at the result. You can
+            switch monitoring off per artwork. The bell at the top of the
+            page and the Matches page also show anything new.
           </p>
         ),
       },

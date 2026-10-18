@@ -27,7 +27,12 @@ const QUESTIONS: Array<{ question: string; answer: string }> = [
   {
     question: "What is a Deep scan, and what are credits?",
     answer:
-      "A Deep scan looks further than the Standard scan and costs real money to run, so it is paid for with credits: one credit for one artwork. Every new account gets 3 credits once. Pro adds 10 credits every month and Extra adds 40; the monthly credits do not carry over to the next month. If you need more, you can buy extra credits in packs of 10, 25 or 60. They are a one-time payment and never expire.",
+      "A Deep scan asks Google Lens for exact matches of your image. It is a different source from the Standard scan, so each can list pages the other does not, and it costs real money to run, so it is paid for with credits: one credit for one artwork. Every new account gets 3 credits once. Pro adds 10 credits every month and Extra adds 40; the monthly credits do not carry over to the next month. If you need more, you can buy extra credits in packs of 10, 25 or 60. They are a one-time payment and never expire.",
+  },
+  {
+    question: "How often are my artworks scanned automatically?",
+    answer:
+      "Free accounts can choose weekly or monthly. Pro and Extra can also choose daily. When a scheduled scan finds something new, we email you a count and a link to your matches. Scans cover public web pages that search engines have indexed; a match is a possible match for you to review, not proof of copying.",
   },
   {
     question: "Is there a yearly option?",

@@ -15,18 +15,18 @@ import { AuthEntryButton } from "./AuthEntryButton";
 const SOURCES = [
   {
     icon: "travel_explore",
-    title: "Web search",
-    body: "Pages and images across the public web that look like yours. This is the Standard scan.",
+    title: "Standard scan",
+    body: "Asks Google's web detection for public pages that show your image or a part of it. Free, and it also runs on your automatic schedule.",
   },
   {
     icon: "image_search",
-    title: "Visual search",
-    body: "Finds re-cropped and edited copies that a plain search misses. This is the Deep scan.",
+    title: "Deep scan",
+    body: "Asks Google Lens for exact matches of your image. It is a different source from the Standard scan, so each can list pages the other does not. Costs 1 credit.",
   },
   {
     icon: "storefront",
-    title: "Marketplace listings",
-    body: "Copies on shops such as Etsy and Amazon show up when search engines have indexed their pages.",
+    title: "Shops and marketplaces",
+    body: "A copy on a shop such as Etsy or Amazon can show up when a search engine has indexed its page. We do not connect to those shops directly.",
   },
 ];
 
@@ -39,12 +39,12 @@ const STEPS = [
   {
     number: "02",
     title: "We keep watching",
-    body: "Choose weekly or monthly automatic scans. They are included in your plan and run while you work.",
+    body: "Choose how often your artwork is scanned automatically: daily on Pro and Extra, weekly or monthly on every plan. When a scheduled scan finds something new, we email you a count and a link.",
   },
   {
     number: "03",
-    title: "Review the proof",
-    body: "See both images side by side, how strong the match is, where it was found, and whether your watermark is inside.",
+    title: "Review the match",
+    body: "See both images side by side, how strong the match is, where it was found (on paid plans), and whether your watermark is inside.",
   },
 ];
 
@@ -52,7 +52,7 @@ const FAQ = [
   {
     question: "How does the invisible watermark work without ruining my artwork?",
     answer:
-      "It hides a small, signed code in the fine detail of the image. Nothing visible is added. When a copy of your protected file turns up, we can read the code back and link it to you.",
+      "It hides a small, signed code in the fine detail of the image. Nothing visible is added. If a copy of your protected file turns up unchanged or only lightly compressed, we can read the code back and link it to you. Edited copies are found by comparing how they look instead.",
   },
   {
     question: "What happens when you find a copy?",
@@ -62,7 +62,12 @@ const FAQ = [
   {
     question: "Can someone remove the watermark by screenshotting or editing?",
     answer:
-      "Heavy edits can damage it, and how well it survives is still being tested. That is why every match is also compared by how it looks, so copies without a readable watermark can still be found.",
+      "Yes. Many ordinary edits destroy it. In our tests the invisible mark survived saving as PNG, JPEG at quality 85 or higher, and some colour changes. Resizing, cropping, rotating, mirroring, a brightness change and stronger JPEG compression all destroyed it, so a screenshot or a shrunken copy will not carry it. That is why every result is also compared with your original by how it looks. In the same tests that comparison recognised copies that were resized to half, recompressed, cropped to 60 percent or hung in a framed mockup, but it can miss very small or heavily cropped ones. These were tests on generated images, not on real artwork.",
+  },
+  {
+    question: "What do you search, and what can you not see?",
+    answer:
+      "Only public web pages that a search engine has indexed. Private groups, closed apps and some social networks are out of reach, and a copy on a page nobody has indexed cannot be found. No match does not prove that no copy exists.",
   },
   {
     question: "Do you send takedown notices for me?",
@@ -215,9 +220,14 @@ export function LandingPage() {
                 <span className="block text-[var(--text-muted)]">Find out where.</span>
               </h1>
               <p className="mt-8 max-w-[560px] text-[18px] leading-8 text-[var(--text-muted)]">
-                Add an invisible watermark to your artwork and let us keep
-                scanning the web for copies. When we find one, we show you the
-                proof — you decide what to do.
+                TraceMyAssets is a web watcher, like Google Alerts for images.
+                Add an invisible watermark to your artwork and we keep
+                scanning the public web for copies and email you when a scheduled scan finds something new. When we find a copy, we show
+                you both images side by side — you decide what to do.
+              </p>
+              <p className="mt-4 max-w-[560px] text-[14px] leading-6 text-[var(--text-muted)]">
+                For illustrators, photographers, designers, Etsy sellers and
+                other digital creators.
               </p>
               <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <AuthEntryButton mode="register" size="lg">
@@ -247,8 +257,8 @@ export function LandingPage() {
         <Section
           id="sources"
           eyebrow="Where we look"
-          title="Wherever search engines can see."
-          body="We search the public web, so we find copies wherever search engines have indexed them."
+          title="Two ways to search the public web."
+          body="Both look only at pages that search engines have indexed. Every result, from either scan, is compared with your original the same way before it counts as a match."
           tinted
         >
           <div className="mt-14 grid gap-4 md:grid-cols-3">
@@ -272,12 +282,12 @@ export function LandingPage() {
             </div>
             <div>
               <h2 className="font-heading text-[36px] font-light leading-[1.08] tracking-[-0.03em] sm:text-[52px]">
-                Stop copies before they spread.
+                Find copies before they spread.
               </h2>
               <p className="mt-5 text-[17px] leading-7 text-[var(--text-muted)]">
-                Copies of artwork turn up on marketplaces, print shops and
-                social media every day. TraceMyAssets finds them and gives you
-                the evidence.
+                Copies of artwork can turn up on marketplaces and print shops.
+                TraceMyAssets looks for them on the public web and shows you
+                what it found, so you can check it and decide what to do.
               </p>
               <div className="mt-8">
                 <AuthEntryButton mode="register" size="lg">
@@ -315,12 +325,12 @@ export function LandingPage() {
               <div>
                 <Eyebrow>Fewer false alarms</Eyebrow>
                 <h2 className="font-heading text-[36px] font-light leading-[1.08] tracking-[-0.03em] sm:text-[48px]">
-                  Every match is double-checked.
+                  Every result is checked against your original.
                 </h2>
                 <p className="mt-5 text-[17px] leading-7 text-[var(--text-muted)]">
                   Search results are only leads. We compare each one with your
-                  original before we show it, so you spend your time on real
-                  copies.
+                  original before we show it as a match, using the image
+                  itself and your invisible watermark.
                 </p>
               </div>
               <div className="flex justify-center">
@@ -335,12 +345,12 @@ export function LandingPage() {
               <div className="order-1 lg:order-2">
                 <Eyebrow>Evidence</Eyebrow>
                 <h2 className="font-heading text-[36px] font-light leading-[1.08] tracking-[-0.03em] sm:text-[48px]">
-                  Proof you can use.
+                  Evidence you can review.
                 </h2>
                 <p className="mt-5 text-[17px] leading-7 text-[var(--text-muted)]">
                   See where it was found, how strong the match is, and whether
-                  your watermark is inside. Copy a ready-written message and
-                  send it yourself.
+                  your watermark is inside. On paid plans you also get
+                  ready-written messages to copy and send yourself.
                 </p>
               </div>
             </div>
@@ -364,13 +374,25 @@ export function LandingPage() {
           </p>
         </Section>
 
-        {/* Honest note */}
+        {/* What we cannot see */}
         <section className="px-4 py-20 sm:px-6">
-          <div className="mx-auto max-w-[760px] text-center">
-            <p className="font-heading text-[26px] font-light leading-snug tracking-[-0.02em] sm:text-[32px]">
-              Matches are technical signals, not legal proof. We never contact
-              anyone for you.
-            </p>
+          <div className="glass mx-auto max-w-[820px] rounded-card border border-[var(--border)] p-7 sm:p-10">
+            <Eyebrow>What we cannot see</Eyebrow>
+            <ul className="mt-2 space-y-3 text-[16px] leading-7 text-[var(--text-muted)]">
+              <li>
+                We look only at public web pages that a search engine has
+                indexed.
+              </li>
+              <li>
+                Private groups, closed apps and some social networks are out of
+                reach.
+              </li>
+              <li>
+                A match is a possible match, never proof of copying or
+                unlicensed use. You review it and decide.
+              </li>
+              <li>We never contact anyone for you.</li>
+            </ul>
           </div>
         </section>
 
