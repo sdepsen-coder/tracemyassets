@@ -129,7 +129,7 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
           setSession(null);
         } else {
           setRestoreError(
-            "Unable to check your session. Make sure the API is running, then retry.",
+            "We could not check your sign-in because the service is not responding. This is usually temporary: please try again in a few minutes.",
           );
         }
       } finally {
@@ -375,6 +375,29 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
       authPending.current = false;
       setBusy(false);
     }
+  }
+
+  if (!checking && restoreError && landing) {
+    // The service is not answering (for example during an outage). The
+    // public page needs no account, so keep it usable and say what is wrong.
+    return (
+      <>
+        <div
+          role="alert"
+          className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 bg-[var(--warning-soft)] px-4 py-2.5 text-center text-sm text-[var(--text)]"
+        >
+          <span>{restoreError}</span>
+          <button
+            type="button"
+            onClick={() => setRestoreKey((value) => value + 1)}
+            className="rounded-full border border-[var(--line-strong)] px-4 py-1 text-[11px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)]"
+          >
+            Retry
+          </button>
+        </div>
+        {landing}
+      </>
+    );
   }
 
   if (checking || restoreError) {
