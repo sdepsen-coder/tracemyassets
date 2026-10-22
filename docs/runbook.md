@@ -38,15 +38,23 @@ backend could no longer sign in.
 If the password really must change (for example after it leaked):
 
 1. Take a fresh dump first (section 5) and keep it somewhere private.
-2. Check what the backend uses: its `DATABASE_URL` should be a reference to the
-   Postgres service variable (and the internal address), not a pasted copy. If
-   it is a pasted copy, change it to a reference first, in its own deploy.
+2. Know how the backend reaches the database. The backend (project
+   `imaginative-wisdom`) and Postgres (project `supportive-warmth`) are in
+   different Railway projects. Variable references (`${{Postgres...}}`) and the
+   internal `railway.internal` address only work inside one project, so the
+   backend's `DATABASE_URL` is a pasted copy of Postgres's public (TCP proxy)
+   address. Do not turn Public Access off while that is so, or the backend
+   loses the database. Moving both into one project would allow references and
+   the internal address; that is a separate, larger change.
 3. Do it at a quiet time, with Railway healthy (no open incident).
 4. Change the role password inside the database (Console: `psql -U postgres -d
-   railway`, then `\password postgres`) and make the service variables hold the
-   same value. Use Railway's own regenerate action where it exists rather than
-   hand-editing `POSTGRES_PASSWORD`.
-5. Redeploy the backend, then check sign-in and Sentry.
+   railway`, then `\password postgres`), then, in this order:
+   - paste the new password into the backend's `DATABASE_URL` (Variables);
+   - set Postgres's own password variables to the same value, so the values
+     shown in Railway are not misleading;
+   - redeploy the backend.
+   Between the first and last step the backend cannot sign in, so keep it short.
+5. Check sign-in and Sentry.
 6. If it breaks, put the previous value back; the dump is the safety net.
 
 ## 4. Watching the site
