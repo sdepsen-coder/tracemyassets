@@ -135,8 +135,8 @@ image-format work (almost no raster images).
 ### Guide topics (in order)
 
 1. What an invisible watermark survives: our measured results (published).
-2. How to check whether your artwork was reposted without permission.
-3. What to do when you find a copy of your artwork (each platform's own process; not legal advice).
+2. How to check whether your artwork was reposted without permission (published).
+3. What to do when you find a copy of your artwork (published; each platform's own process; not legal advice).
 4. Reverse image search for artists: what the common tools do and where they fail.
 5. Protecting digital downloads and prints if you sell on Etsy.
 6. Photographers: what happens to a photo when it is resized or cropped.

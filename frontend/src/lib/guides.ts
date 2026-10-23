@@ -37,7 +37,22 @@ export const GUIDES: Guide[] = [
       "A free, step-by-step way to look for copies of your artwork online: search by image with more than one tool, search by words, judge what you find, and keep a record.",
     datePublished: "2026-10-23",
     dateModified: "2026-10-23",
-    related: ["what-an-invisible-watermark-survives"],
+    related: [
+      "what-to-do-when-you-find-a-copy-of-your-artwork",
+      "what-an-invisible-watermark-survives",
+    ],
+  },
+  {
+    slug: "what-to-do-when-you-find-a-copy-of-your-artwork",
+    title: "What to do when you find a copy of your artwork",
+    description:
+      "A calm order of steps: look first, keep evidence, start with the gentlest step, then the platform, then the host, and when to ask a professional. Practical help, not legal advice.",
+    datePublished: "2026-10-23",
+    dateModified: "2026-10-23",
+    related: [
+      "how-to-check-if-your-artwork-was-reposted",
+      "what-an-invisible-watermark-survives",
+    ],
   },
 ];
 
