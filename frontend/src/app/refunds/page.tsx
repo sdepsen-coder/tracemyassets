@@ -23,8 +23,7 @@ export default function RefundsPage() {
       <OperatorNotice />
 
       <p className="text-[15px] leading-relaxed text-[var(--text-muted)]">
-        Paid plans and credit packs are not open yet. This policy applies from
-        the day they open.
+        This policy applies to every purchase of a paid plan or a credit pack.
       </p>
 
       <LegalSection heading="The short version">
