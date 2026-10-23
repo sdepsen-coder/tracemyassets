@@ -14,11 +14,13 @@ export const CONTACT_EMAIL: string =
   process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() ?? "";
 
 /**
- * Notice required verbatim by Etsy's API Terms of Use, section 2
- * ("Attribution"): it must be displayed prominently on the application.
+ * Trademark line for where the site names Etsy. We do not use the Etsy API
+ * (copies on Etsy are found through search engines only). If an Etsy API
+ * integration ever goes live, Etsy's API Terms (section 2, "Attribution")
+ * require their own notice to be shown prominently: replace this then.
  */
 export const ETSY_TRADEMARK_NOTICE =
-  "The term 'Etsy' is a trademark of Etsy, Inc. This application uses the Etsy API but is not endorsed or certified by Etsy, Inc.";
+  "Etsy is a trademark of Etsy, Inc. TraceMyAssets is not affiliated with or endorsed by Etsy.";
 
 export const LEGAL_LAST_UPDATED = "10 October 2026";
 
