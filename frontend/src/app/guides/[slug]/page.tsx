@@ -5,6 +5,7 @@ import type { ComponentType } from "react";
 
 import { CheckIfRepostedGuide } from "@/components/guides/CheckIfRepostedGuide";
 import { FoundACopyGuide } from "@/components/guides/FoundACopyGuide";
+import { PhotoResizedCroppedGuide } from "@/components/guides/PhotoResizedCroppedGuide";
 import { WatermarkSurvivesGuide } from "@/components/guides/WatermarkSurvivesGuide";
 import { JsonLd } from "@/components/JsonLd";
 import { LegalPage } from "@/components/legal/LegalPage";
@@ -18,6 +19,7 @@ const BODIES: Record<string, ComponentType> = {
   "what-an-invisible-watermark-survives": WatermarkSurvivesGuide,
   "how-to-check-if-your-artwork-was-reposted": CheckIfRepostedGuide,
   "what-to-do-when-you-find-a-copy-of-your-artwork": FoundACopyGuide,
+  "what-happens-to-a-photo-when-it-is-resized-or-cropped": PhotoResizedCroppedGuide,
 };
 
 export function generateStaticParams(): Params[] {

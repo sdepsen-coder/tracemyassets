@@ -54,6 +54,18 @@ export const GUIDES: Guide[] = [
       "what-an-invisible-watermark-survives",
     ],
   },
+  {
+    slug: "what-happens-to-a-photo-when-it-is-resized-or-cropped",
+    title: "What happens to a photo when it is resized or cropped",
+    description:
+      "Measured on test images: resizing and cropping remove an invisible watermark, and a table of which edited copies were still recognised by how they look and which were missed.",
+    datePublished: "2026-10-23",
+    dateModified: "2026-10-23",
+    related: [
+      "what-an-invisible-watermark-survives",
+      "how-to-check-if-your-artwork-was-reposted",
+    ],
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {
