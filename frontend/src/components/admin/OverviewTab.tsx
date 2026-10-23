@@ -77,6 +77,31 @@ function revenueHint(rows: Revenue, last: Revenue): string {
     .join(", ");
 }
 
+type Activation = AdminOverview["activation_7d"];
+
+function activationHint(a: Activation): string {
+  if (a.new_users === 0) return "No new accounts";
+
+  const share = (n: number) => `${Math.round((n / a.new_users) * 100)}%`;
+
+  return `${a.with_artwork} added an artwork (${share(a.with_artwork)}) · ${a.with_scan} have a scan (${share(a.with_scan)})`;
+}
+
+const VERDICT_LABELS: Record<string, string> = {
+  useful: "useful",
+  different: "similar but different",
+  unrelated: "unrelated",
+  irrelevant: "mine, not worth acting on",
+};
+
+function verdictHint(verdicts: Record<string, number>): string {
+  const parts = Object.entries(verdicts)
+    .sort(([, a], [, b]) => b - a)
+    .map(([verdict, count]) => `${VERDICT_LABELS[verdict] ?? verdict} ${count}`);
+
+  return parts.length > 0 ? parts.join(" · ") : "No verdicts yet";
+}
+
 function nearLimit(budget: Budget): boolean {
   return (
     percent(budget.used_today, budget.daily_limit) >= 80 ||
@@ -185,6 +210,27 @@ export function OverviewTab() {
           label="Suspended"
           value={data.suspended_users}
           tone={data.suspended_users > 0 ? "danger" : undefined}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+        <Stat
+          label="New accounts, 7 days"
+          value={data.activation_7d.new_users}
+          hint={activationHint(data.activation_7d)}
+        />
+        <Stat
+          label="New accounts, 30 days"
+          value={data.activation_30d.new_users}
+          hint={activationHint(data.activation_30d)}
+        />
+        <Stat
+          label="Result verdicts, 7 days"
+          value={Object.values(data.match_verdicts_7d).reduce(
+            (sum, n) => sum + n,
+            0,
+          )}
+          hint={verdictHint(data.match_verdicts_7d)}
         />
       </div>
 

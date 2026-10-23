@@ -215,9 +215,11 @@ without writing down why.
 | Week | Visitors | Sign-ups | First scan | New paying | Cancelled | Active paying | Real copies found (share of results) | Ladder and rung now | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
-Sources: Search Console and analytics for visitors; the admin overview for
-sign-ups, scans and plans; Paddle for payments and cancellations; the match
-verdict buttons for real copies and false alarms.
+Sources: Search Console (and analytics, once it is on) for visitors; the admin
+overview for sign-ups, scans and plans, including "New accounts, 7 / 30 days"
+(how many added an artwork and how many have a scan) and "Result verdicts, 7
+days" (the verdict buttons: useful, similar but different, unrelated, mine but
+not worth acting on); Paddle for payments and cancellations.
 
 ## 10. Costs to watch
 

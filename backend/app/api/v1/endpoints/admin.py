@@ -94,6 +94,14 @@ class RevenueRead(BaseModel):
     net: int
 
 
+class ActivationRead(BaseModel):
+    """How many accounts created in a window went on to use the product."""
+
+    new_users: int = 0
+    with_artwork: int = 0
+    with_scan: int = 0
+
+
 class OverviewRead(BaseModel):
     users_total: int
     users_new_24h: int
@@ -119,6 +127,10 @@ class OverviewRead(BaseModel):
     paid_subscribers_by_plan: dict[str, int] = {}
     subscriptions_canceling: int = 0
     subscriptions_past_due: int = 0
+    activation_7d: ActivationRead = Field(default_factory=ActivationRead)
+    activation_30d: ActivationRead = Field(default_factory=ActivationRead)
+    # Verdict buttons pressed on results in the last 7 days, by verdict.
+    match_verdicts_7d: dict[str, int] = Field(default_factory=dict)
 
 
 class EventRead(BaseModel):
@@ -652,6 +664,41 @@ def read_overview(db: Session = Depends(get_db)) -> OverviewRead:
 
         return count(stmt)
 
+    def activation_since(since: datetime) -> ActivationRead:
+        # Accounts created since `since` that added an artwork / have a scan
+        # (a scan can be one they started or a scheduled one on their artwork).
+        return ActivationRead(
+            new_users=count(
+                select(func.count(User.id)).where(User.created_at >= since)
+            ),
+            with_artwork=count(
+                select(func.count(distinct(Asset.user_id)))
+                .select_from(Asset)
+                .join(User, User.id == Asset.user_id)
+                .where(User.created_at >= since)
+            ),
+            with_scan=count(
+                select(func.count(distinct(Asset.user_id)))
+                .select_from(Asset)
+                .join(ScanJob, ScanJob.asset_id == Asset.id)
+                .join(User, User.id == Asset.user_id)
+                .where(User.created_at >= since)
+            ),
+        )
+
+    verdicts_7d = {
+        str(verdict): int(total)
+        for verdict, total in db.execute(
+            select(FeedbackEntry.verdict, func.count(FeedbackEntry.id))
+            .where(
+                FeedbackEntry.kind == "match_verdict",
+                FeedbackEntry.verdict.is_not(None),
+                FeedbackEntry.created_at >= week,
+            )
+            .group_by(FeedbackEntry.verdict)
+        ).all()
+    }
+
     sign_ups = db.execute(
         select(User.created_at).where(
             User.created_at >= now - timedelta(days=14)
@@ -757,6 +804,9 @@ def read_overview(db: Session = Depends(get_db)) -> OverviewRead:
             monthly_limit=vision_budget.monthly_limit,
         ),
         event_retention_days=settings.event_retention_days,
+        activation_7d=activation_since(week),
+        activation_30d=activation_since(now - timedelta(days=30)),
+        match_verdicts_7d=verdicts_7d,
     )
 
 

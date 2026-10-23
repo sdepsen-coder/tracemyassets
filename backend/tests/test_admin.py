@@ -13,9 +13,11 @@ from app.api.deps import get_db
 from app.core import security
 from app.core.config import settings
 from app.main import app
+from app.models.asset import Asset
 from app.models.base import Base
 from app.models.credit_entry import CreditEntry
 from app.models.feedback import FeedbackEntry
+from app.models.scan_job import ScanJob
 from app.models.user import User
 from app.models.user_event import UserEvent
 from app.models.user_suspension import UserSuspension
@@ -263,6 +265,53 @@ class AdminTests(unittest.TestCase):
         self.assertEqual(body["event_retention_days"], 90)
         self.assertEqual(
             body["serpapi"]["daily_limit"], settings.serpapi_daily_limit
+        )
+
+    def test_overview_activation_and_verdicts(self):
+        ann = self.ids["ann@example.com"]
+        bob = self.ids["bob@example.com"]
+
+        with self.Session() as db:
+            # Ann added an artwork and has a scan; Bob added an artwork only.
+            ann_asset = Asset(user_id=ann, title="a", original_url="u1")
+            bob_asset = Asset(user_id=bob, title="b", original_url="u2")
+            db.add_all([ann_asset, bob_asset])
+            db.flush()
+            db.add(ScanJob(asset_id=ann_asset.id, provider="fake"))
+
+            for match_id, verdict in ((1, "useful"), (2, "useful"), (3, "different")):
+                db.add(
+                    FeedbackEntry(
+                        user_id=ann,
+                        kind="match_verdict",
+                        match_id=match_id,
+                        verdict=verdict,
+                    )
+                )
+
+            # Not a match verdict, and an old verdict: neither is counted.
+            db.add(FeedbackEntry(user_id=bob, kind="general", message="hi"))
+            db.add(
+                FeedbackEntry(
+                    user_id=bob,
+                    kind="match_verdict",
+                    match_id=9,
+                    verdict="unrelated",
+                    created_at=datetime.now(timezone.utc) - timedelta(days=20),
+                )
+            )
+            db.commit()
+
+        body = self.get("/overview").json()
+
+        # Three accounts exist, all created just now.
+        self.assertEqual(
+            body["activation_7d"],
+            {"new_users": 3, "with_artwork": 2, "with_scan": 1},
+        )
+        self.assertEqual(body["activation_30d"], body["activation_7d"])
+        self.assertEqual(
+            body["match_verdicts_7d"], {"useful": 2, "different": 1}
         )
 
     def test_user_list_search_and_detail(self):

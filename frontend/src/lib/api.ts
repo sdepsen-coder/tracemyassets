@@ -44,6 +44,17 @@ export type AdminOverview = {
   paid_subscribers_by_plan: Record<string, number>;
   subscriptions_canceling: number;
   subscriptions_past_due: number;
+  activation_7d: AdminActivation;
+  activation_30d: AdminActivation;
+  /** Verdict buttons pressed on results in the last 7 days, by verdict. */
+  match_verdicts_7d: Record<string, number>;
+};
+
+/** Accounts created in a window and how many went on to use the product. */
+export type AdminActivation = {
+  new_users: number;
+  with_artwork: number;
+  with_scan: number;
 };
 
 /** Money in the lowest unit of the currency (cents for USD), as Paddle reports it. */
