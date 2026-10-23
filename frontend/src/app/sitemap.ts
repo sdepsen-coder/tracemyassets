@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { GUIDES } from "@/lib/guides";
 import { CONTENT_LAST_UPDATED, LEGAL_LAST_UPDATED, SITE_URL } from "@/lib/site";
 
 const PAGES: { path: string; priority: number; legal?: boolean }[] = [
@@ -10,6 +11,7 @@ const PAGES: { path: string; priority: number; legal?: boolean }[] = [
   { path: "/for/etsy-sellers", priority: 0.6 },
   { path: "/for/photographers", priority: 0.6 },
   { path: "/for/illustrators", priority: 0.6 },
+  { path: "/guides", priority: 0.7 },
   { path: "/support", legal: true, priority: 0.5 },
   { path: "/privacy", legal: true, priority: 0.3 },
   { path: "/terms", legal: true, priority: 0.3 },
@@ -25,7 +27,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const content = parseDate(CONTENT_LAST_UPDATED);
   const legal = parseDate(LEGAL_LAST_UPDATED);
 
-  return PAGES.map(({ path, priority, legal: isLegal }) => {
+  const pages = PAGES.map(({ path, priority, legal: isLegal }) => {
     const lastModified = isLegal ? legal : content;
 
     return {
@@ -34,4 +36,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority,
     };
   });
+
+  const guides = GUIDES.map((guide) => {
+    const lastModified = parseDate(guide.dateModified);
+
+    return {
+      url: `${SITE_URL}/guides/${guide.slug}`,
+      ...(lastModified ? { lastModified } : {}),
+      priority: 0.7,
+    };
+  });
+
+  return [...pages, ...guides];
 }

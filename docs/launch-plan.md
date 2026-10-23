@@ -67,6 +67,10 @@ go first; outreach for the closed trial runs in parallel.
 
 ### Gaps found
 
+Status 2026-10-23: gaps 1, 2 and 8 are fixed and live; the first guide
+(`/guides/what-an-invisible-watermark-survives`) and the guides section are
+built; gaps 3, 6 and 7 are still open.
+
 1. **The home page and /about send crawlers an empty shell.** Their HTML
    contains only "Checking your session..." (no heading, no text); the real page
    appears after JavaScript runs because it sits behind the sign-in check. Google

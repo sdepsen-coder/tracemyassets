@@ -31,8 +31,11 @@ export function WatermarkLimits({ className = "" }: { className?: string }) {
           it looks.
         </p>
         <p className="mt-3 text-[13px] leading-5 text-[var(--text-muted)]">
-          <Link href="/help" className="underline underline-offset-4">
-            Every tested edit is listed on the Help page
+          <Link
+            href="/guides/what-an-invisible-watermark-survives"
+            className="underline underline-offset-4"
+          >
+            Every tested edit, and how we tested
           </Link>
           .
         </p>
