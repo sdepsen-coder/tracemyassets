@@ -60,9 +60,14 @@ If the password really must change (for example after it leaked):
 ## 4. Watching the site
 
 - Sentry already reports backend errors by email.
-- Add an uptime monitor (a free tier of any monitoring service is enough). Check
-  two URLs every minute or so: `/` (the frontend) and `/api/v1/auth/providers`
-  (the backend, no sign-in needed). Send alerts to your phone.
+- Uptime monitor (set up 2026-10-23, UptimeRobot free tier, HTTP(s) checks):
+  `https://tracemyassets.com/` (the frontend) and
+  `https://tracemyassets.com/api/v1/auth/providers` (the backend, no sign-in
+  needed). Alerts go to email; add the phone app or a Telegram alert so a
+  night-time outage is noticed. The providers URL does not touch the database,
+  so a database problem shows up in Sentry (or as sign-in errors), not here.
+- Also useful to check by hand after a deploy: `/api/v1/billing/config` should
+  show `"environment":"production"` and a `live_` client token.
 - Spending: in the Railway workspace usage page keep a soft limit (email) and a
   hard limit (services go offline when it is reached). Set the hard limit well
   above a normal month so it only trips on a runaway bill.
