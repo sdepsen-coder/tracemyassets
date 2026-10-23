@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ComponentType } from "react";
 
+import { CheckIfRepostedGuide } from "@/components/guides/CheckIfRepostedGuide";
 import { WatermarkSurvivesGuide } from "@/components/guides/WatermarkSurvivesGuide";
 import { JsonLd } from "@/components/JsonLd";
 import { LegalPage } from "@/components/legal/LegalPage";
@@ -14,6 +15,7 @@ type Params = { slug: string };
 /** The text of each guide. Add a guide here and in lib/guides.ts. */
 const BODIES: Record<string, ComponentType> = {
   "what-an-invisible-watermark-survives": WatermarkSurvivesGuide,
+  "how-to-check-if-your-artwork-was-reposted": CheckIfRepostedGuide,
 };
 
 export function generateStaticParams(): Params[] {

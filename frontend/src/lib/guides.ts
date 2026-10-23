@@ -28,6 +28,16 @@ export const GUIDES: Guide[] = [
       "Which edits keep an invisible watermark readable and which remove it: PNG, JPEG, WEBP, resizing, cropping, rotating and colour changes, measured on test images.",
     datePublished: "2026-10-23",
     dateModified: "2026-10-23",
+    related: ["how-to-check-if-your-artwork-was-reposted"],
+  },
+  {
+    slug: "how-to-check-if-your-artwork-was-reposted",
+    title: "How to check whether your artwork was reposted without permission",
+    description:
+      "A free, step-by-step way to look for copies of your artwork online: search by image with more than one tool, search by words, judge what you find, and keep a record.",
+    datePublished: "2026-10-23",
+    dateModified: "2026-10-23",
+    related: ["what-an-invisible-watermark-survives"],
   },
 ];
 
