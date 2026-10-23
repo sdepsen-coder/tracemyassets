@@ -25,6 +25,13 @@ export const ETSY_TRADEMARK_NOTICE =
 export const LEGAL_LAST_UPDATED = "10 October 2026";
 
 /**
+ * When the public marketing and help pages last changed in a way worth telling
+ * search engines (sitemap lastModified). Update it by hand when those pages
+ * change; the legal pages use LEGAL_LAST_UPDATED.
+ */
+export const CONTENT_LAST_UPDATED = "23 October 2026";
+
+/**
  * Who runs the service. These are inlined at build time, so set them on
  * the frontend service before the build. Paddle (and UK law for a sole
  * trader using a trading name) expect the legal name and an address on the

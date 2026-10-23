@@ -160,7 +160,7 @@ export function FeedbackDialog({ open, onClose }: Props) {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 id="feedback-title" className="text-[18px] font-semibold">
-                  Help shape the beta
+                  Help us improve
                 </h2>
 
                 <p className="mt-1 text-[13px] leading-6 text-[var(--text-muted)]">

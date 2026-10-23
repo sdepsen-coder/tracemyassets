@@ -7,8 +7,9 @@ import {
   LegalPage,
   LegalSection,
 } from "@/components/legal/LegalPage";
+import { JsonLd } from "@/components/JsonLd";
 import { getUseCase, USE_CASES } from "@/lib/useCases";
-import { SITE_NAME } from "@/lib/site";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 type Params = { slug: string };
 
@@ -42,8 +43,32 @@ export default async function UseCasePage({
   const useCase = getUseCase((await params).slug);
   if (!useCase) notFound();
 
+  const url = `${SITE_URL}/for/${useCase.slug}`;
+
   return (
     <LegalPage title={useCase.title}>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "WebPage",
+              "@id": `${url}#webpage`,
+              url,
+              name: `${useCase.title} — ${SITE_NAME}`,
+              description: useCase.description,
+              isPartOf: { "@id": `${SITE_URL}/#website` },
+            },
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: SITE_NAME, item: SITE_URL },
+                { "@type": "ListItem", position: 2, name: useCase.title, item: url },
+              ],
+            },
+          ],
+        }}
+      />
       <div className="space-y-5">
         <p className="text-[18px] leading-8 text-[var(--text-muted)]">
           {useCase.lead}

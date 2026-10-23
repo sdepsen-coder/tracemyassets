@@ -38,9 +38,9 @@ export default function TermsPage() {
         <p>
           {SITE_NAME} lets you register your own artwork, create a protected
           copy with an invisible watermark, and review possible copies found
-          online. It is currently in beta. It is provided &ldquo;as is&rdquo;,
+          online. It is provided &ldquo;as is&rdquo;,
           without any guarantee of availability, accuracy or results, and
-          features, limits and plans may change while we develop it. We will
+          features, limits and plans may change as we develop it. We will
           not make a change that takes away credits you have already paid
           for.
         </p>

@@ -20,12 +20,12 @@ export default function PrivacyPage() {
       <LegalSection heading="Overview">
         <OperatorNotice />
         <p>
-          {SITE_NAME} is a private beta service run by its founder in the
+          {SITE_NAME} is a service run by its founder in the
           United Kingdom. It helps artists register their artwork, create
           a protected copy with an invisible watermark, and review possible
           unauthorised uses found online. This page explains what data the
           service handles and who it is shared with. It is a plain-language
-          summary for the beta, not a substitute for legal advice.
+          summary, not a substitute for legal advice.
         </p>
       </LegalSection>
 

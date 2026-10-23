@@ -18,8 +18,7 @@ export default function SupportPage() {
     <LegalPage title="Support">
       <LegalSection heading="Contact us">
         <p>
-          {SITE_NAME} is in private beta and support is handled directly by
-          the founder.{" "}
+          Support for {SITE_NAME} is handled directly by the founder.{" "}
           {CONTACT_EMAIL ? (
             <>
               Email{" "}

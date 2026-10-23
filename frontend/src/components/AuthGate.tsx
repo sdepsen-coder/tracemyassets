@@ -400,6 +400,27 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
     );
   }
 
+  const openAuthEntry = (nextMode: "login" | "register") => {
+    setMode(nextMode);
+    setPassword("");
+    setError("");
+    setMessage("");
+    setScreen("auth");
+    window.scrollTo({ top: 0 });
+  };
+
+  if (checking && landing) {
+    // Show the public page while the session is checked, so the HTML that
+    // search engines and visitors get first already holds the real content.
+    // A signed-in visitor sees the same page (with their account menu) once
+    // the check finishes.
+    return (
+      <AuthEntryContext.Provider value={{ openAuth: openAuthEntry }}>
+        {landing}
+      </AuthEntryContext.Provider>
+    );
+  }
+
   if (checking || restoreError) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[var(--background)] px-4 text-[var(--text-muted)]">
@@ -444,18 +465,7 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
 
   if (landing && screen === "landing") {
     return (
-      <AuthEntryContext.Provider
-        value={{
-          openAuth: (nextMode) => {
-            setMode(nextMode);
-            setPassword("");
-            setError("");
-            setMessage("");
-            setScreen("auth");
-            window.scrollTo({ top: 0 });
-          },
-        }}
-      >
+      <AuthEntryContext.Provider value={{ openAuth: openAuthEntry }}>
         {landing}
       </AuthEntryContext.Provider>
     );
