@@ -58,15 +58,21 @@ function collect() {
       found.add(m[1]);
     }
 
-    // icon="x" and icon: "x" and iconName: "x"
+    // icon="x" and iconName="x"
     for (const m of code.matchAll(
-      new RegExp(`\\bicon(?:Name)?(?:=|:\\s*)\\{?\\s*"(${NAME})"`, "g"),
+      new RegExp(`\\bicon(?:Name)?="(${NAME})"`, "g"),
     )) {
       found.add(m[1]);
     }
 
-    // name={cond ? "a" : "b"}: every literal inside the braces
-    for (const m of code.matchAll(/\bname=\{([^}]*)\}/g)) {
+    // name={...}, icon={...}, iconName={...}: every literal inside the braces,
+    // so `cond ? "a" : "b"` is covered
+    for (const m of code.matchAll(/\b(?:name|icon|iconName)=\{([^}]*)\}/g)) {
+      literalsIn(m[1]).forEach((name) => found.add(name));
+    }
+
+    // icon: ... and iconName: ... in data: every literal on the rest of the line
+    for (const m of code.matchAll(/\bicon(?:Name)?:\s*([^\n]*)/g)) {
       literalsIn(m[1]).forEach((name) => found.add(name));
     }
 
