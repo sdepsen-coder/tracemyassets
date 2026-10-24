@@ -216,7 +216,7 @@ function Chip({ item }: { item: Item }) {
         {item.label}
         <span className="sr-only">: {OUTCOME_WORD[item.outcome]}</span>
         {item.detail && (
-          <span className="block text-[12.5px] text-[var(--text-muted)]">{item.detail}</span>
+          <span className="block text-[12.5px] text-[var(--text)]">{item.detail}</span>
         )}
       </span>
     </li>
@@ -243,9 +243,9 @@ export function WatermarkSurvival({ compact = false }: { compact?: boolean }) {
         <div className="mt-5 grid gap-5">
           {SURVIVAL_GROUPS.map((group) => (
             <section key={group.title} aria-label={group.title}>
-              <h4 className="text-[12px] font-medium uppercase tracking-[0.08em] text-[var(--text-muted)]">
+              <h3 className="text-[12px] font-medium uppercase tracking-[0.08em] text-[var(--text-muted)]">
                 {group.title}
-              </h4>
+              </h3>
               <ul className="mt-2 grid grid-cols-2 gap-2">
                 {group.items.map((item) => (
                   <Chip key={item.label} item={item} />

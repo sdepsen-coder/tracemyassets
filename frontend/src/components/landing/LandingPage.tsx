@@ -232,15 +232,15 @@ export function LandingPage() {
               </p>
               <p className="mt-4 max-w-[560px] text-[14px] leading-6 text-[var(--text-muted)]">
                 For{" "}
-                <Link href="/for/illustrators" className="underline underline-offset-4">
+                <Link href="/for/illustrators" className="text-[var(--text)] underline underline-offset-4">
                   illustrators
                 </Link>
                 ,{" "}
-                <Link href="/for/photographers" className="underline underline-offset-4">
+                <Link href="/for/photographers" className="text-[var(--text)] underline underline-offset-4">
                   photographers
                 </Link>
                 , designers,{" "}
-                <Link href="/for/etsy-sellers" className="underline underline-offset-4">
+                <Link href="/for/etsy-sellers" className="text-[var(--text)] underline underline-offset-4">
                   Etsy sellers
                 </Link>{" "}
                 and other digital creators.

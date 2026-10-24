@@ -103,8 +103,14 @@ Open:
 
 - No analytics and no event tracking for sign-up, first artwork, first scan or
   purchase (see Ladder 5).
-- Core Web Vitals not measured (run PageSpeed Insights on the home page, a
-  `/for/...` page, a guide and Help, mobile and desktop).
+- Core Web Vitals: measured with Lighthouse on 2026-10-24 (mobile, simulated slow
+  network). Before: performance about 55, largest paint about 23 s, caused by a
+  4 MB icon font that blocked the first paint. After the icon font was cut to the
+  icons we use (about 50 KB), a local run gave about 78 to 90 and a largest paint
+  of about 2.5 to 3.5 s on mobile, and 99 with 0.8 s on desktop; accessibility 100.
+  Re-run on the live site after the deploy (PageSpeed Insights) and write the
+  real numbers here. Further ideas if needed: make the two stylesheets
+  non-blocking, reduce script and layout work on the home page.
 - Only a handful of public addresses, and one guide.
 
 ### SEO checklist for this site

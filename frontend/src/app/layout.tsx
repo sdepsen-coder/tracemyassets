@@ -3,6 +3,7 @@ import { Geist, IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 
 import { Analytics } from "@/components/Analytics";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { ICON_FONT_HREF } from "@/lib/iconFont";
 import {
   SEARCH_CONSOLE_TOKEN,
   SITE_DESCRIPTION,
@@ -59,10 +60,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
         />
+        <link rel="stylesheet" href={ICON_FONT_HREF} />
       </head>
 
       <body
