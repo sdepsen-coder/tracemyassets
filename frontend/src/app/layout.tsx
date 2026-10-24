@@ -28,6 +28,17 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
 });
 
+/**
+ * Loads the icon font stylesheet without holding up the first paint: a
+ * stylesheet added by a script does not block rendering. Until the font is in,
+ * icons are an invisible 1em box (see globals.css), then "icons-ready" on
+ * <html> shows them. Without JavaScript the <noscript> link below loads it the
+ * normal way.
+ */
+const LOAD_ICON_FONT = `(function(){var d=document,e=d.documentElement;function r(){e.classList.add("icons-ready")}var l=d.createElement("link");l.rel="stylesheet";l.href=${JSON.stringify(
+  ICON_FONT_HREF,
+)};l.onload=function(){(d.fonts&&d.fonts.load?d.fonts.load('24px "Material Symbols Outlined"'):Promise.resolve()).then(r,r)};l.onerror=r;d.head.appendChild(l);setTimeout(r,4000)})();`;
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
@@ -66,7 +77,11 @@ export default function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
-        <link rel="stylesheet" href={ICON_FONT_HREF} />
+        <script dangerouslySetInnerHTML={{ __html: LOAD_ICON_FONT }} />
+        <noscript>
+          <link rel="stylesheet" href={ICON_FONT_HREF} />
+          <style>{".material-symbols-outlined{color:inherit!important}"}</style>
+        </noscript>
       </head>
 
       <body

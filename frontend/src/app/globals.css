@@ -275,3 +275,18 @@ html {
     opacity: 0;
   }
 }
+
+/* Icon font (see layout.tsx). The font loads after the first paint, so an icon
+   is a fixed 1em box whose text stays invisible until html gets "icons-ready":
+   no flash of icon names and no layout shift when the font arrives. */
+.material-symbols-outlined {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+html:not(.icons-ready) .material-symbols-outlined {
+  color: transparent;
+}
