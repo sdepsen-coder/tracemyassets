@@ -5,7 +5,6 @@ import { CONTENT_LAST_UPDATED, LEGAL_LAST_UPDATED, SITE_URL } from "@/lib/site";
 
 const PAGES: { path: string; priority: number; legal?: boolean }[] = [
   { path: "/", priority: 1 },
-  { path: "/about", priority: 0.8 },
   { path: "/pricing", priority: 0.8 },
   { path: "/help", priority: 0.7 },
   { path: "/for/etsy-sellers", priority: 0.6 },

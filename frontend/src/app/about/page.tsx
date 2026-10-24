@@ -7,7 +7,9 @@ import { SITE_NAME } from "@/lib/site";
 export const metadata: Metadata = {
   title: `About — ${SITE_NAME}`,
   description: `What ${SITE_NAME} does and how it works.`,
-  alternates: { canonical: "/about" },
+  // This page shows the same content as the home page, so the home page is
+  // the one address search engines should keep.
+  alternates: { canonical: "/" },
 };
 
 /**

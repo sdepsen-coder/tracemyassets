@@ -47,6 +47,8 @@ const nextConfig = {
   // One address for the site: www.<domain> goes to <domain> with a 301.
   async redirects() {
     return [
+      // Old or guessed address that some crawlers ask for.
+      { source: "/home", destination: "/", permanent: true },
       {
         source: "/:path*",
         has: [{ type: "host", value: `www.${siteHost}` }],
