@@ -508,6 +508,36 @@ class AdminTests(unittest.TestCase):
         with self.Session() as db:
             self.assertIsNone(db.get(UserSuspension, ann))
 
+    def test_deleting_a_user_needs_the_email_and_removes_the_account(self):
+        ann = self.ids["ann@example.com"]
+
+        wrong = self.post(f"/users/{ann}/delete", {"confirm_email": "x@y.com"})
+        self.assertEqual(wrong.status_code, 422)
+
+        with self.Session() as db:
+            self.assertIsNotNone(db.get(User, ann))
+
+        r = self.post(
+            f"/users/{ann}/delete", {"confirm_email": " Ann@Example.com "}
+        )
+        self.assertEqual(r.status_code, 200, r.text)
+
+        with self.Session() as db:
+            self.assertIsNone(db.get(User, ann))
+            self.assertIsNotNone(db.get(User, self.ids["bob@example.com"]))
+
+        self.assertEqual(self.get(f"/users/{ann}").status_code, 404)
+
+    def test_an_admin_cannot_be_deleted(self):
+        r = self.post(
+            f"/users/{self.ids[ADMIN]}/delete", {"confirm_email": ADMIN}
+        )
+
+        self.assertEqual(r.status_code, 422)
+
+        with self.Session() as db:
+            self.assertIsNotNone(db.get(User, self.ids[ADMIN]))
+
     def test_an_admin_cannot_be_suspended(self):
         r = self.post(f"/users/{self.ids[ADMIN]}/suspend")
 

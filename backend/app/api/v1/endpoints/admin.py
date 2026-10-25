@@ -33,7 +33,8 @@ from app.models.scan_job import ScanJob
 from app.models.user import User
 from app.models.user_event import UserEvent
 from app.models.user_suspension import UserSuspension
-from app.services import email_verification, user_events
+from app.services import email_verification, paddle_billing, user_events
+from app.services.account_deletion import delete_account, remove_folders
 from app.services.credits import (
     InsufficientCredits,
     get_balance,
@@ -293,6 +294,10 @@ class PlanChange(BaseModel):
 
 class Suspend(BaseModel):
     reason: str | None = Field(default=None, max_length=300)
+
+
+class DeleteUser(BaseModel):
+    confirm_email: str = Field(min_length=3, max_length=255)
 
 
 class Done(BaseModel):
@@ -1257,6 +1262,53 @@ def suspend_user(
         f"suspended #{user.id} {user.email}"
         + (f": {payload.reason}" if payload.reason else ""),
     )
+
+    return Done()
+
+
+@router.post("/users/{user_id}/delete", response_model=Done)
+def delete_user(
+    user_id: int,
+    payload: DeleteUser,
+    request: Request,
+    admin: User = Depends(get_admin_user),
+    db: Session = Depends(get_db),
+) -> Done:
+    """
+    Permanently delete an account, its artworks and files, the same way the
+    owner's own "delete my account" does. The admin types the account's
+    email again; an admin account cannot be deleted here.
+    """
+    user = _require_user(db, user_id)
+
+    if is_admin_email(user.email):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="An admin account cannot be deleted.",
+        )
+
+    if payload.confirm_email.strip().lower() != user.email.lower():
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="The email address does not match this account.",
+        )
+
+    try:
+        paddle_billing.stop_subscriptions_for_deletion(db, user.id)
+    except paddle_billing.PaddleApiError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "The subscription could not be ended at Paddle, so the "
+                "account was not deleted. Try again in a few minutes."
+            ),
+        )
+
+    label = f"#{user.id} {user.email}"
+    folders = delete_account(db, user)
+    remove_folders(folders)
+
+    _log_admin(db, request, admin, f"deleted account {label}")
 
     return Done()
 

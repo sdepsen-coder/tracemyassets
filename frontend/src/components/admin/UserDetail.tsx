@@ -286,6 +286,7 @@ export function UserDetailView({
   const [removeNote, setRemoveNote] = useState("");
   const [plan, setPlan] = useState("Free");
   const [reason, setReason] = useState("");
+  const [deleteEmail, setDeleteEmail] = useState("");
   const [confirming, setConfirming] = useState<string | null>(null);
 
   const load = useCallback(
@@ -310,6 +311,20 @@ export function UserDetailView({
 
     return () => controller.abort();
   }, [load]);
+
+  async function deleteAccount(): Promise<void> {
+    setBusy(true);
+    setError("");
+    setNotice("");
+
+    try {
+      await api.admin.act(userId, "delete", { confirm_email: deleteEmail });
+      onBack();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "That did not work.");
+      setBusy(false);
+    }
+  }
 
   async function act(
     action: string,
@@ -798,6 +813,49 @@ export function UserDetailView({
                   className={`${smallButton} text-[var(--danger)]`}
                 >
                   Suspend…
+                </button>
+              )}
+
+              {confirming === "delete" ? (
+                <>
+                  <input
+                    value={deleteEmail}
+                    onChange={(event) => setDeleteEmail(event.target.value)}
+                    placeholder={`Type ${user.email} to confirm`}
+                    aria-label="Email of the account to delete"
+                    className={`${inputClass} w-72`}
+                  />
+                  <button
+                    type="button"
+                    disabled={
+                      busy ||
+                      deleteEmail.trim().toLowerCase() !==
+                        user.email.toLowerCase()
+                    }
+                    onClick={() => void deleteAccount()}
+                    className={`${smallButton} border-[var(--danger)] text-[var(--danger)]`}
+                  >
+                    Delete permanently
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirming(null)}
+                    className={smallButton}
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => {
+                    setDeleteEmail("");
+                    setConfirming("delete");
+                  }}
+                  className={`${smallButton} text-[var(--danger)]`}
+                >
+                  Delete…
                 </button>
               )}
             </div>

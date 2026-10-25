@@ -193,6 +193,7 @@ export function UsersTab() {
           <table className="w-full min-w-[960px] text-left text-[13px]">
             <thead className="text-[11px] uppercase tracking-wide text-[var(--text-muted)]">
               <tr>
+                <th className="px-4 py-2 font-semibold">ID</th>
                 <th className="px-4 py-2 font-semibold">Email</th>
                 <th className="px-4 py-2 font-semibold">Plan</th>
                 <th className="px-4 py-2 font-semibold">Subscription</th>
@@ -209,6 +210,9 @@ export function UsersTab() {
                   key={user.id}
                   className="border-t border-[var(--border)] hover:bg-[var(--surface-muted)]"
                 >
+                  <td className="px-4 py-2 text-[var(--text-muted)]">
+                    #{user.id}
+                  </td>
                   <td className="px-4 py-2">
                     <button
                       type="button"
