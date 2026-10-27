@@ -33,7 +33,14 @@ def paid(
     price_obj: dict | None = None,
     quantity: int = 1,
     status: str = "completed",
+    grand_total: str | None = None,
 ) -> dict:
+    details = (
+        {"totals": {"grand_total": grand_total, "currency_code": "USD"}}
+        if grand_total
+        else {}
+    )
+
     return {
         "event_id": event_id,
         "event_type": "transaction.completed",
@@ -41,6 +48,7 @@ def paid(
         "data": {
             "id": txn,
             "status": status,
+            "details": details,
             "customer_id": "ctm_1",
             "subscription_id": None,
             "custom_data": {"user_id": str(user_id)},
@@ -62,18 +70,25 @@ def refund(
     action: str = "refund",
     kind: str = "full",
     kind_event: str = "adjustment.updated",
+    total: str | None = None,
+    adjustment: str = "adj_1",
 ) -> dict:
+    data = {
+        "id": adjustment,
+        "transaction_id": txn,
+        "status": status,
+        "action": action,
+        "type": kind,
+    }
+
+    if total:
+        data["totals"] = {"total": total, "currency_code": "USD"}
+
     return {
         "event_id": event_id,
         "event_type": kind_event,
         "occurred_at": "2026-10-15T10:00:00Z",
-        "data": {
-            "id": "adj_1",
-            "transaction_id": txn,
-            "status": status,
-            "action": action,
-            "type": kind,
-        },
+        "data": data,
     }
 
 
@@ -252,6 +267,56 @@ class RefundTests(PaddleCase):
             "ignored: not a refund",
         )
         self.assertEqual(self.balance(), 10)
+
+    def test_a_partial_label_on_a_refund_of_everything_still_takes_credits_back(
+        self,
+    ) -> None:
+        # Paddle called a refund of the whole US$4.99 "partial".
+        self.apply(
+            paid(
+                user_id=self.user.id,
+                txn="txn_9",
+                event_id="evt_t9",
+                grand_total="499",
+            )
+        )
+        self.assertEqual(self.balance(), 20)
+
+        note = self.apply(
+            refund(
+                txn="txn_9",
+                event_id="evt_a9",
+                kind="partial",
+                total="499",
+                adjustment="adj_9",
+            )
+        )
+
+        self.assertIn("-10", note)
+        self.assertEqual(self.balance(), 10)
+
+    def test_a_real_partial_refund_leaves_the_credits(self) -> None:
+        self.apply(
+            paid(
+                user_id=self.user.id,
+                txn="txn_8",
+                event_id="evt_t8",
+                grand_total="499",
+            )
+        )
+
+        note = self.apply(
+            refund(
+                txn="txn_8",
+                event_id="evt_a8",
+                kind="partial",
+                total="200",
+                adjustment="adj_8",
+            )
+        )
+
+        self.assertEqual(note, "ignored: partial refund")
+        self.assertEqual(self.balance(), 20)
 
     def test_refund_of_a_subscription_payment_is_ignored(self) -> None:
         self.assertEqual(

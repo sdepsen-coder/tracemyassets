@@ -27,7 +27,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 import httpx
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -474,6 +474,34 @@ def apply_transaction_event(db: Session, event: dict[str, Any]) -> str:
     return f"applied: +{total} credits for user {user.id}"
 
 
+def _refunds_whole_payment(db: Session, data: dict[str, Any]) -> bool:
+    """
+    True when the approved refunds and chargebacks on this adjustment's
+    payment add up to at least what the customer paid. Needs the payment to
+    be recorded with a total; otherwise False (the credits are left alone).
+    """
+    transaction_id = str(data.get("transaction_id") or "")
+    payment = db.get(PaddleTransaction, transaction_id)
+
+    if payment is None or payment.total <= 0:
+        return False
+
+    totals = data.get("totals")
+    own = _minor(totals.get("total")) if isinstance(totals, dict) else None
+
+    recorded = db.scalar(
+        select(func.coalesce(func.sum(PaddleAdjustment.total), 0)).where(
+            PaddleAdjustment.transaction_id == transaction_id,
+            PaddleAdjustment.status == "approved",
+            PaddleAdjustment.action.in_(("refund", "chargeback")),
+        )
+    )
+
+    refunded = max(int(recorded or 0), own or 0)
+
+    return refunded >= payment.total
+
+
 def apply_adjustment_event(db: Session, event: dict[str, Any]) -> str:
     """A refund or chargeback: take back the unspent credits of the pack."""
     data = event.get("data")
@@ -492,7 +520,10 @@ def apply_adjustment_event(db: Session, event: dict[str, Any]) -> str:
     if not transaction_id:
         return "ignored: no transaction"
 
-    if data.get("type") != "full":
+    # Paddle sometimes labels a refund of the whole payment "partial" (seen on
+    # a US$4.99 pack refunded in the dashboard), so a refund counts as full
+    # when the approved refunds add up to everything the customer paid.
+    if data.get("type") != "full" and not _refunds_whole_payment(db, data):
         logger.warning(
             "Partial refund on transaction %s: credits are left as they are; "
             "adjust by hand if needed.",
