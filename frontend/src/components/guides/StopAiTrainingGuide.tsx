@@ -108,9 +108,10 @@ export function StopAiTrainingGuide() {
               Plain-text notices on a page are weaker.
             </>,
             <>
-              <strong className={STRONG}>UK:</strong> the government has
-              consulted on AI and copyright. When this guide was written, a
-              settled opt-out system was not in force. Check the current position.
+              <strong className={STRONG}>UK:</strong> the government consulted
+              on an AI training exception with an opt-out. In its March 2026
+              report it did not adopt that option and kept the status quo while
+              it watches court cases. Check the current position.
             </>,
             <>
               <strong className={STRONG}>US:</strong> court cases about training

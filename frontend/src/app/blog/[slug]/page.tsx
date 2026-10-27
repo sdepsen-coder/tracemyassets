@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { ComponentType } from "react";
 
+import { AiTrainingEvidencePost } from "@/components/blog/AiTrainingEvidencePost";
 import { ThreeWaysToFindCopiesPost } from "@/components/blog/ThreeWaysToFindCopiesPost";
 import { PostPage } from "@/components/guides/PostPage";
 import { BLOG_SECTION } from "@/components/guides/sections";
@@ -13,6 +14,7 @@ type Params = { slug: string };
 /** The text of each post. Add a post here and in lib/blog.ts. */
 const BODIES: Record<string, ComponentType> = {
   "three-ways-to-find-copies-of-your-artwork": ThreeWaysToFindCopiesPost,
+  "ai-training-and-your-art-what-the-evidence-says": AiTrainingEvidencePost,
 };
 
 export function generateStaticParams(): Params[] {

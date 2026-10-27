@@ -20,7 +20,17 @@ export const BLOG_POSTS: Post[] = [
       "Reverse image search, an invisible watermark and scheduled monitoring all find different things. What each is good at, where each fails, and how to combine them without false confidence.",
     datePublished: "2026-10-27",
     dateModified: "2026-10-27",
-    related: [],
+    related: ["ai-training-and-your-art-what-the-evidence-says"],
+  },
+  {
+    slug: "ai-training-and-your-art-what-the-evidence-says",
+    topic: "next",
+    title: "AI training and your art: what the evidence says about opting out",
+    description:
+      "Crawler blocks, image-altering tools and the law are three different defences with three different weak points. What researchers and regulators have actually said, with sources and dates.",
+    datePublished: "2026-10-27",
+    dateModified: "2026-10-27",
+    related: ["three-ways-to-find-copies-of-your-artwork"],
   },
 ];
 
