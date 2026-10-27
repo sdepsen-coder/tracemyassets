@@ -65,9 +65,19 @@ export function LegalSection({
   heading: string;
   children: ReactNode;
 }) {
+  const id = heading
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
   return (
     <section>
-      <h2 className="font-heading text-[26px] font-light tracking-[-0.02em]">{heading}</h2>
+      <h2
+        id={id || undefined}
+        className="scroll-mt-28 font-heading text-[26px] font-light tracking-[-0.02em]"
+      >
+        {heading}
+      </h2>
       <div className="mt-3 space-y-3 text-[15px] leading-relaxed text-[var(--text-muted)]">
         {children}
       </div>

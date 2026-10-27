@@ -7,8 +7,20 @@
  * in docs/test-results.md or visible in the code, say "copies" and
  * "unlicensed use", keep limits next to strengths, and no invented numbers.
  */
+export type GuideTopic = "report" | "evidence" | "find" | "next" | "mark";
+
+export const TOPIC_LABEL: Record<GuideTopic, string> = {
+  report: "Reporting",
+  evidence: "Evidence",
+  find: "Finding copies",
+  next: "Next steps",
+  mark: "Watermark",
+};
+
 export type Guide = {
   slug: string;
+  /** Picks the small illustration and the label on cards. */
+  topic: GuideTopic;
   /** Page title (also the H1). A question or a clear statement. */
   title: string;
   /** Meta description and the short text on the index page. */
@@ -28,6 +40,7 @@ export type Guide = {
 export const GUIDES: Guide[] = [
   {
     slug: "what-an-invisible-watermark-survives",
+    topic: "mark",
     title: "What an invisible watermark survives: our measured results",
     description:
       "Which edits keep an invisible watermark readable and which remove it: PNG, JPEG, WEBP, resizing, cropping, rotating and colour changes, measured on test images.",
@@ -37,6 +50,7 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "how-to-check-if-your-artwork-was-reposted",
+    topic: "find",
     title: "How to check whether your artwork was reposted without permission",
     description:
       "A free, step-by-step way to look for copies of your artwork online: search by image with more than one tool, search by words, judge what you find, and keep a record.",
@@ -49,6 +63,7 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "what-to-do-when-you-find-a-copy-of-your-artwork",
+    topic: "next",
     title: "What to do when you find a copy of your artwork",
     description:
       "A calm order of steps: look first, keep evidence, start with the gentlest step, then the platform, then the host, and when to ask a professional. Practical help, not legal advice.",
@@ -61,6 +76,7 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "what-happens-to-a-photo-when-it-is-resized-or-cropped",
+    topic: "mark",
     title: "What happens to a photo when it is resized or cropped",
     description:
       "Measured on test images: resizing and cropping remove an invisible watermark, and a table of which edited copies were still recognised by how they look and which were missed.",
@@ -73,6 +89,7 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "how-to-file-a-dmca-takedown-on-etsy",
+    topic: "report",
     title: "How to file a DMCA takedown on Etsy for a copy of your artwork",
     description:
       "Someone is selling your art on Etsy? What an Etsy DMCA notice must contain, where to send it and what happens next, step by step. General information, not legal advice.",
@@ -85,6 +102,7 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "found-your-artwork-on-temu-redbubble-or-amazon",
+    topic: "report",
     title: "Found your artwork on Temu, Redbubble or Amazon? What to do",
     description:
       "How to report copies of your artwork on Temu, Redbubble and Amazon: who can file, what to include and how the DMCA process works. General information, not legal advice.",
@@ -97,6 +115,7 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "how-to-prove-you-made-your-artwork",
+    topic: "evidence",
     title: "How to prove you made your artwork",
     description:
       "Practical ways artists can document authorship: source files, dated records, first publication and registration, so a takedown is easy to back up.",

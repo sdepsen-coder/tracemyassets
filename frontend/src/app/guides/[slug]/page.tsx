@@ -10,9 +10,11 @@ import { MarketplaceCopiesGuide } from "@/components/guides/MarketplaceCopiesGui
 import { PhotoResizedCroppedGuide } from "@/components/guides/PhotoResizedCroppedGuide";
 import { ProveAuthorshipGuide } from "@/components/guides/ProveAuthorshipGuide";
 import { WatermarkSurvivesGuide } from "@/components/guides/WatermarkSurvivesGuide";
+import { GuideArt, ART_BG } from "@/components/guides/GuideArt";
+import { GuideShell } from "@/components/guides/GuideShell";
+import { GuideToc } from "@/components/guides/GuideToc";
 import { JsonLd } from "@/components/JsonLd";
-import { LegalPage } from "@/components/legal/LegalPage";
-import { getGuide, GUIDES } from "@/lib/guides";
+import { getGuide, GUIDES, TOPIC_LABEL } from "@/lib/guides";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 type Params = { slug: string };
@@ -70,7 +72,7 @@ export default async function GuidePage({
     .filter((item) => item !== undefined);
 
   return (
-    <LegalPage title={guide.title}>
+    <GuideShell>
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -111,49 +113,79 @@ export default async function GuidePage({
         }}
       />
 
-      <p className="text-[13px] text-[var(--text-muted)]">
-        <Link href="/guides" className="underline underline-offset-4">
-          Guides
-        </Link>{" "}
-        · Updated{" "}
-        {new Date(`${guide.dateModified}T12:00:00Z`).toLocaleDateString("en-GB", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-          timeZone: "UTC",
-        })}
-      </p>
+      <div className="mx-auto flex w-full max-w-[1100px] flex-wrap items-start gap-x-14 gap-y-8">
+        <article className="min-w-0 flex-[999_1_560px] space-y-10 lg:max-w-[720px]">
+          <header>
+            <p className="text-[13px] text-[var(--text-muted)]">
+              <Link href="/guides" className="underline underline-offset-4">
+                Guides
+              </Link>{" "}
+              · {TOPIC_LABEL[guide.topic]} · Updated{" "}
+              {new Date(`${guide.dateModified}T12:00:00Z`).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+                timeZone: "UTC",
+              })}
+            </p>
+            <h1 className="mt-4 font-heading text-[36px] font-light leading-[1.1] tracking-[-0.03em] sm:text-[48px]">
+              {guide.title}
+            </h1>
+            <div
+              className={`mt-8 flex h-44 items-center justify-center rounded-[24px] border border-[var(--border)] ${ART_BG[guide.topic]}`}
+            >
+              <GuideArt topic={guide.topic} className="h-36 w-auto" />
+            </div>
+          </header>
 
-      <Body />
+          <div data-guide-body className="space-y-10">
+            <Body />
+          </div>
 
-      {related.length > 0 && (
-        <section>
-          <h2 className="font-heading text-[26px] font-light tracking-[-0.02em]">
-            Related guides
-          </h2>
-          <ul className="mt-3 list-disc space-y-2 pl-5 text-[15px]">
-            {related.map((item) => (
-              <li key={item.slug}>
-                <Link
-                  href={`/guides/${item.slug}`}
-                  className="text-[var(--primary)] underline"
-                >
-                  {item.title}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+          {related.length > 0 && (
+            <section>
+              <h2 className="font-heading text-[26px] font-light tracking-[-0.02em]">
+                Related guides
+              </h2>
+              <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+                {related.map((item) => (
+                  <li key={item.slug}>
+                    <Link
+                      href={`/guides/${item.slug}`}
+                      className="glass flex h-full flex-col gap-3 rounded-card border border-[var(--border)] p-4 transition hover:-translate-y-0.5"
+                    >
+                      <span className="text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-muted)]">
+                        {TOPIC_LABEL[item.topic]}
+                      </span>
+                      <span className="text-[16px] leading-snug">{item.title}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
-      <div className="space-y-3">
-        <Link href="/?auth=register" className={CTA_CLASS}>
-          Protect your first artwork — free
-        </Link>
-        <p className="text-[13px] text-[var(--text-muted)]">
-          No credit card needed.
-        </p>
+          <div
+            className="rounded-[24px] p-6 sm:p-8"
+            style={{ background: "var(--iris)" }}
+          >
+            <h2 className="font-heading text-[24px] font-normal tracking-[-0.02em] text-[#111]">
+              Protect your first artwork
+            </h2>
+            <p className="mt-2 max-w-md text-[14px] leading-relaxed text-[#3b3a37]">
+              Register it, add an invisible watermark and review possible copies.
+              You decide what to do. No credit card needed.
+            </p>
+            <Link href="/?auth=register" className={`mt-5 ${CTA_CLASS}`}>
+              Start free
+            </Link>
+          </div>
+        </article>
+
+        <aside className="hidden min-w-[200px] flex-[1_1_200px] lg:sticky lg:top-28 lg:block">
+          <GuideToc />
+        </aside>
       </div>
-    </LegalPage>
+    </GuideShell>
   );
 }
