@@ -4,6 +4,7 @@ import type { ComponentType } from "react";
 
 import { CheckIfRepostedGuide } from "@/components/guides/CheckIfRepostedGuide";
 import { CounterNoticeGuide } from "@/components/guides/CounterNoticeGuide";
+import { DmcaTemplateGuide } from "@/components/guides/DmcaTemplateGuide";
 import { EtsyDmcaGuide } from "@/components/guides/EtsyDmcaGuide";
 import { FoundACopyGuide } from "@/components/guides/FoundACopyGuide";
 import { MarketplaceCopiesGuide } from "@/components/guides/MarketplaceCopiesGuide";
@@ -31,6 +32,7 @@ const BODIES: Record<string, ComponentType> = {
   "how-to-use-tineye-to-see-who-posted-your-artwork-first": TineyeFirstPostedGuide,
   "can-you-stop-ai-from-training-on-your-artwork": StopAiTrainingGuide,
   "what-to-do-if-a-seller-files-a-counter-notice": CounterNoticeGuide,
+  "dmca-takedown-notice-template-for-artists": DmcaTemplateGuide,
 };
 
 export function generateStaticParams(): Params[] {

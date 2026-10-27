@@ -178,6 +178,29 @@ export const GUIDES: Guide[] = [
       "what-to-do-when-you-find-a-copy-of-your-artwork",
     ],
   },
+  {
+    slug: "dmca-takedown-notice-template-for-artists",
+    topic: "report",
+    title: "DMCA takedown notice template for artists",
+    description:
+      "A plain template that covers the six things US law asks a DMCA notice to contain, how to fill each part, what to leave out, and when not to send it. General information, not legal advice.",
+    datePublished: "2026-10-27",
+    dateModified: "2026-10-27",
+    related: [
+      "how-to-file-a-dmca-takedown-on-etsy",
+      "what-to-do-if-a-seller-files-a-counter-notice",
+    ],
+    faq: [
+      {
+        q: "Can I send the same notice to every platform?",
+        a: "You can reuse the text, but change the platform name and the URLs, and use each platform's own form first. Each platform handles notices in its own way.",
+      },
+      {
+        q: "Do I need a lawyer to send a notice?",
+        a: "Not to send one. For anything large, commercial or disputed, ask a lawyer or an artists' rights organisation for advice.",
+      },
+    ],
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {
