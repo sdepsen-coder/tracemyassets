@@ -37,6 +37,9 @@ export type Guide = {
   faq?: { q: string; a: string }[];
 };
 
+/** Guides and blog posts share one shape. */
+export type Post = Guide;
+
 export const GUIDES: Guide[] = [
   {
     slug: "what-an-invisible-watermark-survives",

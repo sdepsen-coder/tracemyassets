@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { BLOG_POSTS } from "@/lib/blog";
 import { GUIDES } from "@/lib/guides";
 import { CONTENT_LAST_UPDATED, LEGAL_LAST_UPDATED, SITE_URL } from "@/lib/site";
 
@@ -11,6 +12,7 @@ const PAGES: { path: string; priority: number; legal?: boolean }[] = [
   { path: "/for/photographers", priority: 0.6 },
   { path: "/for/illustrators", priority: 0.6 },
   { path: "/guides", priority: 0.7 },
+  { path: "/blog", priority: 0.7 },
   { path: "/support", legal: true, priority: 0.5 },
   { path: "/privacy", legal: true, priority: 0.3 },
   { path: "/terms", legal: true, priority: 0.3 },
@@ -46,5 +48,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     };
   });
 
-  return [...pages, ...guides];
+  const blog = BLOG_POSTS.map((post) => {
+    const lastModified = parseDate(post.dateModified);
+
+    return {
+      url: `${SITE_URL}/blog/${post.slug}`,
+      ...(lastModified ? { lastModified } : {}),
+      priority: 0.7,
+    };
+  });
+
+  return [...pages, ...guides, ...blog];
 }

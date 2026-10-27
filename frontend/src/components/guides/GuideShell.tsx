@@ -8,7 +8,16 @@ import Link from "next/link";
  * Page frame for the guides: same header and footer as the legal pages, with
  * a wider column so a guide can have a contents list beside the text.
  */
-export function GuideShell({ children }: { children: ReactNode }) {
+export function GuideShell({
+  children,
+  active,
+}: {
+  children: ReactNode;
+  /** Which menu item to highlight. */
+  active?: "guides" | "blog";
+}) {
+  const on = "bg-[var(--surface-muted)]";
+  const off = "transition hover:bg-[var(--surface-muted)]";
   return (
     <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--text)]">
       <header className="sticky top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4">
@@ -23,9 +32,15 @@ export function GuideShell({ children }: { children: ReactNode }) {
             </Link>
             <Link
               href="/guides"
-              className="inline-flex h-10 items-center rounded-full bg-[var(--surface-muted)] px-3 text-[13px] sm:px-4"
+              className={`inline-flex h-10 items-center rounded-full px-3 text-[13px] sm:px-4 ${active === "guides" ? on : off}`}
             >
               Guides
+            </Link>
+            <Link
+              href="/blog"
+              className={`inline-flex h-10 items-center rounded-full px-3 text-[13px] sm:px-4 ${active === "blog" ? on : off}`}
+            >
+              Blog
             </Link>
             <Link
               href="/"

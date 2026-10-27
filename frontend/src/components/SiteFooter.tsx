@@ -43,6 +43,9 @@ export function SiteFooter({ tone = "themed" }: SiteFooterProps) {
             <Link href="/guides" className={linkClass}>
               Guides
             </Link>
+            <Link href="/blog" className={linkClass}>
+              Blog
+            </Link>
             <Link href="/help" className={linkClass}>
               Help
             </Link>
