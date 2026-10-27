@@ -29,7 +29,7 @@ export const LEGAL_LAST_UPDATED = "10 October 2026";
  * search engines (sitemap lastModified). Update it by hand when those pages
  * change; the legal pages use LEGAL_LAST_UPDATED.
  */
-export const CONTENT_LAST_UPDATED = "23 October 2026";
+export const CONTENT_LAST_UPDATED = "27 October 2026";
 
 /**
  * Who runs the service. These are inlined at build time, so set them on

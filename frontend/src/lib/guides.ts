@@ -18,6 +18,11 @@ export type Guide = {
   dateModified: string;
   /** Slugs of related guides, shown at the end of the page. */
   related?: string[];
+  /**
+   * Questions for FAQPage structured data. The same questions and answers
+   * must be visible on the page (Google requires it).
+   */
+  faq?: { q: string; a: string }[];
 };
 
 export const GUIDES: Guide[] = [
@@ -64,6 +69,52 @@ export const GUIDES: Guide[] = [
     related: [
       "what-an-invisible-watermark-survives",
       "how-to-check-if-your-artwork-was-reposted",
+    ],
+  },
+  {
+    slug: "how-to-file-a-dmca-takedown-on-etsy",
+    title: "How to file a DMCA takedown on Etsy for a copy of your artwork",
+    description:
+      "Someone is selling your art on Etsy? What an Etsy DMCA notice must contain, where to send it and what happens next, step by step. General information, not legal advice.",
+    datePublished: "2026-10-27",
+    dateModified: "2026-10-27",
+    related: [
+      "what-to-do-when-you-find-a-copy-of-your-artwork",
+      "how-to-prove-you-made-your-artwork",
+    ],
+  },
+  {
+    slug: "found-your-artwork-on-temu-redbubble-or-amazon",
+    title: "Found your artwork on Temu, Redbubble or Amazon? What to do",
+    description:
+      "How to report copies of your artwork on Temu, Redbubble and Amazon: who can file, what to include and how the DMCA process works. General information, not legal advice.",
+    datePublished: "2026-10-27",
+    dateModified: "2026-10-27",
+    related: [
+      "how-to-file-a-dmca-takedown-on-etsy",
+      "how-to-prove-you-made-your-artwork",
+    ],
+  },
+  {
+    slug: "how-to-prove-you-made-your-artwork",
+    title: "How to prove you made your artwork",
+    description:
+      "Practical ways artists can document authorship: source files, dated records, first publication and registration, so a takedown is easy to back up.",
+    datePublished: "2026-10-27",
+    dateModified: "2026-10-27",
+    related: [
+      "how-to-file-a-dmca-takedown-on-etsy",
+      "what-to-do-when-you-find-a-copy-of-your-artwork",
+    ],
+    faq: [
+      {
+        q: "Do I have to register my copyright to file a takedown?",
+        a: "A DMCA takedown does not require registration. It requires that you own the work or are authorised to act for the owner. Registration matters more if you later want to sue, and the rules differ by country.",
+      },
+      {
+        q: "What is the best single piece of evidence?",
+        a: "Your layered or working source file with its timestamps, ideally backed by a dated public first post.",
+      },
     ],
   },
 ];

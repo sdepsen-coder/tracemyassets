@@ -4,8 +4,11 @@ import { notFound } from "next/navigation";
 import type { ComponentType } from "react";
 
 import { CheckIfRepostedGuide } from "@/components/guides/CheckIfRepostedGuide";
+import { EtsyDmcaGuide } from "@/components/guides/EtsyDmcaGuide";
 import { FoundACopyGuide } from "@/components/guides/FoundACopyGuide";
+import { MarketplaceCopiesGuide } from "@/components/guides/MarketplaceCopiesGuide";
 import { PhotoResizedCroppedGuide } from "@/components/guides/PhotoResizedCroppedGuide";
+import { ProveAuthorshipGuide } from "@/components/guides/ProveAuthorshipGuide";
 import { WatermarkSurvivesGuide } from "@/components/guides/WatermarkSurvivesGuide";
 import { JsonLd } from "@/components/JsonLd";
 import { LegalPage } from "@/components/legal/LegalPage";
@@ -20,6 +23,9 @@ const BODIES: Record<string, ComponentType> = {
   "how-to-check-if-your-artwork-was-reposted": CheckIfRepostedGuide,
   "what-to-do-when-you-find-a-copy-of-your-artwork": FoundACopyGuide,
   "what-happens-to-a-photo-when-it-is-resized-or-cropped": PhotoResizedCroppedGuide,
+  "how-to-file-a-dmca-takedown-on-etsy": EtsyDmcaGuide,
+  "found-your-artwork-on-temu-redbubble-or-amazon": MarketplaceCopiesGuide,
+  "how-to-prove-you-made-your-artwork": ProveAuthorshipGuide,
 };
 
 export function generateStaticParams(): Params[] {
@@ -80,6 +86,19 @@ export default async function GuidePage({
               author: { "@id": `${SITE_URL}/#organization` },
               publisher: { "@id": `${SITE_URL}/#organization` },
             },
+            ...(guide.faq
+              ? [
+                  {
+                    "@type": "FAQPage",
+                    "@id": `${url}#faq`,
+                    mainEntity: guide.faq.map(({ q, a }) => ({
+                      "@type": "Question",
+                      name: q,
+                      acceptedAnswer: { "@type": "Answer", text: a },
+                    })),
+                  },
+                ]
+              : []),
             {
               "@type": "BreadcrumbList",
               itemListElement: [
