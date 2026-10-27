@@ -15,7 +15,7 @@ import { WatermarkSurvivesGuide } from "@/components/guides/WatermarkSurvivesGui
 import { PostPage } from "@/components/guides/PostPage";
 import { GUIDES_SECTION } from "@/components/guides/sections";
 import { getGuide, GUIDES } from "@/lib/guides";
-import { SITE_NAME } from "@/lib/site";
+import { postMetadata } from "@/lib/postMetadata";
 
 type Params = { slug: string };
 
@@ -45,16 +45,7 @@ export async function generateMetadata({
   const guide = getGuide((await params).slug);
   if (!guide) return {};
 
-  return {
-    title: `${guide.title} — ${SITE_NAME}`,
-    description: guide.description,
-    alternates: { canonical: `/guides/${guide.slug}` },
-    openGraph: {
-      type: "article",
-      publishedTime: guide.datePublished,
-      modifiedTime: guide.dateModified,
-    },
-  };
+  return postMetadata("/guides", guide);
 }
 
 export default async function GuidePage({

@@ -7,7 +7,7 @@ import { ThreeWaysToFindCopiesPost } from "@/components/blog/ThreeWaysToFindCopi
 import { PostPage } from "@/components/guides/PostPage";
 import { BLOG_SECTION } from "@/components/guides/sections";
 import { BLOG_POSTS, getBlogPost } from "@/lib/blog";
-import { SITE_NAME } from "@/lib/site";
+import { postMetadata } from "@/lib/postMetadata";
 
 type Params = { slug: string };
 
@@ -29,16 +29,7 @@ export async function generateMetadata({
   const post = getBlogPost((await params).slug);
   if (!post) return {};
 
-  return {
-    title: `${post.title} — ${SITE_NAME}`,
-    description: post.description,
-    alternates: { canonical: `/blog/${post.slug}` },
-    openGraph: {
-      type: "article",
-      publishedTime: post.datePublished,
-      modifiedTime: post.dateModified,
-    },
-  };
+  return postMetadata("/blog", post);
 }
 
 export default async function BlogPostPage({

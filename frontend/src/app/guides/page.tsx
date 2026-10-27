@@ -3,14 +3,14 @@ import type { Metadata } from "next";
 import { PostIndex } from "@/components/guides/PostIndex";
 import { GUIDES_SECTION } from "@/components/guides/sections";
 import { GUIDES } from "@/lib/guides";
+import { indexMetadata } from "@/lib/postMetadata";
 import { SITE_NAME } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: `Guides — ${SITE_NAME}`,
-  description:
-    "Short, practical steps for finding copies of your artwork online, reporting them, and understanding what an invisible watermark can and cannot do.",
-  alternates: { canonical: "/guides" },
-};
+export const metadata: Metadata = indexMetadata(
+  "/guides",
+  `Guides — ${SITE_NAME}`,
+  "Short, practical steps for finding copies of your artwork online, reporting them, and understanding what an invisible watermark can and cannot do.",
+);
 
 export default function GuidesPage() {
   return (
