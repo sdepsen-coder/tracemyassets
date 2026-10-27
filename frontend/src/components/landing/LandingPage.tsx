@@ -193,6 +193,12 @@ export function LandingPage() {
             <a href="#pricing" className="transition hover:text-[var(--text)]">
               Pricing
             </a>
+            <Link href="/guides" className="transition hover:text-[var(--text)]">
+              Guides
+            </Link>
+            <Link href="/blog" className="transition hover:text-[var(--text)]">
+              Blog
+            </Link>
             <Link href="/help" className="transition hover:text-[var(--text)]">
               Help
             </Link>
