@@ -139,6 +139,45 @@ export const GUIDES: Guide[] = [
       },
     ],
   },
+  {
+    slug: "how-to-use-tineye-to-see-who-posted-your-artwork-first",
+    topic: "find",
+    title: "How to use TinEye to see who posted your artwork first",
+    description:
+      "Search with TinEye, sort the results by oldest to see the earliest known copy, and learn what that date does and does not prove. Limits stated.",
+    datePublished: "2026-10-27",
+    dateModified: "2026-10-27",
+    related: [
+      "how-to-check-if-your-artwork-was-reposted",
+      "how-to-prove-you-made-your-artwork",
+    ],
+  },
+  {
+    slug: "can-you-stop-ai-from-training-on-your-artwork",
+    topic: "next",
+    title: "Can you stop AI from training on your artwork?",
+    description:
+      "What can help (robots.txt, site settings, registries, protective tools), what none of them can do, and where the rules are still unsettled. General information, not legal advice.",
+    datePublished: "2026-10-27",
+    dateModified: "2026-10-27",
+    related: [
+      "what-an-invisible-watermark-survives",
+      "how-to-prove-you-made-your-artwork",
+    ],
+  },
+  {
+    slug: "what-to-do-if-a-seller-files-a-counter-notice",
+    topic: "report",
+    title: "What to do if a seller files a counter-notice",
+    description:
+      "After a DMCA takedown the seller can send a counter-notice. What it contains, what US law says happens next (10 to 14 business days), and your choices. Not legal advice.",
+    datePublished: "2026-10-27",
+    dateModified: "2026-10-27",
+    related: [
+      "how-to-file-a-dmca-takedown-on-etsy",
+      "what-to-do-when-you-find-a-copy-of-your-artwork",
+    ],
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {

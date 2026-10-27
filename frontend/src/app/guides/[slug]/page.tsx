@@ -3,11 +3,14 @@ import { notFound } from "next/navigation";
 import type { ComponentType } from "react";
 
 import { CheckIfRepostedGuide } from "@/components/guides/CheckIfRepostedGuide";
+import { CounterNoticeGuide } from "@/components/guides/CounterNoticeGuide";
 import { EtsyDmcaGuide } from "@/components/guides/EtsyDmcaGuide";
 import { FoundACopyGuide } from "@/components/guides/FoundACopyGuide";
 import { MarketplaceCopiesGuide } from "@/components/guides/MarketplaceCopiesGuide";
 import { PhotoResizedCroppedGuide } from "@/components/guides/PhotoResizedCroppedGuide";
 import { ProveAuthorshipGuide } from "@/components/guides/ProveAuthorshipGuide";
+import { StopAiTrainingGuide } from "@/components/guides/StopAiTrainingGuide";
+import { TineyeFirstPostedGuide } from "@/components/guides/TineyeFirstPostedGuide";
 import { WatermarkSurvivesGuide } from "@/components/guides/WatermarkSurvivesGuide";
 import { PostPage } from "@/components/guides/PostPage";
 import { GUIDES_SECTION } from "@/components/guides/sections";
@@ -25,6 +28,9 @@ const BODIES: Record<string, ComponentType> = {
   "how-to-file-a-dmca-takedown-on-etsy": EtsyDmcaGuide,
   "found-your-artwork-on-temu-redbubble-or-amazon": MarketplaceCopiesGuide,
   "how-to-prove-you-made-your-artwork": ProveAuthorshipGuide,
+  "how-to-use-tineye-to-see-who-posted-your-artwork-first": TineyeFirstPostedGuide,
+  "can-you-stop-ai-from-training-on-your-artwork": StopAiTrainingGuide,
+  "what-to-do-if-a-seller-files-a-counter-notice": CounterNoticeGuide,
 };
 
 export function generateStaticParams(): Params[] {
