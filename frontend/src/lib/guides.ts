@@ -240,6 +240,19 @@ export const GUIDES: Guide[] = [
       "how-to-prove-you-made-your-artwork",
     ],
   },
+  {
+    slug: "how-to-report-your-artwork-on-pinterest",
+    topic: "report",
+    title: "How to report a copy of your artwork on Pinterest",
+    description:
+      "Pinterest's copyright form and designated agent, what the report must contain, removing every Pin with the same image (identical copies only), and what happens after a counter-notification. General information, not legal advice.",
+    datePublished: "2026-10-28",
+    dateModified: "2026-10-28",
+    related: [
+      "dmca-takedown-notice-template-for-artists",
+      "what-to-do-if-a-seller-files-a-counter-notice",
+    ],
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {

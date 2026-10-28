@@ -8,6 +8,7 @@ import { DmcaTemplateGuide } from "@/components/guides/DmcaTemplateGuide";
 import { EtsyDmcaGuide } from "@/components/guides/EtsyDmcaGuide";
 import { FoundACopyGuide } from "@/components/guides/FoundACopyGuide";
 import { MarketplaceCopiesGuide } from "@/components/guides/MarketplaceCopiesGuide";
+import { PinterestGuide } from "@/components/guides/PinterestGuide";
 import { PhotoResizedCroppedGuide } from "@/components/guides/PhotoResizedCroppedGuide";
 import { ProveAuthorshipGuide } from "@/components/guides/ProveAuthorshipGuide";
 import { RedbubbleGuide } from "@/components/guides/RedbubbleGuide";
@@ -38,6 +39,7 @@ const BODIES: Record<string, ComponentType> = {
   "dmca-takedown-notice-template-for-artists": DmcaTemplateGuide,
   "how-to-report-your-artwork-on-redbubble": RedbubbleGuide,
   "how-to-report-your-artwork-on-temu": TemuGuide,
+  "how-to-report-your-artwork-on-pinterest": PinterestGuide,
   "visible-or-invisible-watermark-for-artists": VisibleVsInvisibleGuide,
 };
 
