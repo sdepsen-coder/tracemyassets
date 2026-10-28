@@ -201,6 +201,32 @@ export const GUIDES: Guide[] = [
       },
     ],
   },
+  {
+    slug: "how-to-report-your-artwork-on-redbubble",
+    topic: "report",
+    title: "How to report a copy of your artwork on Redbubble",
+    description:
+      "Redbubble's reporting route, what the notice must contain, what Redbubble says happens next and what to expect if the seller files a counter-notice. General information, not legal advice.",
+    datePublished: "2026-10-28",
+    dateModified: "2026-10-28",
+    related: [
+      "dmca-takedown-notice-template-for-artists",
+      "what-to-do-if-a-seller-files-a-counter-notice",
+    ],
+  },
+  {
+    slug: "how-to-report-your-artwork-on-temu",
+    topic: "report",
+    title: "How to report a copy of your artwork on Temu",
+    description:
+      "Temu's IP Portal, what a report should contain, what the policy says it will do and what it does not say (no timelines). General information, not legal advice.",
+    datePublished: "2026-10-28",
+    dateModified: "2026-10-28",
+    related: [
+      "dmca-takedown-notice-template-for-artists",
+      "how-to-report-your-artwork-on-redbubble",
+    ],
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {

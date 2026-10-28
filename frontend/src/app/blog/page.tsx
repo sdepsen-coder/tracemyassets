@@ -18,6 +18,11 @@ export default function BlogPage() {
       section={BLOG_SECTION}
       intro="Longer pieces on protecting and tracking artwork online: how the tools work, what they miss, and how to use them honestly."
       posts={BLOG_POSTS}
+      crossLink={{
+        text: "Looking for short, step-by-step help, templates or platform steps?",
+        href: "/guides",
+        label: "See the guides",
+      }}
     />
   );
 }

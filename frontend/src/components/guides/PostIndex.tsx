@@ -21,10 +21,13 @@ export function PostIndex({
   section,
   intro,
   posts,
+  crossLink,
 }: {
   section: Section;
   intro: string;
   posts: Post[];
+  /** Pointer to the other section, shown under the intro. */
+  crossLink?: { text: string; href: string; label: string };
 }) {
   // Newest first; ties keep the order they are listed in.
   const sorted = [...posts].sort((a, b) =>
@@ -56,6 +59,17 @@ export function PostIndex({
         <p className="mt-4 max-w-xl text-[18px] leading-8 text-[var(--text-muted)]">
           {intro}
         </p>
+        {crossLink && (
+          <p className="mt-4 inline-flex flex-wrap items-center gap-x-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-[14px] text-[var(--text-muted)]">
+            {crossLink.text}
+            <Link
+              href={crossLink.href}
+              className="font-medium text-[var(--text)] underline underline-offset-4"
+            >
+              {crossLink.label} →
+            </Link>
+          </p>
+        )}
 
         {featured && (
           <Link

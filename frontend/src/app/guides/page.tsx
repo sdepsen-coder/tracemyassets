@@ -18,6 +18,11 @@ export default function GuidesPage() {
       section={GUIDES_SECTION}
       intro="Short, practical steps: finding copies of your artwork, reporting them, and what an invisible watermark can and cannot do."
       posts={GUIDES}
+      crossLink={{
+        text: "Looking for longer, in-depth pieces?",
+        href: "/blog",
+        label: "Read the blog",
+      }}
     />
   );
 }

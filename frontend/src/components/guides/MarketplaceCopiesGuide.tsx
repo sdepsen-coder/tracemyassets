@@ -66,7 +66,11 @@ export function MarketplaceCopiesGuide() {
           reports it considers false, incomplete or made in bad faith, and that
           repeated inaccurate notices can cost you your submission privileges.
           It also says it may terminate repeat infringers. The page gives no
-          timelines.
+          timelines. Full steps:{" "}
+          <Link href="/guides/how-to-report-your-artwork-on-temu" className={LINK}>
+            how to report a copy of your artwork on Temu
+          </Link>
+          .
         </p>
       </LegalSection>
 
@@ -78,7 +82,11 @@ export function MarketplaceCopiesGuide() {
           apply. Use the reporting route in Redbubble&apos;s IP policy and help
           centre, and have your proof of ownership ready. The help centre also
           has an article for artists whose work appears elsewhere on the internet
-          without permission.
+          without permission. Full steps:{" "}
+          <Link href="/guides/how-to-report-your-artwork-on-redbubble" className={LINK}>
+            how to report a copy of your artwork on Redbubble
+          </Link>
+          .
         </p>
       </LegalSection>
 

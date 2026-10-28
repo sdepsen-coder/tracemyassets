@@ -10,8 +10,10 @@ import { FoundACopyGuide } from "@/components/guides/FoundACopyGuide";
 import { MarketplaceCopiesGuide } from "@/components/guides/MarketplaceCopiesGuide";
 import { PhotoResizedCroppedGuide } from "@/components/guides/PhotoResizedCroppedGuide";
 import { ProveAuthorshipGuide } from "@/components/guides/ProveAuthorshipGuide";
+import { RedbubbleGuide } from "@/components/guides/RedbubbleGuide";
 import { StopAiTrainingGuide } from "@/components/guides/StopAiTrainingGuide";
 import { TineyeFirstPostedGuide } from "@/components/guides/TineyeFirstPostedGuide";
+import { TemuGuide } from "@/components/guides/TemuGuide";
 import { WatermarkSurvivesGuide } from "@/components/guides/WatermarkSurvivesGuide";
 import { PostPage } from "@/components/guides/PostPage";
 import { GUIDES_SECTION } from "@/components/guides/sections";
@@ -33,6 +35,8 @@ const BODIES: Record<string, ComponentType> = {
   "can-you-stop-ai-from-training-on-your-artwork": StopAiTrainingGuide,
   "what-to-do-if-a-seller-files-a-counter-notice": CounterNoticeGuide,
   "dmca-takedown-notice-template-for-artists": DmcaTemplateGuide,
+  "how-to-report-your-artwork-on-redbubble": RedbubbleGuide,
+  "how-to-report-your-artwork-on-temu": TemuGuide,
 };
 
 export function generateStaticParams(): Params[] {
