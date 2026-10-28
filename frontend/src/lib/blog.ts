@@ -32,6 +32,19 @@ export const BLOG_POSTS: Post[] = [
     dateModified: "2026-10-27",
     related: ["three-ways-to-find-copies-of-your-artwork"],
   },
+  {
+    slug: "taking-down-a-copy-of-your-art-in-the-uk-and-eu",
+    topic: "report",
+    title: "Taking down a copy of your art in the UK and EU: what replaces the DMCA",
+    description:
+      "The DMCA is a US law. What the UK's 2002 e-commerce rules and the EU Digital Services Act actually say about notices to hosts, how they differ, and what that means for an individual artist.",
+    datePublished: "2026-10-28",
+    dateModified: "2026-10-28",
+    related: [
+      "three-ways-to-find-copies-of-your-artwork",
+      "ai-training-and-your-art-what-the-evidence-says",
+    ],
+  },
 ];
 
 export function getBlogPost(slug: string): Post | undefined {
