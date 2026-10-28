@@ -45,6 +45,19 @@ export const BLOG_POSTS: Post[] = [
       "ai-training-and-your-art-what-the-evidence-says",
     ],
   },
+  {
+    slug: "why-stolen-art-keeps-reappearing-on-print-on-demand-sites",
+    topic: "find",
+    title: "Why stolen art keeps reappearing on print-on-demand sites",
+    description:
+      "You report a listing and it comes back from another shop. How print-on-demand selling works, what Etsy, Redbubble and Temu say about repeat sellers, and a realistic routine for keeping up.",
+    datePublished: "2026-10-28",
+    dateModified: "2026-10-28",
+    related: [
+      "taking-down-a-copy-of-your-art-in-the-uk-and-eu",
+      "three-ways-to-find-copies-of-your-artwork",
+    ],
+  },
 ];
 
 export function getBlogPost(slug: string): Post | undefined {

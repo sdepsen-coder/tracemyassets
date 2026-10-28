@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { ComponentType } from "react";
 
 import { AiTrainingEvidencePost } from "@/components/blog/AiTrainingEvidencePost";
+import { PodReappearPost } from "@/components/blog/PodReappearPost";
 import { UkEuTakedownPost } from "@/components/blog/UkEuTakedownPost";
 import { ThreeWaysToFindCopiesPost } from "@/components/blog/ThreeWaysToFindCopiesPost";
 import { PostPage } from "@/components/guides/PostPage";
@@ -17,6 +18,7 @@ const BODIES: Record<string, ComponentType> = {
   "three-ways-to-find-copies-of-your-artwork": ThreeWaysToFindCopiesPost,
   "ai-training-and-your-art-what-the-evidence-says": AiTrainingEvidencePost,
   "taking-down-a-copy-of-your-art-in-the-uk-and-eu": UkEuTakedownPost,
+  "why-stolen-art-keeps-reappearing-on-print-on-demand-sites": PodReappearPost,
 };
 
 export function generateStaticParams(): Params[] {
