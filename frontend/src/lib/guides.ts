@@ -253,6 +253,19 @@ export const GUIDES: Guide[] = [
       "what-to-do-if-a-seller-files-a-counter-notice",
     ],
   },
+  {
+    slug: "how-to-report-your-artwork-on-shopify",
+    topic: "report",
+    title: "How to report a copy of your artwork in a Shopify store",
+    description:
+      "Shopify's copyright form and designated agent, what the notice must contain (direct page links, not a shop link), the 10 to 14 business day counter-notice window and how Shopify treats repeat infringers. General information, not legal advice.",
+    datePublished: "2026-10-28",
+    dateModified: "2026-10-28",
+    related: [
+      "dmca-takedown-notice-template-for-artists",
+      "what-to-do-if-a-seller-files-a-counter-notice",
+    ],
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {

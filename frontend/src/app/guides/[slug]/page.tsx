@@ -12,6 +12,7 @@ import { PinterestGuide } from "@/components/guides/PinterestGuide";
 import { PhotoResizedCroppedGuide } from "@/components/guides/PhotoResizedCroppedGuide";
 import { ProveAuthorshipGuide } from "@/components/guides/ProveAuthorshipGuide";
 import { RedbubbleGuide } from "@/components/guides/RedbubbleGuide";
+import { ShopifyGuide } from "@/components/guides/ShopifyGuide";
 import { StopAiTrainingGuide } from "@/components/guides/StopAiTrainingGuide";
 import { TineyeFirstPostedGuide } from "@/components/guides/TineyeFirstPostedGuide";
 import { TemuGuide } from "@/components/guides/TemuGuide";
@@ -39,6 +40,7 @@ const BODIES: Record<string, ComponentType> = {
   "dmca-takedown-notice-template-for-artists": DmcaTemplateGuide,
   "how-to-report-your-artwork-on-redbubble": RedbubbleGuide,
   "how-to-report-your-artwork-on-temu": TemuGuide,
+  "how-to-report-your-artwork-on-shopify": ShopifyGuide,
   "how-to-report-your-artwork-on-pinterest": PinterestGuide,
   "visible-or-invisible-watermark-for-artists": VisibleVsInvisibleGuide,
 };
