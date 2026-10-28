@@ -57,6 +57,33 @@ export const SITE_DESCRIPTION =
 /** Google Analytics 4 measurement ID (G-XXXX). Empty = analytics is off. */
 export const GA_ID: string = process.env.NEXT_PUBLIC_GA_ID?.trim() ?? "";
 
+/** Microsoft Clarity project ID. Empty = Clarity is off. */
+export const CLARITY_ID: string =
+  process.env.NEXT_PUBLIC_CLARITY_ID?.trim() ?? "";
+
+/** True when any optional analytics is configured (shows the cookie banner). */
+export const ANALYTICS_ENABLED: boolean = Boolean(GA_ID || CLARITY_ID);
+
+/**
+ * Pages where Clarity may record: public marketing and content pages only.
+ * Signed-in pages (artworks, matches, account, admin) are never recorded.
+ */
+const CLARITY_PUBLIC_PREFIXES = [
+  "/pricing",
+  "/guides",
+  "/blog",
+  "/about",
+  "/for",
+  "/help",
+];
+
+export function isClarityPublicPath(pathname: string): boolean {
+  if (pathname === "/") return true;
+  return CLARITY_PUBLIC_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
 /** Optional Google Search Console HTML-tag verification token. */
 export const SEARCH_CONSOLE_TOKEN: string =
   process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim() ?? "";

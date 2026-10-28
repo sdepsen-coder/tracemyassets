@@ -3,15 +3,23 @@
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
-import { GA_ID } from "@/lib/site";
+import {
+  ANALYTICS_ENABLED,
+  CLARITY_ID,
+  GA_ID,
+  isClarityPublicPath,
+} from "@/lib/site";
 
 /**
- * Optional Google Analytics 4 behind a consent banner.
+ * Optional Google Analytics 4 and Microsoft Clarity behind a consent banner.
  *
- * - Off entirely unless NEXT_PUBLIC_GA_ID is set at build time.
- * - Nothing from Google is loaded, and no analytics cookie is written,
- *   until the visitor presses Accept (Consent Mode v2: analytics_storage
- *   and all ad storage stay "denied").
+ * - Each is off entirely unless NEXT_PUBLIC_GA_ID / NEXT_PUBLIC_CLARITY_ID is
+ *   set at build time.
+ * - Nothing from Google or Microsoft is loaded, and no analytics cookie is
+ *   written, until the visitor presses Accept (GA Consent Mode v2: ad storage
+ *   stays "denied").
+ * - Clarity (heatmaps and session recordings) records public marketing and
+ *   content pages only; it is stopped on signed-in pages.
  * - The choice is kept in localStorage; "Cookie settings" in the footer
  *   reopens the banner. The admin area is never tracked.
  */
@@ -65,6 +73,7 @@ function clearAnalyticsCookies() {
 }
 
 function loadGoogleAnalytics() {
+  if (!GA_ID) return;
   const w = gw();
 
   w[`ga-disable-${GA_ID}`] = false;
@@ -100,11 +109,63 @@ function loadGoogleAnalytics() {
 }
 
 function stopGoogleAnalytics() {
+  if (!GA_ID) return;
   const w = gw();
 
   w[`ga-disable-${GA_ID}`] = true;
   w.gtag?.("consent", "update", { analytics_storage: "denied" });
   clearAnalyticsCookies();
+}
+
+type ClarityFn = ((...args: unknown[]) => void) & { q?: unknown[] };
+type ClarityWindow = Window & { clarity?: ClarityFn };
+
+function clearClarityCookies() {
+  const host = window.location.hostname;
+  const domains = [host, `.${host}`, `.${host.split(".").slice(-2).join(".")}`];
+
+  for (const part of document.cookie.split(";")) {
+    const name = part.split("=")[0]?.trim();
+
+    if (name === "_clck" || name === "_clsk") {
+      for (const domain of domains) {
+        document.cookie = `${name}=; Max-Age=0; path=/; domain=${domain}`;
+      }
+      document.cookie = `${name}=; Max-Age=0; path=/`;
+    }
+  }
+}
+
+function loadClarity() {
+  const w = window as unknown as ClarityWindow;
+
+  if (w.clarity) {
+    w.clarity("start");
+    return;
+  }
+
+  w.clarity = function clarity() {
+    // Clarity's tag queues the real `arguments` object.
+    // eslint-disable-next-line prefer-rest-params
+    (w.clarity!.q = w.clarity!.q || []).push(arguments);
+  } as ClarityFn;
+
+  const script = document.createElement("script");
+  script.async = true;
+  script.src = `https://www.clarity.ms/tag/${encodeURIComponent(CLARITY_ID)}`;
+  document.head.appendChild(script);
+}
+
+function pauseClarity() {
+  const w = window as unknown as ClarityWindow;
+  w.clarity?.("stop");
+}
+
+function stopClarity() {
+  const w = window as unknown as ClarityWindow;
+  w.clarity?.("consent", false);
+  w.clarity?.("stop");
+  clearClarityCookies();
 }
 
 export function Analytics() {
@@ -115,7 +176,7 @@ export function Analytics() {
 
   // Read the stored choice after hydration.
   useEffect(() => {
-    if (!GA_ID) return;
+    if (!ANALYTICS_ENABLED) return;
 
     const stored = readChoice();
     setChoice(stored);
@@ -124,7 +185,7 @@ export function Analytics() {
   }, []);
 
   useEffect(() => {
-    if (!GA_ID) return;
+    if (!ANALYTICS_ENABLED) return;
 
     const reopen = () => setBannerOpen(true);
     window.addEventListener(OPEN_COOKIE_SETTINGS_EVENT, reopen);
@@ -133,14 +194,26 @@ export function Analytics() {
 
   // Load or stop analytics when the choice changes.
   useEffect(() => {
-    if (!GA_ID || !ready) return;
+    if (!ANALYTICS_ENABLED || !ready) return;
 
     if (choice === "granted") {
       loadGoogleAnalytics();
     } else if (choice === "denied") {
       stopGoogleAnalytics();
+      if (CLARITY_ID) stopClarity();
     }
   }, [choice, ready]);
+
+  // Clarity runs on public pages only, and only after Accept.
+  useEffect(() => {
+    if (!CLARITY_ID || !ready || choice !== "granted" || !pathname) return;
+
+    if (isClarityPublicPath(pathname)) {
+      loadClarity();
+    } else {
+      pauseClarity();
+    }
+  }, [choice, ready, pathname]);
 
   // One page_view per route, never for the admin area.
   useEffect(() => {
@@ -160,7 +233,7 @@ export function Analytics() {
     setBannerOpen(false);
   }, []);
 
-  if (!GA_ID || !ready || !bannerOpen) return null;
+  if (!ANALYTICS_ENABLED || !ready || !bannerOpen) return null;
 
   return (
     <div
@@ -171,8 +244,10 @@ export function Analytics() {
     >
       <div className="mx-auto flex max-w-3xl flex-col gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 text-[13px] leading-relaxed text-[var(--text)] shadow-2xl sm:flex-row sm:items-center sm:gap-5">
         <p className="flex-1 text-[var(--text-muted)]">
-          We would like to use Google Analytics cookies to see which pages are
-          useful and to fix what is not. Nothing is loaded unless you accept.
+          We would like to use analytics cookies (Google Analytics and Microsoft
+          Clarity) to see which pages are useful and to fix what is not. Clarity
+          records how visitors use our public pages, such as clicks and scrolling.
+          Nothing is loaded unless you accept.
           Signing in needs only a session cookie, which is always on. See our{" "}
           <a href="/privacy" className="underline hover:text-[var(--text)]">
             Privacy page
