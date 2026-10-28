@@ -14,6 +14,7 @@ import { RedbubbleGuide } from "@/components/guides/RedbubbleGuide";
 import { StopAiTrainingGuide } from "@/components/guides/StopAiTrainingGuide";
 import { TineyeFirstPostedGuide } from "@/components/guides/TineyeFirstPostedGuide";
 import { TemuGuide } from "@/components/guides/TemuGuide";
+import { VisibleVsInvisibleGuide } from "@/components/guides/VisibleVsInvisibleGuide";
 import { WatermarkSurvivesGuide } from "@/components/guides/WatermarkSurvivesGuide";
 import { PostPage } from "@/components/guides/PostPage";
 import { GUIDES_SECTION } from "@/components/guides/sections";
@@ -37,6 +38,7 @@ const BODIES: Record<string, ComponentType> = {
   "dmca-takedown-notice-template-for-artists": DmcaTemplateGuide,
   "how-to-report-your-artwork-on-redbubble": RedbubbleGuide,
   "how-to-report-your-artwork-on-temu": TemuGuide,
+  "visible-or-invisible-watermark-for-artists": VisibleVsInvisibleGuide,
 };
 
 export function generateStaticParams(): Params[] {

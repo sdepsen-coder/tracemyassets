@@ -227,6 +227,19 @@ export const GUIDES: Guide[] = [
       "how-to-report-your-artwork-on-redbubble",
     ],
   },
+  {
+    slug: "visible-or-invisible-watermark-for-artists",
+    topic: "mark",
+    title: "Visible or invisible watermark: which should an artist use?",
+    description:
+      "A visible mark is read by people and an invisible one by software. What each does, what each cannot do, and a simple way to choose for the images you post.",
+    datePublished: "2026-10-28",
+    dateModified: "2026-10-28",
+    related: [
+      "what-an-invisible-watermark-survives",
+      "how-to-prove-you-made-your-artwork",
+    ],
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {
