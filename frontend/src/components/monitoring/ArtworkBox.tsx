@@ -528,13 +528,23 @@ export function ArtworkBox({
           <div className="text-right">
             <CostLine>{standardScanCost(usage)}</CostLine>
           </div>
-        </div>
-      )}
 
-      {!archived && !canStandardScan && canDeepScan && (
-        <p className="mt-2 text-right text-[12px] text-[var(--text-muted)]">
-          {deepScanCost(credits)} — in the ⋯ menu
-        </p>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border)] pt-3">
+            <span className="text-[12px] text-[var(--text-muted)]">
+              {deepScanCost(credits)}
+            </span>
+            <Pill
+              size="sm"
+              variant="secondary"
+              icon="radar"
+              disabled={!canDeepScan || Boolean(scanning)}
+              onClick={() => void scan("deep")}
+              className="whitespace-nowrap"
+            >
+              {scanning === "deep" ? "Scanning…" : "Deep scan"}
+            </Pill>
+          </div>
+        </div>
       )}
     </article>
   );

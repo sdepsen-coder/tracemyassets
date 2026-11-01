@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { Wordmark } from "@/components/app/brand";
 import { SiteFooter } from "@/components/SiteFooter";
+import { TrackedLink } from "@/components/guides/TrackedLink";
 import Link from "next/link";
 
 /**
@@ -42,12 +43,13 @@ export function GuideShell({
             >
               Blog
             </Link>
-            <Link
-              href="/"
-              className="inline-flex h-10 items-center rounded-full border border-[var(--line-strong)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)] sm:px-5"
+            <TrackedLink
+              href="/?auth=register"
+              placement="header"
+              className="inline-flex h-10 items-center rounded-full bg-[var(--primary-strong)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85 sm:px-5"
             >
-              Home
-            </Link>
+              Start free
+            </TrackedLink>
           </nav>
         </div>
       </header>

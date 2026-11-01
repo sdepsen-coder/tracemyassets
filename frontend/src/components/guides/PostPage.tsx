@@ -4,6 +4,7 @@ import type { ComponentType } from "react";
 import { GuideArt, ART_BG } from "@/components/guides/GuideArt";
 import { GuideShell } from "@/components/guides/GuideShell";
 import { PostNav } from "@/components/guides/PostNav";
+import { TrackedLink } from "@/components/guides/TrackedLink";
 import type { Section } from "@/components/guides/sections";
 import { JsonLd } from "@/components/JsonLd";
 import { TOPIC_LABEL, type Post } from "@/lib/guides";
@@ -105,6 +106,29 @@ export function PostPage({
             </div>
           </header>
 
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-5 py-4">
+            <p className="max-w-md text-[14px] leading-relaxed text-[var(--text-muted)]">
+              Want to check your own artwork? Register it free and scan for
+              copies. No credit card needed.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <TrackedLink
+                href="/?auth=register"
+                placement="post-top"
+                className="inline-flex h-10 items-center justify-center rounded-full bg-[var(--primary-strong)] px-5 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85"
+              >
+                Start free
+              </TrackedLink>
+              <TrackedLink
+                href="/pricing"
+                placement="post-top-pricing"
+                className="inline-flex h-10 items-center justify-center rounded-full border border-[var(--line-strong)] px-5 text-[11px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)]"
+              >
+                See pricing
+              </TrackedLink>
+            </div>
+          </div>
+
           <div className="space-y-10">
             <Body />
           </div>
@@ -140,9 +164,18 @@ export function PostPage({
               Register it, add an invisible watermark and review possible copies.
               You decide what to do. No credit card needed.
             </p>
-            <Link href="/?auth=register" className={`mt-5 ${CTA_CLASS}`}>
-              Start free
-            </Link>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <TrackedLink href="/?auth=register" placement="post-end" className={CTA_CLASS}>
+                Start free
+              </TrackedLink>
+              <TrackedLink
+                href="/pricing"
+                placement="post-end-pricing"
+                className="inline-flex h-12 items-center justify-center rounded-full border border-[#111]/30 px-7 text-[12px] font-medium uppercase tracking-[0.08em] text-[#111] transition hover:bg-black/5"
+              >
+                See pricing
+              </TrackedLink>
+            </div>
           </div>
         </article>
 

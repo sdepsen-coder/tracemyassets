@@ -30,12 +30,20 @@ export function LegalPage({
         <div className="glass mx-auto flex h-16 max-w-[1200px] items-center justify-between rounded-2xl border border-[var(--border)] px-4 shadow-[0_10px_40px_rgb(0_0_0/0.05)] sm:px-5">
           <Wordmark />
 
-          <Link
-            href="/"
-            className="inline-flex h-10 items-center rounded-full border border-[var(--line-strong)] px-5 text-[11px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)]"
-          >
-            Home
-          </Link>
+          <nav className="flex items-center gap-1 sm:gap-2" aria-label="Main">
+            <Link
+              href="/pricing"
+              className="inline-flex h-10 items-center rounded-full px-3 text-[13px] transition hover:bg-[var(--surface-muted)] sm:px-4"
+            >
+              Pricing
+            </Link>
+            <Link
+              href="/"
+              className="inline-flex h-10 items-center rounded-full border border-[var(--line-strong)] px-5 text-[11px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)]"
+            >
+              Home
+            </Link>
+          </nav>
         </div>
       </header>
 

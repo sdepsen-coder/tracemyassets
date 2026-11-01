@@ -120,6 +120,13 @@ export function Topbar() {
 
         <div className="flex shrink-0 items-center gap-2">
           <Link
+            href="/pricing"
+            className="hidden h-10 items-center rounded-full px-3.5 text-[14px] text-[var(--text-muted)] transition hover:text-[var(--text)] sm:inline-flex"
+          >
+            Pricing
+          </Link>
+
+          <Link
             href="/protect"
             className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[var(--primary-strong)] px-3 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85 sm:px-5"
           >
