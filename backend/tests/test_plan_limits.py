@@ -18,8 +18,15 @@ class GetPlanLimitsTests(unittest.TestCase):
         self.assertNotIn("daily", limits.allowed_scan_frequencies)
         self.assertIn("weekly", limits.allowed_scan_frequencies)
 
-    def test_pro_plan_allows_daily(self) -> None:
+    def test_pro_plan_excludes_daily(self) -> None:
         limits = get_plan_limits("Pro")
+
+        self.assertNotIn("daily", limits.allowed_scan_frequencies)
+        self.assertIn("weekly", limits.allowed_scan_frequencies)
+        self.assertIn("monthly", limits.allowed_scan_frequencies)
+
+    def test_extra_plan_allows_daily(self) -> None:
+        limits = get_plan_limits("Extra")
 
         self.assertIn("daily", limits.allowed_scan_frequencies)
 

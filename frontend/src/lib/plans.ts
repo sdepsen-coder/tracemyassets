@@ -53,7 +53,7 @@ export const PLANS: PlanCard[] = [
     highlight: true,
     features: [
       "Up to 40 artworks",
-      "Automatic checks daily, weekly or monthly",
+      "Automatic checks weekly or monthly",
       "30 hand-started Standard scans a month",
       "10 Deep scan credits every month",
       "See exactly where each match was found, with a link",

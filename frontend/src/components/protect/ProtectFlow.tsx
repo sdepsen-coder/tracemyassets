@@ -663,7 +663,7 @@ export function ProtectFlow() {
                         disabled={locked}
                         onClick={() => setFrequency(option)}
                         aria-pressed={frequency === option}
-                        title={locked ? "Daily scans come with Pro and Extra" : undefined}
+                        title={locked ? "Daily scans come with Extra" : undefined}
                         className={[
                           "inline-flex h-9 items-center gap-1 rounded-full px-4 text-[14px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-50",
                           frequency === option
@@ -673,7 +673,7 @@ export function ProtectFlow() {
                       >
                         {locked && <Icon name="lock" className="text-[15px]" />}
                         {FREQUENCY_LABEL[option]}
-                        {locked && <span className="font-normal">· Pro</span>}
+                        {locked && <span className="font-normal">· Extra</span>}
                       </button>
                     );
                   })}

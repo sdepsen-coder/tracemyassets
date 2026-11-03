@@ -318,7 +318,7 @@ export function ArtworkBox({
                           key={option}
                           type="button"
                           disabled={locked || saving}
-                          title={locked ? "Daily scans come with Pro and Extra" : undefined}
+                          title={locked ? "Daily scans come with Extra" : undefined}
                           onClick={() => {
                             setMenuOpen(false);
                             void saveMonitoring(true, option);

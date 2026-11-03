@@ -91,7 +91,7 @@ export default async function UseCasePage({
         <LegalList
           items={[
             "Your original stays private. You get a protected copy with an invisible watermark to share instead.",
-            "Automatic scans of the public web, daily on Pro and Extra, weekly or monthly on every plan.",
+            "Automatic scans of the public web, daily on Extra, weekly or monthly on every plan.",
             "An email with a count and a link when a scheduled scan finds something new.",
             "Each match next to your original, with how strong it is. On paid plans you also see where it was found.",
             "You decide what to do. We never contact anyone on your behalf.",
@@ -127,8 +127,8 @@ export default async function UseCasePage({
       <LegalSection heading="Plans">
         <p>
           The Free plan covers up to 3 artworks with no card. Pro and Extra
-          add more artworks, daily scans, more Deep scan credits and the page where
-          each match was found.{" "}
+          add more artworks, more Deep scan credits and the page where each match
+          was found. Extra adds daily scans.{" "}
           <Link href="/pricing" className="text-[var(--primary)] underline">
             Compare the plans
           </Link>

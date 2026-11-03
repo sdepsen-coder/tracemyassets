@@ -18,9 +18,9 @@ export const FREQUENCY_LABEL: Record<Frequency, string> = {
   monthly: "Monthly",
 };
 
-/** The server enforces this too (app/core/plan_limits.py); Free has no daily. */
+/** The server enforces this too (app/core/plan_limits.py); only Extra has daily. */
 export function allowsDaily(planType: string): boolean {
-  return planType !== "Free";
+  return planType === "Extra" || planType === "Internal";
 }
 
 export const DEFAULT_THRESHOLD = 80;

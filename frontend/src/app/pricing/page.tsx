@@ -32,7 +32,7 @@ const QUESTIONS: Array<{ question: string; answer: string }> = [
   {
     question: "How often are my artworks scanned automatically?",
     answer:
-      "Free accounts can choose weekly or monthly. Pro and Extra can also choose daily. When a scheduled scan finds something new, we email you a count and a link to your matches. Scans cover public web pages that search engines have indexed; a match is a possible match for you to review, not proof of copying.",
+      "Free and Pro accounts can choose weekly or monthly. Extra can also choose daily. When a scheduled scan finds something new, we email you a count and a link to your matches. Scans cover public web pages that search engines have indexed; a match is a possible match for you to review, not proof of copying.",
   },
   {
     question: "Is there a yearly option?",

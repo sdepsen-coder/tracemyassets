@@ -168,7 +168,7 @@ const GROUPS: Group[] = [
         answer: (
           <p>
             Each artwork has its own monitoring settings: you choose the
-            frequency (daily on Pro and Extra, weekly or monthly on every
+            frequency (daily on Extra, weekly or monthly on every
             plan, Free included) and the similarity
             level at which a result is worth flagging. You can also run a
             scan yourself (within your monthly allowance of hand-started

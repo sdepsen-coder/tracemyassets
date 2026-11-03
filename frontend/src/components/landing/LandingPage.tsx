@@ -44,7 +44,7 @@ const STEPS = [
   {
     number: "02",
     title: "We keep watching",
-    body: "Choose how often your artwork is scanned automatically: daily on Pro and Extra, weekly or monthly on every plan. When a scheduled scan finds something new, we email you a count and a link.",
+    body: "Choose how often your artwork is scanned automatically: daily on Extra, weekly or monthly on every plan. When a scheduled scan finds something new, we email you a count and a link.",
   },
   {
     number: "03",

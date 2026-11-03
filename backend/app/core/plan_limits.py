@@ -11,10 +11,9 @@ a locked business decision:
   per free user per month -- comfortably inside Google Vision's free
   1,000/month tier even with a good number of free signups, per the
   cost discussion in the master prompt (Bolum 8C/8G).
-- Pro: daily scans allowed, up to 40 monitored assets. Daily on all 40
-  is ~1,200 Vision queries a month for one customer, so a few heavy Pro
-  users go past the free Vision tier (the paid rate is small next to the
-  Pro price). The number is whatever asset volume feels right to sell.
+- Pro: weekly/monthly scans, up to 40 monitored assets. Weekly on all
+  40 is about 160 Vision queries a month for one customer. Daily scans
+  are kept for Extra.
 - reveals_match_source: Free users see that a match was found and how
   strong it is (similarity, watermark/signal fields all stay visible
   -- see Bolum 3, we never hide the honest technical signal), but not
@@ -26,7 +25,8 @@ a locked business decision:
   through SerpApi), which costs real money per search. Every plan may;
   what limits it is credits (see app.services.credits), not the plan.
   The flag stays so a plan can still be switched off.
-- Extra: the top paid plan. Daily scans, up to 100 monitored assets.
+- Extra: the top paid plan. The only plan with daily scans, up to 100
+  monitored assets.
 - manual_scans_per_month: how many times a month the owner may press
   "Standard scan" by hand (None = no limit). Scheduled scans never count
   against it, and a Deep scan is paid for with credits instead.
@@ -70,9 +70,7 @@ PLAN_LIMITS: dict[str, PlanLimits] = {
     ),
     "Pro": PlanLimits(
         max_monitored_assets=40,
-        allowed_scan_frequencies=frozenset(
-            {"daily", "weekly", "monthly"}
-        ),
+        allowed_scan_frequencies=frozenset({"weekly", "monthly"}),
         reveals_match_source=True,
         allows_deep_scan=True,
         manual_scans_per_month=30,
