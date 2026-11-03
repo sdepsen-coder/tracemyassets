@@ -43,6 +43,7 @@ from app.models.user_suspension import UserSuspension
 from app.services import email_verification, user_events
 from app.services.abuse_limits import check_signup_allowed
 from app.services.email_identity import canonical_email, is_blocked_domain
+from app.services.signup_attribution import clean_ref, record_signup_ref
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -55,6 +56,9 @@ USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo"
 STATE_COOKIE = "tma_oauth_state"
 VERIFIER_COOKIE = "tma_oauth_verifier"
 NEXT_COOKIE = "tma_oauth_next"
+# The "?ref=" tag of the link that brought the person here, kept only for
+# the few minutes the Google round trip takes.
+REF_COOKIE = "tma_oauth_ref"
 
 # Where a successful sign-in may continue. Only these fixed paths are
 # accepted, so the "next" parameter can never send anyone off-site.
@@ -86,7 +90,7 @@ def _failure(reason: str) -> RedirectResponse:
 
 
 def _clear_flow_cookies(response: RedirectResponse) -> None:
-    for name in (STATE_COOKIE, VERIFIER_COOKIE, NEXT_COOKIE):
+    for name in (STATE_COOKIE, VERIFIER_COOKIE, NEXT_COOKIE, REF_COOKIE):
         response.delete_cookie(
             key=name,
             path=COOKIE_PATH,
@@ -122,7 +126,10 @@ def read_providers() -> ProvidersRead:
 
 
 @router.get("/google/start")
-def google_start(next: str | None = None) -> RedirectResponse:
+def google_start(
+    next: str | None = None,
+    ref: str | None = None,
+) -> RedirectResponse:
     if not google_enabled():
         return _failure("google_unavailable")
 
@@ -147,6 +154,10 @@ def google_start(next: str | None = None) -> RedirectResponse:
     _set_flow_cookie(response, VERIFIER_COOKIE, verifier)
     if next in ALLOWED_NEXT:
         _set_flow_cookie(response, NEXT_COOKIE, next)
+
+    cleaned_ref = clean_ref(ref)
+    if cleaned_ref is not None:
+        _set_flow_cookie(response, REF_COOKIE, cleaned_ref)
     return response
 
 
@@ -298,6 +309,10 @@ def google_callback(
 
     # Google has already checked that this person owns the address.
     email_verification.mark_verified(db, user.id)
+
+    if created:
+        record_signup_ref(db, user.id, request.cookies.get(REF_COOKIE))
+
     db.commit()
 
     user_events.record_event(

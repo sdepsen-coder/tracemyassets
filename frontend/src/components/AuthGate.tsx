@@ -17,6 +17,7 @@ import { GlassArt } from "@/components/app/GlassArt";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { SiteFooter } from "@/components/SiteFooter";
 import { api, ApiError, type User } from "@/lib/api";
+import { captureSignupRef, getSignupRef } from "@/lib/signupRef";
 
 type AuthContextValue = {
   user: User;
@@ -84,6 +85,30 @@ const GOOGLE_ERRORS: Record<string, string> = {
     "Too many accounts have been created from your network today. Please try again tomorrow.",
 };
 
+/**
+ * The Google sign-in link. It always carries the "?ref=" tag: Google creates
+ * the account when it is new, and the server only stores the tag then.
+ */
+function googleStartHref(googleNext: string | undefined): string {
+  const params = new URLSearchParams();
+
+  if (googleNext) {
+    params.set("next", googleNext);
+  }
+
+  const ref = getSignupRef();
+
+  if (ref) {
+    params.set("ref", ref);
+  }
+
+  const query = params.toString();
+
+  return query
+    ? `/api/v1/auth/google/start?${query}`
+    : "/api/v1/auth/google/start";
+}
+
 export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
   const router = useRouter();
   const [screen, setScreen] = useState<"landing" | "auth">("landing");
@@ -105,6 +130,11 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
 
   const authPending = useRef(false);
   const authEpoch = useRef(0);
+
+  useEffect(() => {
+    // "?ref=" tag of the link that brought the visitor (kept in memory only).
+    captureSignupRef(window.location.search);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -340,7 +370,7 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
       }
 
       if (mode === "register") {
-        await api.register(credentials);
+        await api.register({ ...credentials, ref: getSignupRef() });
 
         try {
           const user = await api.login(credentials);
@@ -521,11 +551,7 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
         {googleEnabled && mode !== "forgot" && (
           <>
             <a
-              href={
-                googleNext
-                  ? `/api/v1/auth/google/start?next=${encodeURIComponent(googleNext)}`
-                  : "/api/v1/auth/google/start"
-              }
+              href={googleStartHref(googleNext)}
               className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[var(--line-strong)] text-[12px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)]"
             >
               <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4">

@@ -190,7 +190,7 @@ export function UsersTab() {
         {!data ? (
           <p className="px-4 py-6 text-[14px]">Loading…</p>
         ) : (
-          <table className="w-full min-w-[960px] text-left text-[13px]">
+          <table className="w-full min-w-[1040px] text-left text-[13px]">
             <thead className="text-[11px] uppercase tracking-wide text-[var(--text-muted)]">
               <tr>
                 <th className="px-4 py-2 font-semibold">ID</th>
@@ -200,6 +200,7 @@ export function UsersTab() {
                 <th className="px-4 py-2 font-semibold">Renews / ends</th>
                 <th className="px-4 py-2 font-semibold">Credits</th>
                 <th className="px-4 py-2 font-semibold">Artworks</th>
+                <th className="px-4 py-2 font-semibold">Source</th>
                 <th className="px-4 py-2 font-semibold">Joined</th>
                 <th className="px-4 py-2 font-semibold">Last sign-in</th>
               </tr>
@@ -252,6 +253,9 @@ export function UsersTab() {
                   </td>
                   <td className="px-4 py-2">{user.credits}</td>
                   <td className="px-4 py-2">{user.assets}</td>
+                  <td className="whitespace-nowrap px-4 py-2 text-[var(--text-muted)]">
+                    {user.signup_ref ?? "-"}
+                  </td>
                   <td className="whitespace-nowrap px-4 py-2">
                     {formatDateTime(user.created_at)}
                   </td>
@@ -263,7 +267,7 @@ export function UsersTab() {
               {data.items.length === 0 && (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={10}
                     className="px-4 py-6 text-[var(--text-muted)]"
                   >
                     No accounts found.

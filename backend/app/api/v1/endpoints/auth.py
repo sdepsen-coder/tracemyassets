@@ -45,6 +45,7 @@ from app.core.security import (
 from app.models.password_reset import PasswordResetToken
 from app.models.signup_key import SignupKey
 from app.services.account_deletion import withhold_welcome_if_returning
+from app.services.signup_attribution import record_signup_ref
 from app.models.user import User
 from app.models.user_suspension import UserSuspension
 from app.services import email_verification, user_events
@@ -69,6 +70,9 @@ MAX_RESET_REQUESTS_PER_HOUR = 3
 class RegisterRequest(BaseModel):
     email: EmailStr = Field(max_length=255)
     password: str = Field(min_length=1, max_length=MAX_PASSWORD_LENGTH)
+    # Where the visitor came from (the "?ref=" tag of the link). Optional and
+    # never an error: a missing or odd value is simply not stored.
+    ref: str | None = Field(default=None, max_length=200)
 
 
 class LoginRequest(BaseModel):
@@ -167,6 +171,7 @@ def register(
         db.flush()
         db.add(SignupKey(canonical_email=mailbox, user_id=user.id))
         withhold_welcome_if_returning(db, user.id, mailbox)
+        record_signup_ref(db, user.id, payload.ref)
         db.commit()
     except IntegrityError as exc:
         db.rollback()

@@ -34,6 +34,7 @@ from app.models.match import Match
 from app.models.paddle import PaddleSubscription
 from app.models.password_reset import PasswordResetToken
 from app.models.session_cutoff import SessionCutoff
+from app.models.signup_attribution import SignupAttribution
 from app.models.signup_key import SignupKey
 from app.models.takedown import Takedown
 from app.models.user import User
@@ -139,6 +140,9 @@ def delete_account(db: Session, user: User) -> list[Path]:
     db.execute(delete(SessionCutoff).where(SessionCutoff.user_id == user_id))
     db.execute(delete(UserSuspension).where(UserSuspension.user_id == user_id))
     db.execute(delete(SignupKey).where(SignupKey.user_id == user_id))
+    db.execute(
+        delete(SignupAttribution).where(SignupAttribution.user_id == user_id)
+    )
 
     # The security log stays until its own 90 days are up, but no longer
     # points at a person.

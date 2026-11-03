@@ -17,6 +17,7 @@ def initialize_database() -> None:
         provider_usage,
         scan_job,
         session_cutoff,
+        signup_attribution,
         signup_key,
         takedown,
         user,

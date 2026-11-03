@@ -24,6 +24,7 @@ from app.models.feedback import FeedbackEntry
 from app.models.match_record import MatchRecord
 from app.models.monitoring import MonitoringPreference
 from app.models.scan_job import ScanJob
+from app.models.signup_attribution import SignupAttribution
 from app.models.user import User
 from app.models.user_event import UserEvent
 from app.services.asset_paths import original_file_path
@@ -113,6 +114,11 @@ def build_export(db: Session, user: User) -> Path:
 
     account = row_to_dict(user)
     account["email_verified"] = is_verified(db, user.id)
+
+    # The link tag the account came from (for example "hearked-bluesky"),
+    # kept so people can see everything we hold about them.
+    attribution = db.get(SignupAttribution, user.id)
+    account["signup_ref"] = attribution.ref if attribution else None
 
     handle = tempfile.NamedTemporaryFile(
         prefix="tma-export-", suffix=".zip", delete=False

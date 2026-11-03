@@ -30,6 +30,7 @@ from app.models.paddle import (
     PaddleTransaction,
 )
 from app.models.scan_job import ScanJob
+from app.models.signup_attribution import SignupAttribution
 from app.models.user import User
 from app.models.user_event import UserEvent
 from app.models.user_suspension import UserSuspension
@@ -161,6 +162,8 @@ class UserRow(BaseModel):
     suspended: bool
     is_admin: bool
     email_verified: bool = True
+    # The "?ref=" tag of the link the person signed up from, if any.
+    signup_ref: str | None = None
     # The user's current Paddle subscription, if any.
     subscription_status: str | None = None
     subscription_plan: str | None = None
@@ -537,6 +540,13 @@ def _user_rows(db: Session, users: list[User]) -> list[UserRow]:
             select(VerifiedUser.user_id).where(VerifiedUser.user_id.in_(ids))
         )
     )
+    signup_refs = dict(
+        db.execute(
+            select(SignupAttribution.user_id, SignupAttribution.ref).where(
+                SignupAttribution.user_id.in_(ids)
+            )
+        ).all()
+    )
     subscriptions = _current_subscriptions(db, ids)
 
     def subscription_fields(user_id: int) -> dict:
@@ -573,6 +583,7 @@ def _user_rows(db: Session, users: list[User]) -> list[UserRow]:
                 user.id in confirmed
                 or not settings.email_verification_required
             ),
+            signup_ref=signup_refs.get(user.id),
             **subscription_fields(user.id),
         )
         for user in users

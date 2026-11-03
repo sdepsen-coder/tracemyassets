@@ -88,6 +88,8 @@ export type AdminUserRow = {
   suspended: boolean;
   is_admin: boolean;
   email_verified: boolean;
+  /** The "?ref=" tag of the link the person signed up from, if any. */
+  signup_ref: string | null;
   subscription_status: string | null;
   subscription_plan: string | null;
   subscription_interval: string | null;
@@ -540,7 +542,7 @@ export const api = {
   assetStats: (signal?: AbortSignal) =>
     request<AssetStats>("/api/v1/assets/stats", { signal }),
 
-  register: (credentials: Credentials) =>
+  register: (credentials: Credentials & { ref?: string }) =>
     request<User>("/api/v1/auth/register", {
       method: "POST",
       body: JSON.stringify(credentials),
