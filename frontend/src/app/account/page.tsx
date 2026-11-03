@@ -15,6 +15,7 @@ import {
   type UsageInfo,
 } from "@/lib/api";
 import { CONTACT_EMAIL } from "@/lib/site";
+import { removeUrlParam, trackEvent } from "@/lib/track";
 
 // Artworks that can be on automatic scans, per plan (backend
 // core/plan_limits.py, max_monitored_assets). Internal has no limit.
@@ -80,6 +81,13 @@ function SubscriptionSection({ planType }: { planType: string }) {
 
         if (current.subscription) {
           setWaiting(false);
+
+          // The server has confirmed the payment: count it once.
+          trackEvent("purchase", {
+            item_type: "subscription",
+            plan: current.plan_type,
+          });
+          removeUrlParam("checkout");
 
           // The plan name in the header is read once; refresh it.
           if (current.plan_type !== planType) window.location.replace("/account");
@@ -241,6 +249,10 @@ function CreditsSection() {
 
         if (recent) {
           setWaiting(false);
+
+          // The server has confirmed the payment: count it once.
+          trackEvent("purchase", { item_type: "credit_pack" });
+          removeUrlParam("credits");
           return;
         }
 

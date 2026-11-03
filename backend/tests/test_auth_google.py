@@ -126,7 +126,7 @@ class GoogleSignInTests(unittest.TestCase):
         response, _ = self._callback(
             info=_resp(200, {"email": "new@example.com", "email_verified": True})
         )
-        self.assertEqual(response.headers["location"], "/monitoring")
+        self.assertEqual(response.headers["location"], "/monitoring?welcome=google")
 
         with self.Session() as db:
             user = db.scalar(select(User).where(User.email == "new@example.com"))
@@ -176,7 +176,7 @@ class GoogleSignInTests(unittest.TestCase):
             self.assertNotIn("tma_oauth_next", response.cookies)
 
         response, _ = self._callback(start_params={"next": "//evil.example"})
-        self.assertEqual(response.headers["location"], "/monitoring")
+        self.assertEqual(response.headers["location"], "/monitoring?welcome=google")
 
     def test_start_when_not_configured_goes_home_with_an_error(self) -> None:
         with mock.patch.object(settings, "google_client_id", ""):
@@ -191,7 +191,7 @@ class GoogleSignInTests(unittest.TestCase):
         response, sent = self._callback()
 
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.headers["location"], "/monitoring")
+        self.assertEqual(response.headers["location"], "/monitoring?welcome=google")
         self.assertIn("tma_session", response.cookies)
         self.assertEqual([u.email for u in self._users()], ["semsi@example.com"])
         self.assertEqual(sent["auth_header"], "Bearer at-123")
@@ -206,6 +206,14 @@ class GoogleSignInTests(unittest.TestCase):
         me = self.client.get("/api/v1/auth/me")
         self.assertEqual(me.status_code, 200)
         self.assertEqual(me.json()["email"], "semsi@example.com")
+
+    def test_only_a_new_account_is_marked_as_a_sign_up(self) -> None:
+        first, _ = self._callback()
+        self.assertEqual(first.headers["location"], "/monitoring?welcome=google")
+
+        # Signing in again with the same Google account is not a sign-up.
+        again, _ = self._callback()
+        self.assertEqual(again.headers["location"], "/monitoring")
 
     def test_existing_account_with_that_email_is_reused(self) -> None:
         with self.Session() as db:

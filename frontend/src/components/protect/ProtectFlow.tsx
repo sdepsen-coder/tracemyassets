@@ -30,6 +30,7 @@ import {
   type UsageInfo,
 } from "@/lib/api";
 import { countCards } from "@/lib/matchGroups";
+import { trackEvent } from "@/lib/track";
 import {
   allowsDaily,
   deepScanCost,
@@ -346,6 +347,7 @@ export function ProtectFlow() {
 
     try {
       setAsset(await api.uploadAsset(title, file));
+      trackEvent("artwork_uploaded");
     } catch (err) {
       setStep("upload");
       await handleApiError(err, "The artwork could not be uploaded.");
@@ -405,6 +407,7 @@ export function ProtectFlow() {
 
       setScan(result);
       setStep("result");
+      trackEvent("scan_completed", { kind: scanKind });
     } catch (err) {
       await handleApiError(err, "The scan could not be completed.");
     } finally {

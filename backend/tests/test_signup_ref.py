@@ -177,7 +177,7 @@ class SignupRefTests(unittest.TestCase):
     def test_google_sign_up_stores_the_tag(self) -> None:
         response = self.google_signup("g@example.com", ref="hearked-reddit")
 
-        self.assertEqual(response.headers["location"], "/monitoring")
+        self.assertEqual(response.headers["location"], "/monitoring?welcome=google")
         self.assertEqual(self.ref_of("g@example.com"), "hearked-reddit")
 
     def test_google_sign_in_does_not_tag_an_existing_account(self) -> None:
@@ -190,7 +190,7 @@ class SignupRefTests(unittest.TestCase):
     def test_google_with_a_bad_tag_still_signs_up(self) -> None:
         response = self.google_signup("g@example.com", ref="<b>x</b>")
 
-        self.assertEqual(response.headers["location"], "/monitoring")
+        self.assertEqual(response.headers["location"], "/monitoring?welcome=google")
         self.assertIsNone(self.ref_of("g@example.com"))
 
     def test_the_tag_cookie_is_cleared_after_the_round_trip(self) -> None:

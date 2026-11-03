@@ -5,6 +5,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { api } from "@/lib/api";
+import { trackEvent } from "@/lib/track";
 
 type State = "working" | "done" | "failed";
 
@@ -25,7 +26,10 @@ function VerifyEmail() {
     api
       .verifyEmail(token)
       .then(() => {
-        if (!controller.signal.aborted) setState("done");
+        if (controller.signal.aborted) return;
+
+        setState("done");
+        trackEvent("email_verified");
       })
       .catch((err) => {
         if (controller.signal.aborted) return;

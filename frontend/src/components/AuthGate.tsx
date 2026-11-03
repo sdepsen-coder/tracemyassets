@@ -18,6 +18,7 @@ import { PasswordInput } from "@/components/auth/PasswordInput";
 import { SiteFooter } from "@/components/SiteFooter";
 import { api, ApiError, type User } from "@/lib/api";
 import { captureSignupRef, getSignupRef } from "@/lib/signupRef";
+import { trackEvent } from "@/lib/track";
 
 type AuthContextValue = {
   user: User;
@@ -134,6 +135,24 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
   useEffect(() => {
     // "?ref=" tag of the link that brought the visitor (kept in memory only).
     captureSignupRef(window.location.search);
+  }, []);
+
+  useEffect(() => {
+    // The server adds "?welcome=google" when Google has just created a new
+    // account: count the sign-up once and remove the marker from the address.
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("welcome") !== "google") return;
+
+    params.delete("welcome");
+    const rest = params.toString();
+    window.history.replaceState(
+      null,
+      "",
+      window.location.pathname + (rest ? `?${rest}` : ""),
+    );
+
+    trackEvent("sign_up", { method: "google", signup_ref: getSignupRef() });
   }, []);
 
   useEffect(() => {
@@ -371,6 +390,7 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
 
       if (mode === "register") {
         await api.register({ ...credentials, ref: getSignupRef() });
+        trackEvent("sign_up", { method: "email", signup_ref: getSignupRef() });
 
         try {
           const user = await api.login(credentials);

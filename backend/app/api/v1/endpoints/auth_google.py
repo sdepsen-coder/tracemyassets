@@ -327,7 +327,15 @@ def google_callback(
     if next_path not in ALLOWED_NEXT:
         next_path = DEFAULT_NEXT
 
-    response = RedirectResponse(next_path, status_code=302)
+    # A brand-new account is marked in the address ("?welcome=google") so the
+    # page can count the sign-up once; the page removes the marker again.
+    landing = (
+        f"{next_path}?welcome=google"
+        if created and next_path == DEFAULT_NEXT
+        else next_path
+    )
+
+    response = RedirectResponse(landing, status_code=302)
     set_session_cookie(
         response, create_access_token(user.id, via="google")
     )

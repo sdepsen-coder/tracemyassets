@@ -1,4 +1,5 @@
 import type { BillingConfig } from "@/lib/api";
+import { trackEvent } from "@/lib/track";
 
 /**
  * Paddle's checkout (Paddle.js). Paddle is the seller: it takes the
@@ -82,6 +83,8 @@ export async function startCheckout(
 
   const paddle = await loadPaddle(config);
 
+  trackEvent("begin_checkout", { item_type: "subscription", plan, interval });
+
   paddle.Checkout.open({
     items: [{ priceId, quantity: 1 }],
     customer: { email: who.email },
@@ -105,6 +108,8 @@ export async function startPackCheckout(
   }
 
   const paddle = await loadPaddle(config);
+
+  trackEvent("begin_checkout", { item_type: "credit_pack" });
 
   paddle.Checkout.open({
     items: [{ priceId, quantity: 1 }],
