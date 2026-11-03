@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { ComponentType } from "react";
 
+import { ArtForSaleOnlinePost } from "@/components/blog/ArtForSaleOnlinePost";
+import { GoogleAlertsImagesPost } from "@/components/blog/GoogleAlertsImagesPost";
+import { MonitorFirstPost } from "@/components/blog/MonitorFirstPost";
 import { AiTrainingEvidencePost } from "@/components/blog/AiTrainingEvidencePost";
 import { PodReappearPost } from "@/components/blog/PodReappearPost";
 import { UkEuTakedownPost } from "@/components/blog/UkEuTakedownPost";
@@ -19,6 +22,9 @@ const BODIES: Record<string, ComponentType> = {
   "ai-training-and-your-art-what-the-evidence-says": AiTrainingEvidencePost,
   "taking-down-a-copy-of-your-art-in-the-uk-and-eu": UkEuTakedownPost,
   "why-stolen-art-keeps-reappearing-on-print-on-demand-sites": PodReappearPost,
+  "google-alerts-for-images": GoogleAlertsImagesPost,
+  "how-to-find-out-if-someone-is-selling-your-art-online": ArtForSaleOnlinePost,
+  "which-artworks-should-you-monitor-first": MonitorFirstPost,
 };
 
 export function generateStaticParams(): Params[] {

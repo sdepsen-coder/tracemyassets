@@ -58,6 +58,45 @@ export const BLOG_POSTS: Post[] = [
       "three-ways-to-find-copies-of-your-artwork",
     ],
   },
+  {
+    slug: "google-alerts-for-images",
+    topic: "find",
+    title: "Google Alerts for images: how to get notified when your art appears online",
+    description:
+      "Google Alerts follows search terms, not uploaded images. How to combine a reverse image search with a repeatable routine or scheduled scans, and what an image alert cannot tell you.",
+    datePublished: "2026-11-03",
+    dateModified: "2026-11-03",
+    related: [
+      "three-ways-to-find-copies-of-your-artwork",
+      "which-artworks-should-you-monitor-first",
+    ],
+  },
+  {
+    slug: "how-to-find-out-if-someone-is-selling-your-art-online",
+    topic: "find",
+    title: "How to find out if someone is selling your art online",
+    description:
+      "Start with your original, review possible matches, then read the listing behind each result and check your own permissions record. How to tell your own listings from unlicensed use, and what to save.",
+    datePublished: "2026-11-03",
+    dateModified: "2026-11-03",
+    related: [
+      "why-stolen-art-keeps-reappearing-on-print-on-demand-sites",
+      "google-alerts-for-images",
+    ],
+  },
+  {
+    slug: "which-artworks-should-you-monitor-first",
+    topic: "find",
+    title: "Which artworks should you monitor first? A practical guide for selling artists",
+    description:
+      "Choose a first monitoring list from previously copied work, bestsellers, current releases and licensed pieces, then turn it into a routine. A suggested order, not a risk score.",
+    datePublished: "2026-11-03",
+    dateModified: "2026-11-03",
+    related: [
+      "google-alerts-for-images",
+      "how-to-find-out-if-someone-is-selling-your-art-online",
+    ],
+  },
 ];
 
 export function getBlogPost(slug: string): Post | undefined {
