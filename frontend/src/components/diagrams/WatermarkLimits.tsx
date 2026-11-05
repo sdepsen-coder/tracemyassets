@@ -25,10 +25,9 @@ export function WatermarkLimits({ className = "" }: { className?: string }) {
         </p>
         <p className="mt-3 text-[16px] leading-7 text-[var(--text-muted)]">
           It is usually lost when an image is resized, cropped, rotated,
-          mirrored, brightened, compressed harder or re-created with AI tools
-          (we have not tested that last one). That is why we never rely on it
-          alone: every copy we find is also compared with your original by how
-          it looks.
+          mirrored, brightened or compressed harder. That is why we never rely on
+          it alone: every copy we find is also compared with your original by
+          how it looks.
         </p>
         <p className="mt-3 text-[13px] leading-5 text-[var(--text-muted)]">
           <Link

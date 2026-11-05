@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { ScanComparison } from "@/components/diagrams/ScanComparison";
 import { WatermarkSurvival } from "@/components/diagrams/WatermarkSurvival";
 import { JsonLd } from "@/components/JsonLd";
 import { LegalPage } from "@/components/legal/LegalPage";
@@ -141,7 +140,6 @@ const GROUPS: Group[] = [
               the same way before it counts as a match. We have not measured
               how many copies each scan finds, so we do not quote a rate.
             </p>
-            <ScanComparison />
           </>
         ),
       },

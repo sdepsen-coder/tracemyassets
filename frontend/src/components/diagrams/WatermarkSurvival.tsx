@@ -53,16 +53,6 @@ export const SURVIVAL_GROUPS: Group[] = [
     title: "Screenshot-like",
     items: [{ label: "Half size, then JPEG quality 80", outcome: "lost" }],
   },
-  {
-    title: "Re-created with AI tools",
-    items: [
-      {
-        label: "Image re-created with an AI tool",
-        outcome: "untested",
-        detail: "a known way marks like this can be removed; not tested by us",
-      },
-    ],
-  },
 ];
 
 const OUTCOME_WORD: Record<Outcome, string> = {
@@ -165,7 +155,7 @@ function Strip({ uid, layout }: { uid: string; layout: StripLayout }) {
     <Diagram
       viewBox={[width + 2, height + 2]}
       title="What the invisible mark survives"
-      description="One box per tested edit, in groups. Green boxes with a tick: the mark could still be read. Red boxes with a cross: the mark was lost. Dashed grey box with a question mark: not tested. It survived lossless saving, high-quality JPEG and WEBP, contrast and colour changes. It was lost on resizing, cropping, rotating, mirroring, a brightness change, stronger compression and screenshot-like copies."
+      description="One box per tested edit, in groups. Green boxes with a tick: the mark could still be read. Red boxes with a cross: the mark was lost. It survived lossless saving, high-quality JPEG and WEBP, contrast and colour changes. It was lost on resizing, cropping, rotating, mirroring, a brightness change, stronger compression and screenshot-like copies."
       titleId={`${uid}-s`}
     >
       <g transform="translate(1 1)">{segments}</g>
@@ -184,10 +174,6 @@ function Legend() {
       <li className={base}>
         <span aria-hidden="true" className="text-[var(--danger)]">✕</span>
         Mark lost
-      </li>
-      <li className={base}>
-        <span aria-hidden="true">?</span>
-        Not tested
       </li>
     </ul>
   );
@@ -256,8 +242,8 @@ export function WatermarkSurvival({ compact = false }: { compact?: boolean }) {
         </div>
       )}
       <figcaption className="mt-4 text-[13px] leading-5 text-[var(--text-muted)]">
-        Measured on three generated test images, not real artwork, so treat it
-        as a guide. Edits and quality settings we did not test are unknown.
+        Results from our own tests on generated images. Other edits and quality
+        settings may behave differently.
       </figcaption>
     </figure>
   );

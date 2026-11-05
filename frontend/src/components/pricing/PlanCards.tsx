@@ -135,7 +135,7 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
                 {plan.name}
                 {plan.highlight && (
                   <span className="iris rounded-full px-2.5 py-1 font-sans text-[10.5px] font-medium uppercase tracking-[0.08em] text-[#111111]">
-                    Most popular
+                    Best for sellers
                   </span>
                 )}
               </h3>
@@ -184,20 +184,20 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
                 >
                   Create free account
                 </Link>
-              ) : !open || account === undefined ? (
+              ) : config !== null && !open ? (
                 <span
                   data-testid={`plan-${plan.id}-status`}
-                  className="mt-6 inline-flex h-11 items-center justify-center rounded-full border border-dashed border-[var(--border)] bg-[var(--surface-muted)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text-muted)]"
+                  className="mt-6 inline-flex h-11 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-muted)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text-muted)]"
                 >
-                  {open ? "Checking..." : "Not available yet"}
+                  Opening soon
                 </span>
-              ) : account === null ? (
+              ) : account === null || account === undefined ? (
                 <Link
                   href="/?auth=register"
                   data-testid={`plan-${plan.id}-signup`}
                   className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-[var(--primary-strong)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85"
                 >
-                  Sign up to choose
+                  {account === null ? "Sign up to choose" : "Choose plan"}
                 </Link>
               ) : subscribed ? (
                 account.subscription?.plan.toLowerCase() === plan.id ? (

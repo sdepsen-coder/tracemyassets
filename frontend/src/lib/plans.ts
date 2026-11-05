@@ -39,7 +39,7 @@ export const PLANS: PlanCard[] = [
       "Automatic checks weekly or monthly",
       "5 hand-started Standard scans a month",
       "3 Deep scan credits when you sign up (once)",
-      "You see that a match exists and how strong it is; the page it was found on is hidden",
+      "See that a match exists and how strong it is; Pro shows where it was found",
     ],
   },
   {

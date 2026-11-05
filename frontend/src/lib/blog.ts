@@ -15,9 +15,9 @@ export const BLOG_POSTS: Post[] = [
   {
     slug: "three-ways-to-find-copies-of-your-artwork",
     topic: "find",
-    title: "Three ways to find copies of your artwork, and what each one misses",
+    title: "Three ways to find copies of your artwork",
     description:
-      "Reverse image search, an invisible watermark and scheduled monitoring all find different things. What each is good at, where each fails, and how to combine them without false confidence.",
+      "Reverse image search, an invisible watermark and scheduled monitoring all find different things. What each is good at, where each falls short, and how to combine them into one routine.",
     datePublished: "2026-10-27",
     dateModified: "2026-10-27",
     related: ["ai-training-and-your-art-what-the-evidence-says"],

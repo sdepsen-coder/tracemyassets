@@ -11,7 +11,6 @@ import { Icon } from "@/components/dashboard/Icon";
 
 import { CannotSeeDiagram } from "@/components/diagrams/CannotSeeDiagram";
 import { HowItWorksDiagram } from "@/components/diagrams/HowItWorksDiagram";
-import { ScanComparison } from "@/components/diagrams/ScanComparison";
 import { WatermarkLimits } from "@/components/diagrams/WatermarkLimits";
 
 import { ArtworkSample } from "./ArtworkSample";
@@ -167,7 +166,7 @@ function ProductPreview() {
       </ul>
 
       <p className="mt-3 text-center text-[11px] text-[var(--text-muted)]">
-        Illustration with generated artwork — not a real result.
+        Example
       </p>
     </div>
   );
@@ -280,7 +279,7 @@ export function LandingPage() {
           id="sources"
           eyebrow="Where we look"
           title="Two ways to search the public web."
-          body="Both look only at pages that search engines have indexed. Every result, from either scan, is compared with your original the same way before it counts as a match."
+          body="Every result, from either scan, is compared with your original the same way before it counts as a match."
           tinted
         >
           <div className="mt-14 grid gap-4 md:grid-cols-3">
@@ -294,7 +293,6 @@ export function LandingPage() {
               </div>
             ))}
           </div>
-          <ScanComparison className="mt-6 max-w-[720px]" />
         </Section>
 
         {/* Feature band */}
@@ -404,21 +402,11 @@ export function LandingPage() {
           <div className="glass mx-auto max-w-[820px] rounded-card border border-[var(--border)] p-7 sm:p-10">
             <Eyebrow>What we cannot see</Eyebrow>
             <CannotSeeDiagram className="mb-8 mt-2" />
-            <ul className="mt-2 space-y-3 text-[16px] leading-7 text-[var(--text-muted)]">
-              <li>
-                We look only at public web pages that a search engine has
-                indexed.
-              </li>
-              <li>
-                Private groups, closed apps and some social networks are out of
-                reach.
-              </li>
-              <li>
-                A match is a possible match, never proof of copying or
-                unlicensed use. You review it and decide.
-              </li>
-              <li>We never contact anyone for you.</li>
-            </ul>
+            <p className="mt-2 text-[16px] leading-7 text-[var(--text-muted)]">
+              A match is a possible match, never proof of copying or unlicensed
+              use. You review it and decide, and we never contact anyone on
+              your behalf.
+            </p>
           </div>
         </section>
 

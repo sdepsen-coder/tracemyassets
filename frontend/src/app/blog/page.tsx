@@ -9,14 +9,14 @@ import { SITE_NAME } from "@/lib/site";
 export const metadata: Metadata = indexMetadata(
   "/blog",
   `Blog — ${SITE_NAME}`,
-  "Longer pieces on protecting and tracking artwork online: how the tools work, what they miss, and how to use them honestly.",
+  "In-depth articles on finding, tracking and protecting your artwork online.",
 );
 
 export default function BlogPage() {
   return (
     <PostIndex
       section={BLOG_SECTION}
-      intro="Longer pieces on protecting and tracking artwork online: how the tools work, what they miss, and how to use them honestly."
+      intro="In-depth articles on finding, tracking and protecting your artwork online."
       posts={BLOG_POSTS}
       crossLink={{
         text: "Looking for short, step-by-step help, templates or platform steps?",
