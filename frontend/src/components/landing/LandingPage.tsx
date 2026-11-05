@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -14,6 +15,7 @@ import { HowItWorksDiagram } from "@/components/diagrams/HowItWorksDiagram";
 import { WatermarkLimits } from "@/components/diagrams/WatermarkLimits";
 
 import { ArtworkSample } from "./ArtworkSample";
+import landingBanner from "./landing-banner.jpg";
 import { AuthEntryButton } from "./AuthEntryButton";
 
 const SOURCES = [
@@ -174,7 +176,24 @@ function ProductPreview() {
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--text)]">
+    <div className="relative min-h-screen bg-[var(--background)] text-[var(--text)]">
+      {/* Banner behind the top bar; it scrolls away, the bar stays. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-[210px] overflow-hidden sm:h-[250px]"
+      >
+        <Image
+          src={landingBanner}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          placeholder="blur"
+          className="object-cover object-[center_35%]"
+        />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[var(--background)]" />
+      </div>
+
       <header className="sticky top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4">
         <div className="glass mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-3 rounded-2xl border border-[var(--border)] px-4 shadow-[0_10px_40px_rgb(0_0_0/0.05)] sm:px-5">
           <Wordmark />
@@ -214,6 +233,9 @@ export function LandingPage() {
           </div>
         </div>
       </header>
+
+      {/* Leaves room for the banner under the top bar. */}
+      <div aria-hidden className="h-[134px] sm:h-[174px]" />
 
       <main>
         {/* Hero */}
@@ -261,7 +283,10 @@ export function LandingPage() {
                   See how it works
                 </a>
               </div>
-              <p className="mt-4 text-[13px] text-[var(--text-muted)]">No credit card needed.</p>
+              <p className="mt-4 max-w-[460px] text-[13px] leading-5 text-[var(--text-muted)]">
+                No credit card needed. Your original stays private, and you get
+                a watermarked copy to share.
+              </p>
             </div>
 
             <div className="flex justify-center lg:justify-end">
