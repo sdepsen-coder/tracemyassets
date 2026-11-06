@@ -14,7 +14,7 @@ import { CannotSeeDiagram } from "@/components/diagrams/CannotSeeDiagram";
 import { HowItWorksDiagram } from "@/components/diagrams/HowItWorksDiagram";
 import { WatermarkLimits } from "@/components/diagrams/WatermarkLimits";
 
-import { ArtworkSample } from "./ArtworkSample";
+import { ProductDemo } from "./ProductDemo";
 import landingBanner from "./landing-banner.jpg";
 import { AuthEntryButton } from "./AuthEntryButton";
 
@@ -126,61 +126,13 @@ function Section({
   );
 }
 
-function ProductPreview() {
-  return (
-    <div className="glass relative rounded-card border border-[var(--border)] p-4 shadow-[0_30px_80px_-30px_rgb(60_50_120/0.25)] sm:p-5">
-      <div className="flex items-center justify-between">
-        <span className="label-caps text-[var(--text-muted)]">Monitoring</span>
-        <span className="iris rounded-full px-2.5 py-1 text-[10.5px] font-medium uppercase tracking-[0.08em] text-[#111111]">
-          2 copies
-        </span>
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <figure>
-          <div className="aspect-[4/3] overflow-hidden rounded-xl border border-[var(--border)]">
-            <ArtworkSample id="orig" variant="original" className="h-full w-full" />
-          </div>
-          <figcaption className="mt-2 text-[12px] text-[var(--text-muted)]">Your original</figcaption>
-        </figure>
-        <figure>
-          <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-[var(--border)]">
-            <ArtworkSample id="copy" variant="copy" className="h-full w-full" />
-            <div
-              aria-hidden="true"
-              className="tma-scan absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-transparent via-white/50 to-transparent"
-            />
-          </div>
-          <figcaption className="mt-2 text-[12px] text-[var(--text-muted)]">Found online</figcaption>
-        </figure>
-      </div>
-
-      <ul className="mt-4 grid gap-2 text-[13px] sm:grid-cols-3">
-        {["Strong visual match", "Watermark found", "Auto-scan weekly"].map((label) => (
-          <li
-            key={label}
-            className="flex items-center gap-2 rounded-xl bg-[var(--surface-muted)] px-3 py-2"
-          >
-            <Icon name="check" className="text-[16px] text-[var(--success)]" />
-            {label}
-          </li>
-        ))}
-      </ul>
-
-      <p className="mt-3 text-center text-[11px] text-[var(--text-muted)]">
-        Example
-      </p>
-    </div>
-  );
-}
-
 export function LandingPage() {
   return (
     <div className="relative min-h-screen bg-[var(--background)] text-[var(--text)]">
       {/* Banner behind the top bar; it scrolls away, the bar stays. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[210px] overflow-hidden sm:h-[250px]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[110px] overflow-hidden sm:h-[140px]"
       >
         <Image
           src={landingBanner}
@@ -235,11 +187,11 @@ export function LandingPage() {
       </header>
 
       {/* Leaves room for the banner under the top bar. */}
-      <div aria-hidden className="h-[134px] sm:h-[174px]" />
+      <div aria-hidden className="h-[24px] sm:h-[44px]" />
 
       <main>
         {/* Hero */}
-        <section className="relative overflow-hidden px-4 pb-24 pt-16 sm:px-6 sm:pb-32 sm:pt-24">
+        <section className="relative overflow-hidden px-4 pb-16 pt-10 sm:px-6 sm:pb-24 sm:pt-12">
           <div aria-hidden className="pointer-events-none absolute inset-0">
             <span className="absolute -right-24 top-10 h-[420px] w-[420px] rounded-full bg-[#c9c3f5] opacity-40 blur-3xl" />
             <span className="absolute right-40 top-64 h-[320px] w-[320px] rounded-full bg-[#bfd9f7] opacity-50 blur-3xl" />
@@ -247,7 +199,7 @@ export function LandingPage() {
 
           <div className="relative mx-auto grid max-w-[1200px] items-center gap-12 lg:grid-cols-[1.15fr_1fr]">
             <div>
-              <h1 className="font-heading text-[52px] font-light leading-[0.98] tracking-[-0.04em] sm:text-[80px] lg:text-[96px]">
+              <h1 className="font-heading text-[52px] font-light leading-[0.98] tracking-[-0.04em] sm:text-[72px] lg:text-[80px]">
                 Someone is using your art.
                 <span className="block text-[var(--text-muted)]">Find out where.</span>
               </h1>
@@ -277,7 +229,7 @@ export function LandingPage() {
                   Protect your first artwork — free
                 </AuthEntryButton>
                 <a
-                  href="#how-it-works"
+                  href="#product-demo"
                   className="inline-flex h-12 items-center justify-center rounded-full border border-[var(--line-strong)] px-7 text-[12px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)]"
                 >
                   See how it works
@@ -294,8 +246,8 @@ export function LandingPage() {
             </div>
           </div>
 
-          <div className="relative mx-auto mt-20 max-w-[760px]">
-            <ProductPreview />
+          <div className="relative mx-auto mt-14 max-w-[1000px] sm:mt-16">
+            <ProductDemo />
           </div>
         </section>
 
