@@ -140,6 +140,10 @@ function loadClarity() {
   const w = window as unknown as ClarityWindow;
 
   if (w.clarity) {
+    w.clarity("consentv2", {
+      ad_Storage: "denied",
+      analytics_Storage: "granted",
+    });
     w.clarity("start");
     return;
   }
@@ -149,6 +153,15 @@ function loadClarity() {
     // eslint-disable-next-line prefer-rest-params
     (w.clarity!.q = w.clarity!.q || []).push(arguments);
   } as ClarityFn;
+
+  // Visitors from the UK, EEA and Switzerland are only recorded once Clarity
+  // receives a consent signal (Microsoft enforces this since 31 October 2025).
+  // Queued before the tag loads, so it is the first thing Clarity reads. We use
+  // no advertising, so ad storage stays denied.
+  w.clarity("consentv2", {
+    ad_Storage: "denied",
+    analytics_Storage: "granted",
+  });
 
   const script = document.createElement("script");
   script.async = true;
@@ -163,7 +176,10 @@ function pauseClarity() {
 
 function stopClarity() {
   const w = window as unknown as ClarityWindow;
-  w.clarity?.("consent", false);
+  w.clarity?.("consentv2", {
+    ad_Storage: "denied",
+    analytics_Storage: "denied",
+  });
   w.clarity?.("stop");
   clearClarityCookies();
 }
