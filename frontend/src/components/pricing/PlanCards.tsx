@@ -114,7 +114,17 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
 
       <div data-testid="plan-cards" className="grid gap-5 md:grid-cols-3">
         {PLANS.map((plan) => {
-          const features = compact ? plan.features.slice(0, 4) : plan.features;
+          // The short list on the home page must still show the Free/Pro
+          // difference: whether you can see where a match was found.
+          const sourceLine = plan.features.find((line) => /where/i.test(line));
+          const features = compact
+            ? [
+                ...plan.features.slice(0, 4),
+                ...(sourceLine && !plan.features.slice(0, 4).includes(sourceLine)
+                  ? [sourceLine]
+                  : []),
+              ]
+            : plan.features;
           const free = plan.id === "free";
           const yearly = billing === "yearly" && plan.yearlyUsd !== undefined;
           const saving = yearlySavingPercent(plan);

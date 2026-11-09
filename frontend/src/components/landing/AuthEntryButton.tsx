@@ -8,7 +8,7 @@ import { useAuthEntry, useOptionalAuth } from "@/components/AuthGate";
 type AuthEntryButtonProps = {
   mode: "login" | "register";
   variant?: "primary" | "ghost" | "onPrimary";
-  size?: "md" | "lg";
+  size?: "md" | "lg" | "nav";
   children: ReactNode;
 };
 
@@ -23,6 +23,8 @@ const VARIANTS = {
 const SIZES = {
   md: "h-10 px-5 text-[11px]",
   lg: "h-12 px-7 text-[12px]",
+  // Top bar: tighter on phones so both buttons fit next to the logo.
+  nav: "h-9 px-3 text-[11px] sm:h-10 sm:px-5",
 } as const;
 
 /**

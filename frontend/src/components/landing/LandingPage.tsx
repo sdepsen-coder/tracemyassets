@@ -175,12 +175,12 @@ export function LandingPage() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <AuthEntryButton mode="login" variant="ghost">
+            <AuthEntryButton mode="login" variant="ghost" size="nav">
               Sign in
             </AuthEntryButton>
-            <span className="hidden sm:inline-flex">
-              <AuthEntryButton mode="register">Start free</AuthEntryButton>
-            </span>
+            <AuthEntryButton mode="register" size="nav">
+              Start free
+            </AuthEntryButton>
             <LandingAccountMenu />
           </div>
         </div>
@@ -236,8 +236,13 @@ export function LandingPage() {
                 </a>
               </div>
               <p className="mt-4 max-w-[460px] text-[13px] leading-5 text-[var(--text-muted)]">
-                No credit card needed. Your original stays private, and you get
-                a watermarked copy to share.
+                No credit card needed. We never publish your original or use
+                your art to train models. To search, an image of your artwork
+                goes to the search services named in our{" "}
+                <Link href="/privacy" className="underline underline-offset-4">
+                  Privacy Policy
+                </Link>
+                .
               </p>
             </div>
 

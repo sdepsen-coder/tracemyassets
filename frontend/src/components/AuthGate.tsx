@@ -564,9 +564,19 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
           {mode === "forgot"
             ? "Enter your email and we will send you a link to choose a new password."
             : mode === "register"
-              ? "No credit card needed. You can protect your first artwork right after."
+              ? "Free plan: 3 artworks, 5 hand-started scans a month and 3 Deep scan credits. No credit card needed. Next, you upload an artwork and run your first scan."
               : "Welcome back."}
         </p>
+
+        {mode === "register" && (
+          <p className="mt-2 text-[13px] text-[var(--text-muted)]">
+            Your original is never published.{" "}
+            <a href="/privacy" className="underline hover:text-[var(--text)]">
+              How we handle your files
+            </a>
+            .
+          </p>
+        )}
 
         {googleEnabled && mode !== "forgot" && (
           <>
