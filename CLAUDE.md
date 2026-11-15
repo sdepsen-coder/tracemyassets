@@ -40,8 +40,8 @@ sole trader). Live at https://tracemyassets.com. Payments run on Paddle
 
 ## Look and feel
 - Cyber dark theme (dark is the default, `.light` switches it): colours are
-  CSS variables in `frontend/src/app/globals.css`; headings Plus Jakarta
-  Sans, body Inter, labels JetBrains Mono. Use the variables, not hex codes.
+  CSS variables in `frontend/src/app/globals.css`; text and headings Plus
+  Jakarta Sans, labels JetBrains Mono. Use the variables, not hex codes.
 - Public pages share `SiteHeader` (with the phone menu) and `SiteFooter`.
 - The icon font is served from our own domain
   (`frontend/public/fonts`). After using a new icon run
@@ -59,9 +59,10 @@ sole trader). Live at https://tracemyassets.com. Payments run on Paddle
 
 ## Git
 - Work on a branch, not `main`. Small commits, English messages.
-- The owner merges and pushes. `.claude/settings.json` denies `git push`
-  on purpose and pre-approves tests, `tsc`, `next build`, `git add` and
-  `git commit`. Personal overrides go in `.claude/settings.local.json`
+- The owner merges. Push a work branch only when the owner asks (the push
+  ban in `.claude/settings.json` was lifted on 2026-11-15); never push to
+  `main`. The settings pre-approve tests, `tsc`, `next build`, `git add`
+  and `git commit`. Personal overrides go in `.claude/settings.local.json`
   (git-ignored).
 - Older work was delivered as numbered patch files (`0001`…`0047`, now in
   the git-ignored `archive/` folder) because the cloud session could not

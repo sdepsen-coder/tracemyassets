@@ -15,12 +15,8 @@
       "PowerShell(git switch *)"
     ],
     "deny": [
-      "Bash(git push *)",
-      "Bash(git * push *)",
       "Bash(git reset --hard *)",
       "Bash(rm -rf *)",
-      "PowerShell(git push *)",
-      "PowerShell(git * push *)",
       "PowerShell(git reset --hard *)",
       "PowerShell(Remove-Item * -Recurse *)",
       "Read(.env)",
