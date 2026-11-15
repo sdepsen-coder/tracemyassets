@@ -5,6 +5,7 @@ import { useEffect, useId, useState, type ReactNode } from "react";
 
 import { Icon } from "@/components/dashboard/Icon";
 import { NAV_LINKS, type NavKey } from "@/lib/nav";
+import { useSessionHint } from "@/lib/sessionHint";
 
 /**
  * Phone and tablet menu for the public top bar: a button that opens the page
@@ -19,6 +20,7 @@ export function MobileMenu({
   signIn?: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const signedIn = useSessionHint();
   const panelId = useId();
 
   useEffect(() => {
@@ -83,12 +85,18 @@ export function MobileMenu({
               className="mt-3 border-t border-[var(--border)] pt-3"
               onClick={() => setOpen(false)}
             >
-              {signIn ?? (
-                <Link href="/?auth=login" className={linkClass}>
-                  Sign in
-                  <Icon name="chevron_right" className="text-[20px] text-[var(--text-muted)]" />
-                </Link>
-              )}
+              {signIn ??
+                (signedIn ? (
+                  <Link href="/monitoring" className={linkClass}>
+                    Open Monitoring
+                    <Icon name="chevron_right" className="text-[20px] text-[var(--text-muted)]" />
+                  </Link>
+                ) : (
+                  <Link href="/?auth=login" className={linkClass}>
+                    Sign in
+                    <Icon name="chevron_right" className="text-[20px] text-[var(--text-muted)]" />
+                  </Link>
+                ))}
             </div>
           </nav>
         </div>

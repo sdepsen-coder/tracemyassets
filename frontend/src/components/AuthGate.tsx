@@ -12,6 +12,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 
+import { writeSessionHint } from "@/lib/sessionHint";
 import { BrandMark } from "@/components/app/brand";
 import { GlassArt } from "@/components/app/GlassArt";
 import { PasswordInput } from "@/components/auth/PasswordInput";
@@ -117,6 +118,14 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
   const [checking, setChecking] = useState(true);
   const [restoreError, setRestoreError] = useState("");
   const [restoreKey, setRestoreKey] = useState(0);
+
+  // Tell the public pages' top bar whether someone is signed in (see
+  // lib/sessionHint). Not while the check is running, and not when the
+  // service did not answer: then we do not know.
+  useEffect(() => {
+    if (checking || restoreError) return;
+    writeSessionHint(session !== null);
+  }, [checking, restoreError, session]);
 
   const [mode, setMode] = useState<"login" | "register" | "forgot">(
     "login",
