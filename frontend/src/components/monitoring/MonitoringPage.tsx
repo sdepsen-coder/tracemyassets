@@ -53,7 +53,7 @@ function EmptyState() {
   return (
     <Card className="mx-auto max-w-[720px] p-8 sm:p-12">
       <GlassArt motif="shield" size="sm" />
-      <h2 className="mt-6 font-heading text-[30px] font-light tracking-[-0.02em]">
+      <h2 className="mt-6 font-heading text-[30px] font-semibold tracking-[-0.02em]">
         Let&apos;s protect your first artwork
       </h2>
       <ol className="mt-6 space-y-4">
@@ -326,7 +326,7 @@ export function MonitoringPage() {
                   <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--surface-muted)] text-[var(--text-muted)]">
                     <Icon name="add" className="text-[28px]" />
                   </span>
-                  <span className="mt-4 font-heading text-[18px] font-normal">
+                  <span className="mt-4 font-heading text-[18px] font-semibold">
                     Protect new artwork
                   </span>
                   <span className="mt-1 max-w-[260px] text-[14px] text-[var(--text-muted)]">

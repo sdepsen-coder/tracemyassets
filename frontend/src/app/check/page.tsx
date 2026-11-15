@@ -393,7 +393,7 @@ function CheckImageContent() {
                   htmlFor="candidate-file"
                   className="flex cursor-pointer flex-col items-center text-center"
                 >
-                  <span className="material-symbols-outlined text-[30px] text-[var(--primary)]">
+                  <span aria-hidden="true" className="material-symbols-outlined text-[30px] text-[var(--primary)]">
                     upload_file
                   </span>
                   <span className="mt-2 text-[14px] font-semibold">
@@ -455,7 +455,7 @@ function CheckImageContent() {
                 }
                 className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[var(--primary-strong)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] shadow-sm transition hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <span className="material-symbols-outlined text-[18px]">
+                <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
                   search_check
                 </span>
                 {verifying ? "Checking image..." : "Check image"}
@@ -466,7 +466,7 @@ function CheckImageContent() {
 
         {verifying && (
           <section className="mt-6 glass rounded-card border border-[var(--border)] p-6 text-center shadow-card">
-            <span className="material-symbols-outlined animate-pulse text-[34px] text-[var(--primary)]">
+            <span aria-hidden="true" className="material-symbols-outlined animate-pulse text-[34px] text-[var(--primary)]">
               find_in_page
             </span>
             <h2 className="mt-3 text-[17px] font-semibold">
@@ -492,7 +492,7 @@ function CheckImageContent() {
               ].join(" ")}
             >
               <div className="flex items-start gap-3">
-                <span className="material-symbols-outlined text-[28px]">
+                <span aria-hidden="true" className="material-symbols-outlined text-[28px]">
                   {result.watermark_verified
                     ? "verified"
                     : result.review_recommended

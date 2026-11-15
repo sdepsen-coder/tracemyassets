@@ -101,9 +101,9 @@ export default function TermsPage() {
 
       <LegalSection heading="Payments">
         <p>
-          When paid plans open, payments are handled by our payment provider,
-          who acts as the seller of record, takes the payment, issues the
-          receipt and deals with sales tax and VAT. Their checkout terms
+          Payments are handled by Paddle, our payment provider, who acts as
+          the seller of record, takes the payment, issues the receipt and
+          deals with sales tax and VAT. Their checkout terms
           apply to the payment itself. We never see or store your full card
           details.
         </p>

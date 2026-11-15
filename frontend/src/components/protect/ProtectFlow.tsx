@@ -220,10 +220,10 @@ function ScanOption({
               : "border-[var(--border)]",
           ].join(" ")}
         >
-          {selected && <span className="h-2 w-2 rounded-full bg-white" />}
+          {selected && <span className="h-2 w-2 rounded-full bg-[var(--on-primary)]" />}
         </span>
       </span>
-      <span className="mt-4 font-heading text-[18px] font-normal">{title}</span>
+      <span className="mt-4 font-heading text-[18px] font-semibold">{title}</span>
       <span className="mt-1 text-[14px] text-[var(--text-muted)]">{description}</span>
       <span className="mt-4 text-[13px] font-medium text-[var(--text)]">{cost}</span>
     </button>
@@ -441,7 +441,7 @@ export function ProtectFlow() {
       <Card className="p-6 sm:p-10">
         {step === "upload" && (
           <>
-            <h1 className="font-heading text-[32px] font-light leading-tight tracking-[-0.02em] sm:text-[44px]">
+            <h1 className="font-heading text-[32px] font-semibold leading-tight tracking-[-0.02em] sm:text-[44px]">
               Protect a new artwork
             </h1>
             <p className="mt-3 text-[17px] text-[var(--text-muted)]">
@@ -545,7 +545,7 @@ export function ProtectFlow() {
               </div>
             )}
 
-            <h1 className="mt-8 font-heading text-[28px] font-light tracking-[-0.02em] sm:text-[36px]">
+            <h1 className="mt-8 font-heading text-[28px] font-semibold tracking-[-0.02em] sm:text-[36px]">
               {asset ? "Your artwork is protected" : "Protecting your artwork…"}
             </h1>
 
@@ -593,7 +593,7 @@ export function ProtectFlow() {
 
         {step === "scan" && !scanning && (
           <>
-            <h1 className="font-heading text-[28px] font-light leading-tight tracking-[-0.02em] sm:text-[40px]">
+            <h1 className="font-heading text-[28px] font-semibold leading-tight tracking-[-0.02em] sm:text-[40px]">
               How should we look for copies?
             </h1>
             <p className="mt-3 text-[17px] text-[var(--text-muted)]">
@@ -727,7 +727,7 @@ export function ProtectFlow() {
               )}
             </div>
 
-            <h1 className="mt-6 font-heading text-[26px] font-light tracking-[-0.02em] sm:text-[32px]">
+            <h1 className="mt-6 font-heading text-[26px] font-semibold tracking-[-0.02em] sm:text-[32px]">
               Looking for copies of {asset?.title}
             </h1>
 
@@ -753,7 +753,7 @@ export function ProtectFlow() {
                 <span className="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--warning-soft)] text-[var(--warning)]">
                   <Icon name="replay" className="text-[40px]" />
                 </span>
-                <h1 className="mt-6 font-heading text-[28px] font-light tracking-[-0.02em]">
+                <h1 className="mt-6 font-heading text-[28px] font-semibold tracking-[-0.02em]">
                   The Deep scan couldn&apos;t run just now
                 </h1>
                 <p className="mt-3 max-w-[520px] text-[16px] text-[var(--text-muted)]">
@@ -769,7 +769,7 @@ export function ProtectFlow() {
               </>
             ) : copies > 0 ? (
               <>
-                <h1 className="font-heading text-[30px] font-light tracking-[-0.02em] sm:text-[40px]">
+                <h1 className="font-heading text-[30px] font-semibold tracking-[-0.02em] sm:text-[40px]">
                   We found {copies} possible {copies === 1 ? "copy" : "copies"}
                 </h1>
                 <p className="mt-3 max-w-[560px] text-[16px] text-[var(--text-muted)]">
@@ -810,7 +810,7 @@ export function ProtectFlow() {
             ) : (
               <>
                 <GlassArt motif="orb" size="sm" />
-                <h1 className="mt-6 font-heading text-[30px] font-light tracking-[-0.02em] sm:text-[40px]">
+                <h1 className="mt-6 font-heading text-[30px] font-semibold tracking-[-0.02em] sm:text-[40px]">
                   No copies found right now
                 </h1>
                 <p className="mt-3 max-w-[520px] text-[16px] text-[var(--text-muted)]">

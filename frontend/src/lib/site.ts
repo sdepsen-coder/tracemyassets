@@ -22,14 +22,14 @@ export const CONTACT_EMAIL: string =
 export const ETSY_TRADEMARK_NOTICE =
   "Etsy is a trademark of Etsy, Inc. TraceMyAssets is not affiliated with or endorsed by Etsy.";
 
-export const LEGAL_LAST_UPDATED = "10 October 2026";
+export const LEGAL_LAST_UPDATED = "15 November 2026";
 
 /**
  * When the public marketing and help pages last changed in a way worth telling
  * search engines (sitemap lastModified). Update it by hand when those pages
  * change; the legal pages use LEGAL_LAST_UPDATED.
  */
-export const CONTENT_LAST_UPDATED = "27 October 2026";
+export const CONTENT_LAST_UPDATED = "15 November 2026";
 
 /**
  * Who runs the service. These are inlined at build time, so set them on
@@ -68,6 +68,14 @@ export const ANALYTICS_ENABLED: boolean = Boolean(GA_ID || CLARITY_ID);
  * Pages where Clarity may record: public marketing and content pages only.
  * Signed-in pages (artworks, matches, account, admin) are never recorded.
  */
+/**
+ * True when a real legal name is configured: set, and not just the trading
+ * name again ("TraceMyAssets is a trading name of TraceMyAssets" says
+ * nothing; a sole trader must give their own name).
+ */
+export const HAS_LEGAL_NAME: boolean =
+  LEGAL_NAME !== "" && LEGAL_NAME.toLowerCase() !== SITE_NAME.toLowerCase();
+
 const CLARITY_PUBLIC_PREFIXES = [
   "/pricing",
   "/guides",

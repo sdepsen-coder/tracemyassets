@@ -10,7 +10,7 @@ import { CONTACT_EMAIL, LEGAL_LAST_UPDATED, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Privacy — ${SITE_NAME}`,
-  description: `How ${SITE_NAME} handles your account and artwork data.`,
+  description: `What ${SITE_NAME} collects, why, which services it is shared with, how long it is kept, and how to download or delete your data.`,
   alternates: { canonical: "/privacy" },
 };
 
@@ -70,9 +70,34 @@ export default function PrivacyPage() {
             "Resend (email): if monitoring is on for an artwork, we email you when a scan finds new possible matches. To send it, your email address, the artwork's title and the number of new matches are passed to Resend. The email never contains where a match was found.",
             "Paddle (payments): if you buy a paid plan, Paddle is the seller of record and takes the payment. Your card or bank details go to Paddle, never to us. We send Paddle your email address and an internal account number so the purchase can be matched to your account, and Paddle tells us the plan, its status and renewal dates. Paddle's own privacy notice applies to what it holds. We keep the plan, status and Paddle's subscription and customer references for as long as the account exists; they are deleted with it.",
             "Sentry (error reports): when the service crashes, a technical error report goes to Sentry so we can fix it. Reports carry the error and the page address without its query part. We do not send cookies, IP addresses, request contents, names or email addresses.",
-            "Fonts and icons are loaded from Google Fonts by your browser.",
+            "Fonts and icons are served from our own site. Your browser does not contact Google or any other font service to display a page.",
           ]}
         />
+      </LegalSection>
+
+      <LegalSection heading="Why we are allowed to use it">
+        <p>
+          The operator named at the top of this page is the data controller.
+          Under UK data protection law we rely on:
+        </p>
+        <LegalList
+          items={[
+            "Our contract with you: your account, your artworks and their files, scans, matches, credits and subscription. Without them we cannot provide the service.",
+            "Our legitimate interests in keeping the service safe and fair: the security and activity log, the one-way mailbox fingerprint that stops the welcome credits being collected twice, and the small snapshots kept with your match verdicts to improve how matches are judged.",
+            "Your consent: analytics cookies (Google Analytics and Microsoft Clarity). Nothing is loaded until you accept, and you can withdraw consent at any time with \"Cookie settings\" in the footer.",
+          ]}
+        />
+      </LegalSection>
+
+      <LegalSection heading="Where your data is processed">
+        <p>
+          We are based in the United Kingdom. Our hosting provider and
+          several of the services listed above process data in other
+          countries, including the United States. When personal data leaves
+          the UK we rely on the safeguards UK data protection law provides
+          for such transfers, such as adequacy regulations or the data
+          protection contract terms these providers offer.
+        </p>
       </LegalSection>
 
       <LegalSection heading="Third-party marketplace content">
@@ -107,8 +132,24 @@ export default function PrivacyPage() {
       <LegalSection heading="Your rights">
         <p>
           You can download a copy of your data and delete your account
-          yourself from Account and data in the menu. To correct your data
-          or to use any other right, contact us using the address below.
+          yourself from Account and data in the menu. You also have the
+          right to ask us to correct your data, to restrict or object to how
+          we use it, and to withdraw a consent you gave. To use any of these
+          rights, contact us using the address below; we answer within one
+          month.
+        </p>
+        <p>
+          If you are unhappy with how we handle your data, please tell us
+          first so we can put it right. You also have the right to complain
+          to the UK Information Commissioner&apos;s Office (
+          <a
+            href="https://ico.org.uk/make-a-complaint/"
+            className="text-[var(--primary)] underline"
+            rel="noopener noreferrer"
+          >
+            ico.org.uk/make-a-complaint
+          </a>
+          ).
         </p>
       </LegalSection>
 

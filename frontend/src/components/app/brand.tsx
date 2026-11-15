@@ -1,26 +1,39 @@
 import Link from "next/link";
 
-import { Icon } from "@/components/dashboard/Icon";
-
-/** The small iridescent glass tile with a shield, used as the logo mark. */
-export function BrandMark({ size = 32 }: { size?: number }) {
+/** The logo mark: a shield with a tick on a dark glass tile with a cyan rim. */
+export function BrandMark({ size = 36 }: { size?: number }) {
   return (
     <span
-      className="iris relative flex shrink-0 items-center justify-center rounded-[10px] border border-white/70 text-[#111111] shadow-[inset_0_1px_0_rgb(255_255_255/0.8)]"
+      className="relative flex shrink-0 items-center justify-center rounded-xl border border-[var(--border-glow)] bg-[var(--primary-soft)]"
       style={{ width: size, height: size }}
     >
-      <Icon name="shield" className="text-[18px]" />
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        fill="none"
+        strokeWidth="2.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        style={{ width: size * 0.54, height: size * 0.54 }}
+      >
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="var(--primary)" />
+        <path d="m9 12 2 2 4-4" stroke="var(--accent)" />
+      </svg>
     </span>
   );
 }
 
-/** Logo mark plus the spaced uppercase wordmark. */
+/** Logo mark plus the name. */
 export function Wordmark({ href = "/" }: { href?: string }) {
   return (
-    <Link href={href} className="flex shrink-0 items-center gap-2.5 text-[var(--text)]">
+    <Link
+      href={href}
+      aria-label="TraceMyAssets home"
+      className="flex shrink-0 items-center gap-2.5 text-[var(--text)]"
+    >
       <BrandMark />
-      <span className="hidden text-[12px] font-medium tracking-[0.32em] sm:block">
-        TRACEMYASSETS
+      <span className="font-heading text-[17px] font-bold tracking-[-0.02em]">
+        TraceMyAssets
       </span>
     </Link>
   );

@@ -69,7 +69,10 @@ function usePacksState(): PacksState {
 type CreditPacksProps = {
   /** Smaller buttons for the scan screen. */
   compact?: boolean;
-  /** Pricing page: a signed-out visitor sees a hint instead of buttons. */
+  /**
+   * Pricing page: a signed-out visitor sees the packs and their prices too,
+   * with a sign-in link in place of the buy button.
+   */
   showSignedOutHint?: boolean;
 };
 
@@ -86,12 +89,39 @@ export function CreditPacks({
   if (!account) {
     if (account === null && showSignedOutHint) {
       return (
-        <p
-          data-testid="credit-packs-signed-out"
-          className="text-[13px] text-[var(--text-muted)]"
-        >
-          Sign in to buy extra Deep scan credits.
-        </p>
+        <div data-testid="credit-packs-signed-out">
+          <div className="grid gap-3 sm:grid-cols-3">
+            {packs.map((pack) => (
+              <div
+                key={pack.price_id}
+                className="glass flex flex-col rounded-card border border-[var(--border)] p-4"
+              >
+                <p className="font-heading text-[22px] font-semibold text-[var(--text)]">
+                  {pack.credits}{" "}
+                  <span className="font-sans text-[14px] font-medium text-[var(--text-muted)]">
+                    Deep scan credits
+                  </span>
+                </p>
+                <p className="mt-1 text-[15px] font-semibold text-[var(--text)]">
+                  {usd(pack.amount)}
+                  <span className="ml-2 text-[12px] font-normal text-[var(--text-muted)]">
+                    {each(pack)} each
+                  </span>
+                </p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-[13px] text-[var(--text-muted)]">
+            <a href="/?auth=login" className="text-[var(--primary)] underline">
+              Sign in
+            </a>{" "}
+            or{" "}
+            <a href="/?auth=register" className="text-[var(--primary)] underline">
+              create a free account
+            </a>{" "}
+            to buy extra Deep scan credits.
+          </p>
+        </div>
       );
     }
 
@@ -160,7 +190,7 @@ export function CreditPacks({
                 data-testid={`credit-pack-${pack.credits}`}
                 disabled={busy !== null}
                 onClick={() => void buy(pack)}
-                className="mt-4 inline-flex h-10 items-center justify-center rounded-full bg-[var(--primary-strong)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85 disabled:opacity-60"
+                className="btn-glow mt-4 inline-flex h-10 items-center justify-center rounded-full bg-[var(--primary-strong)] px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--on-primary)] transition disabled:opacity-60"
               >
                 {busy === pack.price_id ? "Opening..." : "Buy credits"}
               </button>

@@ -133,7 +133,7 @@ function SubscriptionSection({ planType }: { planType: string }) {
       data-testid="subscription-section"
       className="glass rounded-card border border-[var(--border)] p-6 sm:p-7"
     >
-      <h2 className="font-heading text-[24px] font-light tracking-[-0.02em]">Subscription</h2>
+      <h2 className="font-heading text-[24px] font-semibold tracking-[-0.02em]">Subscription</h2>
 
       {waiting ? (
         <p
@@ -279,7 +279,7 @@ function CreditsSection() {
       data-testid="credits-section"
       className="glass rounded-card border border-[var(--border)] p-6 sm:p-7"
     >
-      <h2 className="font-heading text-[24px] font-light tracking-[-0.02em]">Deep scan credits</h2>
+      <h2 className="font-heading text-[24px] font-semibold tracking-[-0.02em]">Deep scan credits</h2>
 
       {waiting ? (
         <p
@@ -351,7 +351,7 @@ function DownloadSection() {
 
   return (
     <section className="glass rounded-card border border-[var(--border)] p-6 sm:p-7">
-      <h2 className="font-heading text-[24px] font-light tracking-[-0.02em]">Download your data</h2>
+      <h2 className="font-heading text-[24px] font-semibold tracking-[-0.02em]">Download your data</h2>
       <p className="mt-2 max-w-2xl text-[14px] leading-6 text-[var(--text-muted)]">
         A ZIP file with everything we hold about your account: your account
         details, artworks (with your original files and protected copies),
@@ -414,7 +414,7 @@ function DeleteSection({ email, isAdmin }: { email: string; isAdmin: boolean }) 
 
   return (
     <section className="glass rounded-card border border-[var(--danger)] p-6 sm:p-7">
-      <h2 className="font-heading text-[24px] font-light tracking-[-0.02em] text-[var(--danger)]">
+      <h2 className="font-heading text-[24px] font-semibold tracking-[-0.02em] text-[var(--danger)]">
         Delete your account
       </h2>
 
@@ -543,7 +543,7 @@ function PlanUsageSection({ planType }: { planType: string }) {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <span className="label-caps text-[var(--text-muted)]">Current plan</span>
-          <p className="mt-2 font-heading text-[36px] font-light leading-none tracking-[-0.02em]">
+          <p className="mt-2 font-heading text-[36px] font-semibold leading-none tracking-[-0.02em]">
             {planType}
           </p>
         </div>
@@ -597,7 +597,7 @@ function SecuritySection({ email }: { email: string }) {
 
   return (
     <section className="glass rounded-card border border-[var(--border)] p-6 sm:p-7">
-      <h2 className="font-heading text-[24px] font-light tracking-[-0.02em]">Profile & security</h2>
+      <h2 className="font-heading text-[24px] font-semibold tracking-[-0.02em]">Profile & security</h2>
       <dl className="mt-5 text-[14px]">
         <dt className="label-caps text-[var(--text-muted)]">Email</dt>
         <dd className="mt-1 text-[16px]">{email}</dd>

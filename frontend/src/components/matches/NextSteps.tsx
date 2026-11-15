@@ -116,7 +116,7 @@ export function NextSteps({ match, artworkTitle }: Props) {
     >
       <summary className="cursor-pointer list-none font-semibold text-[var(--text)]">
         <span className="inline-flex items-center gap-2">
-          <span className="material-symbols-outlined text-[18px]">
+          <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
             help
           </span>
           What can I do about this?

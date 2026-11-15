@@ -12,7 +12,10 @@ import { SITE_NAME } from "@/lib/site";
  * image (app/opengraph-image.png).
  */
 export function postMetadata(base: string, post: Post): Metadata {
-  const title = `${post.title} — ${SITE_NAME}`;
+  // Search results cut a title at about 60 characters, so the site name is
+  // only added when it still fits (it is in the preview's siteName anyway).
+  const withName = `${post.title} — ${SITE_NAME}`;
+  const title = withName.length <= 60 ? withName : post.title;
   const path = `${base}/${post.slug}`;
   const images = [
     { url: "/opengraph-image.png", width: 1200, height: 630, alt: SITE_NAME },

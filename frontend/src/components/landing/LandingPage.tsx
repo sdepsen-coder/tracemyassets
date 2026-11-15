@@ -1,12 +1,11 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { Eyebrow } from "@/components/app/ui";
 import { GlassArt } from "@/components/app/GlassArt";
-import { Wordmark } from "@/components/app/brand";
 import { PlanCards } from "@/components/pricing/PlanCards";
 import { SiteFooter } from "@/components/SiteFooter";
+import { SiteHeader } from "@/components/SiteHeader";
 import { LandingAccountMenu } from "@/components/dashboard/AccountMenu";
 import { Icon } from "@/components/dashboard/Icon";
 
@@ -14,9 +13,9 @@ import { CannotSeeDiagram } from "@/components/diagrams/CannotSeeDiagram";
 import { HowItWorksDiagram } from "@/components/diagrams/HowItWorksDiagram";
 import { WatermarkLimits } from "@/components/diagrams/WatermarkLimits";
 
-import { ProductDemo } from "./ProductDemo";
-import landingBanner from "./landing-banner.jpg";
 import { AuthEntryButton } from "./AuthEntryButton";
+import { MatchPreview } from "./MatchPreview";
+import { ProductDemo } from "./ProductDemo";
 
 const SOURCES = [
   {
@@ -87,6 +86,9 @@ const FAQ = [
   },
 ];
 
+const H2 =
+  "font-heading text-[32px] font-bold leading-[1.12] tracking-[-0.02em] sm:text-[44px]";
+
 function Section({
   id,
   eyebrow,
@@ -106,16 +108,14 @@ function Section({
     <section
       id={id}
       className={[
-        "scroll-mt-28 px-4 py-24 sm:px-6 sm:py-32",
-        tinted ? "bg-[var(--surface-muted)]" : "",
+        "scroll-mt-24 px-4 py-20 sm:px-6 sm:py-28",
+        tinted ? "section-tint" : "",
       ].join(" ")}
     >
       <div className="mx-auto max-w-[1200px]">
         <div className="max-w-[720px]">
           {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-          <h2 className="font-heading text-[36px] font-light leading-[1.08] tracking-[-0.03em] sm:text-[52px]">
-            {title}
-          </h2>
+          <h2 className={H2}>{title}</h2>
           {body && (
             <p className="mt-5 text-[17px] leading-7 text-[var(--text-muted)]">{body}</p>
           )}
@@ -128,88 +128,70 @@ function Section({
 
 export function LandingPage() {
   return (
-    <div className="relative min-h-screen bg-[var(--background)] text-[var(--text)]">
-      {/* Banner behind the top bar; it scrolls away, the bar stays. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[110px] overflow-hidden sm:h-[140px]"
-      >
-        <Image
-          src={landingBanner}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          placeholder="blur"
-          className="object-cover object-[center_35%]"
-        />
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[var(--background)]" />
-      </div>
-
-      <header className="sticky top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4">
-        <div className="glass mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-3 rounded-2xl border border-[var(--border)] px-4 shadow-[0_10px_40px_rgb(0_0_0/0.05)] sm:px-5">
-          <Wordmark />
-
-          <nav
-            aria-label="Page sections"
-            className="hidden items-center gap-7 text-[14px] text-[var(--text-muted)] lg:flex"
-          >
-            <a href="#how-it-works" className="transition hover:text-[var(--text)]">
-              How it works
-            </a>
-            <a href="#sources" className="transition hover:text-[var(--text)]">
-              Where we look
-            </a>
-            <a href="#pricing" className="transition hover:text-[var(--text)]">
-              Pricing
-            </a>
-            <Link href="/guides" className="transition hover:text-[var(--text)]">
-              Guides
-            </Link>
-            <Link href="/blog" className="transition hover:text-[var(--text)]">
-              Blog
-            </Link>
-            <Link href="/help" className="transition hover:text-[var(--text)]">
-              Help
-            </Link>
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <AuthEntryButton mode="login" variant="ghost" size="nav">
-              Sign in
-            </AuthEntryButton>
+    <div className="relative min-h-screen text-[var(--text)]">
+      <SiteHeader
+        actions={
+          <>
+            {/* On phones "Sign in" lives in the menu so the bar stays short. */}
+            <span className="hidden sm:block">
+              <AuthEntryButton mode="login" variant="ghost" size="nav">
+                Sign in
+              </AuthEntryButton>
+            </span>
             <AuthEntryButton mode="register" size="nav">
               Start free
             </AuthEntryButton>
             <LandingAccountMenu />
-          </div>
-        </div>
-      </header>
+          </>
+        }
+        mobileSignIn={
+          <AuthEntryButton mode="login" variant="ghost" size="menu">
+            Sign in
+          </AuthEntryButton>
+        }
+      />
 
-      {/* Leaves room for the banner under the top bar. */}
-      <div aria-hidden className="h-[24px] sm:h-[44px]" />
-
-      <main>
+      <main id="main-content">
         {/* Hero */}
-        <section className="relative overflow-hidden px-4 pb-16 pt-10 sm:px-6 sm:pb-24 sm:pt-12">
+        <section className="relative overflow-hidden px-4 pb-16 pt-10 sm:px-6 sm:pb-24 sm:pt-20">
           <div aria-hidden className="pointer-events-none absolute inset-0">
-            <span className="absolute -right-24 top-10 h-[420px] w-[420px] rounded-full bg-[#c9c3f5] opacity-40 blur-3xl" />
-            <span className="absolute right-40 top-64 h-[320px] w-[320px] rounded-full bg-[#bfd9f7] opacity-50 blur-3xl" />
+            <span className="absolute -right-24 top-10 h-[420px] w-[420px] rounded-full bg-[#00d2ff] opacity-[0.12] blur-3xl" />
+            <span className="absolute -left-32 top-72 h-[360px] w-[360px] rounded-full bg-[#00f5d4] opacity-[0.08] blur-3xl" />
           </div>
 
-          <div className="relative mx-auto grid max-w-[1200px] items-center gap-12 lg:grid-cols-[1.15fr_1fr]">
+          <div className="relative mx-auto grid max-w-[1200px] items-center gap-12 lg:grid-cols-[1.1fr_1fr]">
             <div>
-              <h1 className="font-heading text-[52px] font-light leading-[0.98] tracking-[-0.04em] sm:text-[72px] lg:text-[80px]">
-                Someone is using your art.
-                <span className="block text-[var(--text-muted)]">Find out where.</span>
-              </h1>
-              <p className="mt-8 max-w-[560px] text-[18px] leading-8 text-[var(--text-muted)]">
-                TraceMyAssets is a web watcher, like Google Alerts for images.
-                Add an invisible watermark to your artwork and we keep
-                scanning the public web for copies and email you when a scheduled scan finds something new. When we find a copy, we show
-                you both images side by side — you decide what to do.
+              <p className="label-caps mb-5 inline-flex items-center gap-2 rounded-full border border-[var(--border-glow)] bg-[var(--primary-soft)] px-3 py-1.5 text-[var(--primary)]">
+                <span className="relative flex h-2 w-2" aria-hidden="true">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--primary)] opacity-60 motion-reduce:hidden" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--primary)]" />
+                </span>
+                Web watcher for your artwork
               </p>
-              <p className="mt-4 max-w-[560px] text-[14px] leading-6 text-[var(--text-muted)]">
+              <h1 className="font-heading text-[40px] font-extrabold leading-[1.06] tracking-[-0.025em] sm:text-[60px] lg:text-[68px]">
+                Someone is using your art.
+                <span className="text-gradient block">Find out where.</span>
+              </h1>
+              <p className="mt-6 max-w-[560px] text-[17px] leading-7 text-[var(--text-muted)] sm:text-[18px] sm:leading-8">
+                TraceMyAssets is a web watcher, like Google Alerts for images.
+                Register your artwork and we keep scanning the public web for
+                copies, compare every result with your original, and email you
+                when a scheduled scan finds something new. When we find a
+                copy, we show you both images side by side — you decide what
+                to do.
+              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <AuthEntryButton mode="register" size="lg">
+                  Protect your first artwork — free
+                </AuthEntryButton>
+                <a
+                  href="#product-demo"
+                  className="inline-flex h-12 items-center justify-center rounded-full border border-[var(--line-strong)] px-7 text-[12px] font-medium uppercase tracking-[0.08em] transition hover:border-[var(--border-glow)] hover:text-[var(--primary)]"
+                >
+                  See how it works
+                </a>
+              </div>
+              <p className="mt-5 max-w-[560px] text-[14px] leading-6 text-[var(--text-muted)]">
                 For{" "}
                 <Link href="/for/illustrators" className="text-[var(--text)] underline underline-offset-4">
                   illustrators
@@ -224,19 +206,9 @@ export function LandingPage() {
                 </Link>{" "}
                 and other digital creators.
               </p>
-              <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <AuthEntryButton mode="register" size="lg">
-                  Protect your first artwork — free
-                </AuthEntryButton>
-                <a
-                  href="#product-demo"
-                  className="inline-flex h-12 items-center justify-center rounded-full border border-[var(--line-strong)] px-7 text-[12px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)]"
-                >
-                  See how it works
-                </a>
-              </div>
-              <p className="mt-4 max-w-[460px] text-[13px] leading-5 text-[var(--text-muted)]">
-                No credit card needed. We never publish your original or use
+              <p className="mt-3 max-w-[480px] text-[13px] leading-5 text-[var(--text-muted)]">
+                No credit card needed. You also get a copy with an invisible
+                watermark to share. We never publish your original or use
                 your art to train models. To search, an image of your artwork
                 goes to the search services named in our{" "}
                 <Link href="/privacy" className="underline underline-offset-4">
@@ -247,11 +219,11 @@ export function LandingPage() {
             </div>
 
             <div className="flex justify-center lg:justify-end">
-              <GlassArt motif="shield" size="lg" />
+              <MatchPreview />
             </div>
           </div>
 
-          <div className="relative mx-auto mt-14 max-w-[1000px] sm:mt-16">
+          <div className="relative mx-auto mt-16 max-w-[1000px] sm:mt-20">
             <ProductDemo />
           </div>
         </section>
@@ -264,13 +236,13 @@ export function LandingPage() {
           body="Every result, from either scan, is compared with your original the same way before it counts as a match."
           tinted
         >
-          <div className="mt-14 grid gap-4 md:grid-cols-3">
+          <div className="mt-12 grid gap-4 md:grid-cols-3">
             {SOURCES.map((source) => (
-              <div key={source.title} className="glass rounded-card border border-[var(--border)] p-6">
-                <span className="iris flex h-11 w-11 items-center justify-center rounded-xl text-[#111111]">
+              <div key={source.title} className="glass card-hover rounded-card border border-[var(--border)] p-6">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border-glow)] bg-[var(--primary-soft)] text-[var(--primary)]">
                   <Icon name={source.icon} className="text-[22px]" />
                 </span>
-                <h3 className="mt-6 text-[18px] font-medium">{source.title}</h3>
+                <h3 className="mt-6 font-heading text-[18px] font-semibold">{source.title}</h3>
                 <p className="mt-2 text-[15px] leading-6 text-[var(--text-muted)]">{source.body}</p>
               </div>
             ))}
@@ -278,15 +250,13 @@ export function LandingPage() {
         </Section>
 
         {/* Feature band */}
-        <section className="px-4 py-24 sm:px-6 sm:py-32">
+        <section className="px-4 py-20 sm:px-6 sm:py-28">
           <div className="glass mx-auto grid max-w-[1200px] items-center gap-10 overflow-hidden rounded-[28px] border border-[var(--border)] p-8 sm:p-14 lg:grid-cols-2">
             <div className="flex justify-center">
               <GlassArt motif="lens" size="lg" />
             </div>
             <div>
-              <h2 className="font-heading text-[36px] font-light leading-[1.08] tracking-[-0.03em] sm:text-[52px]">
-                Find copies before they spread.
-              </h2>
+              <h2 className={H2}>Find copies before they spread.</h2>
               <p className="mt-5 text-[17px] leading-7 text-[var(--text-muted)]">
                 Copies of artwork can turn up on marketplaces and print shops.
                 TraceMyAssets looks for them on the public web and shows you
@@ -308,13 +278,13 @@ export function LandingPage() {
           title="Three steps, then we keep watch."
           tinted
         >
-          <ol className="mt-14 grid gap-4 md:grid-cols-3">
+          <ol className="mt-12 grid gap-4 md:grid-cols-3">
             {STEPS.map((step) => (
-              <li key={step.number} className="glass rounded-card border border-[var(--border)] p-7">
-                <span className="font-heading text-[56px] font-light leading-none text-[var(--text-muted)]">
-                  {step.number}
+              <li key={step.number} className="glass card-hover rounded-card border border-[var(--border)] p-7">
+                <span className="font-mono text-[13px] font-medium tracking-[0.1em] text-[var(--primary)]">
+                  STEP {step.number}
                 </span>
-                <h3 className="mt-8 text-[20px] font-medium">{step.title}</h3>
+                <h3 className="mt-5 font-heading text-[20px] font-semibold">{step.title}</h3>
                 <p className="mt-2 text-[15px] leading-6 text-[var(--text-muted)]">{step.body}</p>
               </li>
             ))}
@@ -324,14 +294,12 @@ export function LandingPage() {
         </Section>
 
         {/* Two feature rows */}
-        <section className="px-4 py-24 sm:px-6 sm:py-32">
-          <div className="mx-auto grid max-w-[1200px] gap-24">
+        <section className="px-4 py-20 sm:px-6 sm:py-28">
+          <div className="mx-auto grid max-w-[1200px] gap-20">
             <div className="grid items-center gap-10 lg:grid-cols-2">
               <div>
                 <Eyebrow>Fewer false alarms</Eyebrow>
-                <h2 className="font-heading text-[36px] font-light leading-[1.08] tracking-[-0.03em] sm:text-[48px]">
-                  Every result is checked against your original.
-                </h2>
+                <h2 className={H2}>Every result is checked against your original.</h2>
                 <p className="mt-5 text-[17px] leading-7 text-[var(--text-muted)]">
                   Search results are only leads. We compare each one with your
                   original before we show it as a match, using the image
@@ -349,9 +317,7 @@ export function LandingPage() {
               </div>
               <div className="order-1 lg:order-2">
                 <Eyebrow>Evidence</Eyebrow>
-                <h2 className="font-heading text-[36px] font-light leading-[1.08] tracking-[-0.03em] sm:text-[48px]">
-                  Evidence you can review.
-                </h2>
+                <h2 className={H2}>Evidence you can review.</h2>
                 <p className="mt-5 text-[17px] leading-7 text-[var(--text-muted)]">
                   See where it was found, how strong the match is, and whether
                   your watermark is inside. On paid plans you also get
@@ -369,12 +335,12 @@ export function LandingPage() {
           title="Start free. Upgrade when you need more."
           tinted
         >
-          <div className="mt-14">
+          <div className="mt-12">
             <PlanCards compact />
           </div>
           <p className="mt-8 text-center text-[14px]">
-            <Link href="/pricing" className="underline underline-offset-4">
-              Compare all plans
+            <Link href="/pricing" className="text-[var(--primary)] underline underline-offset-4">
+              Compare all plans and credit packs
             </Link>
           </p>
         </Section>
@@ -394,14 +360,14 @@ export function LandingPage() {
 
         {/* FAQ */}
         <Section eyebrow="Questions" title="Frequently asked." tinted>
-          <div className="mt-12 max-w-[820px] divide-y divide-[var(--border)] border-y border-[var(--border)]">
+          <div className="mt-10 max-w-[820px] divide-y divide-[var(--border)] border-y border-[var(--border)]">
             {FAQ.map((item) => (
               <details key={item.question} className="group py-5">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[17px]">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[17px] font-medium transition hover:text-[var(--primary)]">
                   {item.question}
                   <Icon
                     name="add"
-                    className="text-[20px] text-[var(--text-muted)] transition group-open:rotate-45"
+                    className="text-[20px] text-[var(--primary)] transition group-open:rotate-45"
                   />
                 </summary>
                 <p className="mt-3 max-w-[680px] text-[15px] leading-7 text-[var(--text-muted)]">
@@ -412,7 +378,7 @@ export function LandingPage() {
           </div>
           <p className="mt-6 text-[14px] text-[var(--text-muted)]">
             More answers on the{" "}
-            <Link href="/help" className="underline underline-offset-4">
+            <Link href="/help" className="text-[var(--primary)] underline underline-offset-4">
               Help page
             </Link>
             .
@@ -420,15 +386,13 @@ export function LandingPage() {
         </Section>
 
         {/* Final call to action */}
-        <section className="px-4 py-24 sm:px-6 sm:py-32">
-          <div className="glass relative mx-auto max-w-[1200px] overflow-hidden rounded-[28px] border border-[var(--border)] px-8 py-16 text-center sm:py-20">
+        <section className="px-4 py-20 sm:px-6 sm:py-28">
+          <div className="glass relative mx-auto max-w-[1200px] overflow-hidden rounded-[28px] border border-[var(--border-glow)] px-8 py-16 text-center sm:py-20">
             <span aria-hidden className="iris absolute inset-x-0 top-0 h-1" />
             <div className="flex justify-center">
               <GlassArt motif="shield" size="sm" />
             </div>
-            <h2 className="mt-6 font-heading text-[36px] font-light leading-[1.08] tracking-[-0.03em] sm:text-[52px]">
-              Your art deserves to be watched.
-            </h2>
+            <h2 className={`mt-6 ${H2}`}>Your art deserves to be watched.</h2>
             <div className="mt-8 flex justify-center">
               <AuthEntryButton mode="register" size="lg">
                 Protect your first artwork

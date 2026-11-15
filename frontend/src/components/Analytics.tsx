@@ -258,25 +258,24 @@ export function Analytics() {
       data-testid="cookie-banner"
       className="fixed inset-x-0 bottom-0 z-[100] p-3 sm:p-4"
     >
-      <div className="mx-auto flex max-w-3xl flex-col gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 text-[13px] leading-relaxed text-[var(--text)] shadow-2xl sm:flex-row sm:items-center sm:gap-5">
+      <div className="glass mx-auto flex max-w-3xl flex-col gap-3 rounded-2xl border border-[var(--border-glow)] p-3.5 text-[12px] leading-snug text-[var(--text)] shadow-floating sm:flex-row sm:items-center sm:gap-5 sm:p-4 sm:text-[13px] sm:leading-relaxed">
         <p className="flex-1 text-[var(--text-muted)]">
-          We would like to use analytics cookies (Google Analytics and Microsoft
-          Clarity) to see which pages are useful and to fix what is not. Clarity
-          records how visitors use our public pages, such as clicks and scrolling.
-          Nothing is loaded unless you accept.
-          Signing in needs only a session cookie, which is always on. See our{" "}
+          May we use analytics cookies? If you accept, Google Analytics counts
+          page views and Microsoft Clarity records clicks and scrolling on our
+          public pages. Nothing is loaded unless you accept.{" "}
           <a href="/privacy" className="underline hover:text-[var(--text)]">
             Privacy page
           </a>
           .
         </p>
 
+        {/* Both choices look the same on purpose: neither is pushed. */}
         <div className="flex shrink-0 gap-2">
           <button
             type="button"
             data-testid="cookie-decline"
             onClick={() => decide("denied")}
-            className="rounded-lg border border-[var(--border)] px-4 py-2 font-semibold text-[var(--text)] transition hover:bg-[var(--surface-muted)]"
+            className="h-10 flex-1 rounded-full border border-[var(--line-strong)] px-5 font-semibold text-[var(--text)] transition hover:border-[var(--border-glow)] hover:text-[var(--primary)] sm:flex-none"
           >
             Decline
           </button>
@@ -284,7 +283,7 @@ export function Analytics() {
             type="button"
             data-testid="cookie-accept"
             onClick={() => decide("granted")}
-            className="rounded-lg bg-[var(--accent,#2563eb)] px-4 py-2 font-semibold text-white transition hover:opacity-90"
+            className="h-10 flex-1 rounded-full border border-[var(--line-strong)] px-5 font-semibold text-[var(--text)] transition hover:border-[var(--border-glow)] hover:text-[var(--primary)] sm:flex-none"
           >
             Accept
           </button>

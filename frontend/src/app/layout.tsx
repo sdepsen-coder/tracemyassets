@@ -1,9 +1,8 @@
-import type { Metadata } from "next";
-import { Geist, IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Inter, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 
 import { Analytics } from "@/components/Analytics";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import { ICON_FONT_HREF } from "@/lib/iconFont";
 import {
   SEARCH_CONSOLE_TOKEN,
   SITE_DESCRIPTION,
@@ -12,32 +11,29 @@ import {
 } from "@/lib/site";
 import "./globals.css";
 
-const geist = Geist({
+// Body text.
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-geist",
+  variable: "--font-sans",
 });
 
-const plexSans = IBM_Plex_Sans({
+// Headings.
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
+  weight: ["500", "600", "700", "800"],
   variable: "--font-heading",
 });
 
+// Small labels, numbers and codes.
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 });
 
-/**
- * Loads the icon font stylesheet without holding up the first paint: a
- * stylesheet added by a script does not block rendering. Until the font is in,
- * icons are an invisible 1em box (see globals.css), then "icons-ready" on
- * <html> shows them. Without JavaScript the <noscript> link below loads it the
- * normal way.
- */
-const LOAD_ICON_FONT = `(function(){var d=document,e=d.documentElement;function r(){e.classList.add("icons-ready")}var l=d.createElement("link");l.rel="stylesheet";l.href=${JSON.stringify(
-  ICON_FONT_HREF,
-)};l.onload=function(){(d.fonts&&d.fonts.load?d.fonts.load('24px "Material Symbols Outlined"'):Promise.resolve()).then(r,r)};l.onerror=r;d.head.appendChild(l);setTimeout(r,4000)})();`;
+export const viewport: Viewport = {
+  themeColor: "#0a0e17",
+  colorScheme: "dark light",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -71,27 +67,27 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        {/* The icon font is served from this site (see globals.css). */}
         <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
+          rel="preload"
+          href="/fonts/material-symbols-subset.woff2"
+          as="font"
+          type="font/woff2"
           crossOrigin="anonymous"
         />
-        <script dangerouslySetInnerHTML={{ __html: LOAD_ICON_FONT }} />
-        <noscript>
-          <link rel="stylesheet" href={ICON_FONT_HREF} />
-          <style>{".material-symbols-outlined{color:inherit!important}"}</style>
-        </noscript>
       </head>
 
       <body
         className={[
-          geist.variable,
-          plexSans.variable,
+          inter.variable,
+          jakarta.variable,
           jetbrainsMono.variable,
           "font-sans",
         ].join(" ")}
       >
+        <a href="#main-content" className="skip-link">
+          Skip to content
+        </a>
         <ThemeProvider>{children}</ThemeProvider>
         <Analytics />
       </body>

@@ -38,6 +38,18 @@ sole trader). Live at https://tracemyassets.com. Payments run on Paddle
   `supportive-warmth`. Backups need Railway Pro; until then take a manual
   `pg_dump` before risky changes.
 
+## Look and feel
+- Cyber dark theme (dark is the default, `.light` switches it): colours are
+  CSS variables in `frontend/src/app/globals.css`; headings Plus Jakarta
+  Sans, body Inter, labels JetBrains Mono. Use the variables, not hex codes.
+- Public pages share `SiteHeader` (with the phone menu) and `SiteFooter`.
+- The icon font is served from our own domain
+  (`frontend/public/fonts`). After using a new icon run
+  `node scripts/icons.mjs --fetch` in `frontend/` and commit the two font
+  files; the build fails if the font lacks an icon. Nothing may load from
+  Google or another third party before the visitor accepts the cookie banner
+  (the Privacy Policy promises this).
+
 ## Commands
 - Backend tests (from `backend/`): `python -m pytest tests -q`
   (needs the packages in `requirements.txt`).
@@ -53,7 +65,7 @@ sole trader). Live at https://tracemyassets.com. Payments run on Paddle
   (git-ignored).
 - Older work was delivered as numbered patch files (`0001`…`0047`, now in
   the git-ignored `archive/` folder) because the cloud session could not
-  push. Next free number: 0049.
+  push. Next free number: 0050.
 
 ## What to work on next
 See `docs/next-steps.md` (agreed plan, launch blockers and the copy and

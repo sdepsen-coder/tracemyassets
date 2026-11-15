@@ -175,7 +175,7 @@ export function FeedbackDialog({ open, onClose }: Props) {
                 aria-label="Close"
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text)]"
               >
-                <span className="material-symbols-outlined text-[18px]">
+                <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
                   close
                 </span>
               </button>

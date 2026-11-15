@@ -51,7 +51,7 @@ function ResetPasswordForm() {
         TraceMyAssets
       </p>
 
-      <h1 className="mt-4 font-heading text-[34px] font-light leading-[1.1] tracking-[-0.03em]">Choose a new password</h1>
+      <h1 className="mt-4 font-heading text-[34px] font-semibold leading-[1.1] tracking-[-0.03em]">Choose a new password</h1>
 
       {done ? (
         <>
@@ -139,7 +139,7 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[var(--background)] px-4 py-10 text-[var(--text)]">
+    <main className="flex min-h-screen items-center justify-center px-4 py-10 text-[var(--text)]">
       <Suspense fallback={null}>
         <ResetPasswordForm />
       </Suspense>

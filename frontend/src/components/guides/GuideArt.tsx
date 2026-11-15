@@ -83,9 +83,9 @@ export function GuideArt({
 
 /** Soft coloured panel the illustration sits on. */
 export const ART_BG: Record<GuideTopic, string> = {
-  report: "bg-[#ecebf6] dark:bg-[#26243a]",
-  evidence: "bg-[#e6eef8] dark:bg-[#1c2a3a]",
-  find: "bg-[#f3eaf6] dark:bg-[#33263a]",
+  report: "bg-[#dcf1fa] dark:bg-[#0f2a3d]",
+  evidence: "bg-[#e3ecfb] dark:bg-[#16264a]",
+  find: "bg-[#def5ef] dark:bg-[#0d2f2d]",
   next: "bg-[var(--success-soft)]",
   mark: "bg-[var(--warning-soft)]",
 };

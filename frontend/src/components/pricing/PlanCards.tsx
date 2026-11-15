@@ -103,7 +103,7 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
             className={[
               "rounded-full px-4 py-1.5 transition",
               billing === option
-                ? "bg-[var(--surface)] text-[var(--text)] shadow-sm"
+                ? "bg-[var(--primary-strong)] text-[var(--on-primary)]"
                 : "text-[var(--text-muted)] hover:text-[var(--text)]",
             ].join(" ")}
           >
@@ -116,15 +116,12 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
         {PLANS.map((plan) => {
           // The short list on the home page must still show the Free/Pro
           // difference: whether you can see where a match was found.
-          const sourceLine = plan.features.find((line) => /where/i.test(line));
-          const features = compact
-            ? [
-                ...plan.features.slice(0, 4),
-                ...(sourceLine && !plan.features.slice(0, 4).includes(sourceLine)
-                  ? [sourceLine]
-                  : []),
-              ]
-            : plan.features;
+          // ...and the paid plans' reporting guide and letters, so the home
+          // page and the Pricing page list the same benefits.
+          const keep = plan.features.filter(
+            (line, index) => index < 4 || /where|letters/i.test(line),
+          );
+          const features = compact ? keep : plan.features;
           const free = plan.id === "free";
           const yearly = billing === "yearly" && plan.yearlyUsd !== undefined;
           const saving = yearlySavingPercent(plan);
@@ -136,15 +133,15 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
               className={[
                 "glass relative flex flex-col overflow-hidden rounded-card border p-7",
                 plan.highlight
-                  ? "border-[var(--line-strong)] shadow-[0_30px_80px_-40px_rgb(60_50_120/0.35)]"
+                  ? "border-[var(--border-glow)] shadow-[0_30px_80px_-40px_rgb(0_210_255/0.45)]"
                   : "border-[var(--border)]",
               ].join(" ")}
             >
               {plan.highlight && <span aria-hidden className="iris absolute inset-x-0 top-0 h-1" />}
-              <h3 className="flex items-center justify-between font-heading text-[22px] font-normal">
+              <h3 className="flex items-center justify-between font-heading text-[22px] font-semibold">
                 {plan.name}
                 {plan.highlight && (
-                  <span className="iris rounded-full px-2.5 py-1 font-sans text-[10.5px] font-medium uppercase tracking-[0.08em] text-[#111111]">
+                  <span className="rounded-full border border-[var(--border-glow)] bg-[var(--primary-soft)] px-2.5 py-1 font-mono text-[10.5px] font-medium uppercase tracking-[0.08em] text-[var(--primary)]">
                     Best for sellers
                   </span>
                 )}
@@ -156,7 +153,7 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
               <p className="mt-5 flex items-baseline gap-2">
                 <span
                   data-testid={`plan-${plan.id}-price`}
-                  className="font-heading text-[48px] font-light tracking-[-0.03em]"
+                  className="font-heading text-[44px] font-bold tracking-[-0.03em]"
                 >
                   {yearly ? dollars(plan.yearlyUsd as number) : plan.price}
                 </span>
@@ -180,7 +177,7 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
                   <li key={feature} className="flex gap-2.5">
                     <Icon
                       name="check"
-                      className="mt-0.5 shrink-0 text-[18px] text-[var(--text)]"
+                      className="mt-0.5 shrink-0 text-[18px] text-[var(--accent)]"
                     />
                     <span>{feature}</span>
                   </li>
@@ -190,7 +187,7 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
               {free ? (
                 <Link
                   href="/?auth=register"
-                  className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-[var(--primary-strong)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85"
+                  className="mt-6 inline-flex h-11 items-center justify-center rounded-full btn-glow bg-[var(--primary-strong)] px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--on-primary)] transition"
                 >
                   Create free account
                 </Link>
@@ -205,7 +202,7 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
                 <Link
                   href="/?auth=register"
                   data-testid={`plan-${plan.id}-signup`}
-                  className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-[var(--primary-strong)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85"
+                  className="mt-6 inline-flex h-11 items-center justify-center rounded-full btn-glow bg-[var(--primary-strong)] px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--on-primary)] transition"
                 >
                   {account === null ? "Sign up to choose" : "Choose plan"}
                 </Link>
@@ -233,7 +230,7 @@ export function PlanCards({ compact = false }: PlanCardsProps) {
                   data-testid={`plan-${plan.id}-choose`}
                   disabled={busyPlan !== null}
                   onClick={() => void choose(plan.id as "pro" | "extra")}
-                  className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-[var(--primary-strong)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85 disabled:opacity-60"
+                  className="mt-6 inline-flex h-11 items-center justify-center rounded-full btn-glow bg-[var(--primary-strong)] px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--on-primary)] transition disabled:opacity-60"
                 >
                   {busyPlan === plan.id ? "Opening..." : "Choose plan"}
                 </button>

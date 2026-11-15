@@ -16,10 +16,10 @@ export function AppShell({
   width?: "wide" | "narrow";
 }) {
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--text)]">
+    <div className="flex min-h-screen flex-col text-[var(--text)]">
       <Topbar />
 
-      <main className="flex-1 px-4 pb-12 pt-8 sm:px-6 sm:pt-12">
+      <main id="main-content" className="flex-1 px-4 pb-12 pt-8 sm:px-6 sm:pt-12">
         <div
           className={[
             "mx-auto",
@@ -59,11 +59,11 @@ type PillProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const PILL_VARIANTS: Record<NonNullable<PillProps["variant"]>, string> = {
   primary:
-    "bg-[var(--primary-strong)] text-[var(--on-primary)] hover:opacity-85 disabled:opacity-40",
+    "btn-glow bg-[var(--primary-strong)] font-semibold text-[var(--on-primary)] disabled:opacity-40 disabled:shadow-none",
   secondary:
-    "border border-[var(--line-strong)] bg-transparent text-[var(--text)] hover:bg-[var(--surface-muted)] disabled:opacity-40",
+    "border border-[var(--line-strong)] bg-transparent text-[var(--text)] hover:border-[var(--border-glow)] hover:text-[var(--primary)] disabled:opacity-40",
   quiet:
-    "bg-[var(--surface-muted)] text-[var(--text-muted)] hover:text-[var(--text)] disabled:opacity-40",
+    "bg-[var(--surface-raised)] text-[var(--text-muted)] hover:text-[var(--text)] disabled:opacity-40",
   danger:
     "bg-[var(--danger)] text-[var(--on-primary)] hover:opacity-85 disabled:opacity-40",
 };
@@ -131,7 +131,7 @@ export type ChipTone = "success" | "warning" | "info" | "neutral" | "danger";
 const CHIP_TONES: Record<ChipTone, string> = {
   success: "bg-[var(--success-soft)] text-[var(--success)]",
   warning: "bg-[var(--warning-soft)] text-[var(--warning)]",
-  info: "iris text-[#111111]",
+  info: "border border-[var(--border-glow)] bg-[var(--primary-soft)] text-[var(--primary)]",
   neutral: "bg-[var(--surface-muted)] text-[var(--text-muted)]",
   danger: "bg-[var(--danger-soft)] text-[var(--danger)]",
 };
@@ -172,7 +172,7 @@ export function PageTitle({
     <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div>
         {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-        <h1 className="font-heading text-[40px] font-light leading-[1.05] tracking-[-0.03em] sm:text-[56px]">
+        <h1 className="font-heading text-[34px] font-bold leading-[1.08] tracking-[-0.03em] sm:text-[46px]">
           {title}
         </h1>
         {subtitle && (
@@ -219,7 +219,7 @@ export function CostLine({ children }: { children: ReactNode }) {
 /** Small uppercase tag above a title ("MONITORING", "STEP 2 OF 4"). */
 export function Eyebrow({ children }: { children: ReactNode }) {
   return (
-    <span className="label-caps mb-4 inline-flex rounded-full border border-[var(--border)] px-3 py-1 text-[var(--text-muted)]">
+    <span className="label-caps mb-4 inline-flex rounded-full border border-[var(--border-glow)] bg-[var(--primary-soft)] px-3 py-1 text-[var(--primary)]">
       {children}
     </span>
   );
