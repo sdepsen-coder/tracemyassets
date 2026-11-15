@@ -10,7 +10,7 @@ import { CONTACT_EMAIL, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Help — ${SITE_NAME}`,
-  description: `Answers to common questions about ${SITE_NAME}.`,
+  description: `How ${SITE_NAME} works: registering artwork, the invisible watermark, Standard and Deep scans, matches, plans, credits and your data.`,
   alternates: { canonical: "/help" },
 };
 
@@ -453,7 +453,7 @@ function faqStructuredData() {
 
 export default function HelpPage() {
   return (
-    <LegalPage title="Help and FAQ">
+    <LegalPage title="Help and FAQ" active="help">
       <JsonLd data={faqStructuredData()} />
       <p className="text-[15px] leading-relaxed text-[var(--text-muted)]">
         Quick answers about {SITE_NAME}. Can&apos;t find yours? See the{" "}

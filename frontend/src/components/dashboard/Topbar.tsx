@@ -44,7 +44,7 @@ function MatchCountBadge({ count }: { count: number }) {
   if (count <= 0) return null;
 
   return (
-    <span className="iris ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-medium text-[#111111]">
+    <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--primary-strong)] px-1.5 text-[11px] font-semibold text-[var(--on-primary)]">
       {count > 99 ? "99+" : count}
     </span>
   );
@@ -84,7 +84,7 @@ export function Topbar() {
 
   return (
     <header className="sticky top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4">
-      <div className="glass mx-auto max-w-[1280px] rounded-2xl border border-[var(--border)] shadow-[0_10px_40px_rgb(0_0_0/0.05)]">
+      <div className="glass mx-auto max-w-[1280px] rounded-2xl border border-[var(--border)] shadow-card">
       <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-5">
         <div className="flex min-w-0 items-center gap-6">
           <Wordmark />
@@ -121,14 +121,14 @@ export function Topbar() {
         <div className="flex shrink-0 items-center gap-2">
           <Link
             href="/pricing"
-            className="hidden h-10 items-center rounded-full px-3.5 text-[14px] text-[var(--text-muted)] transition hover:text-[var(--text)] sm:inline-flex"
+            className="hidden h-10 items-center rounded-lg px-3.5 text-[14px] text-[var(--text-muted)] transition hover:text-[var(--text)] sm:inline-flex"
           >
             Pricing
           </Link>
 
           <Link
             href="/protect"
-            className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[var(--primary-strong)] px-3 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85 sm:px-5"
+            className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[var(--primary-strong)] px-3 text-[14px] font-semibold text-[var(--on-primary)] transition hover:opacity-85 sm:px-5"
           >
             <Icon name="add" className="text-[18px]" />
             <span className="hidden sm:inline">Protect new artwork</span>

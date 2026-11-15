@@ -9,7 +9,7 @@ import { CONTACT_EMAIL, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Support — ${SITE_NAME}`,
-  description: `Get help with ${SITE_NAME}.`,
+  description: `Contact ${SITE_NAME} support by email, and find quick answers about scans, matches, deleting artworks and your account data.`,
   alternates: { canonical: "/support" },
 };
 

@@ -440,7 +440,7 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
           <button
             type="button"
             onClick={() => setRestoreKey((value) => value + 1)}
-            className="rounded-full border border-[var(--line-strong)] px-4 py-1 text-[11px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)]"
+            className="rounded-xl border border-[var(--line-strong)] px-4 py-1 text-[14px] font-semibold transition hover:bg-[var(--surface-muted)]"
           >
             Retry
           </button>
@@ -473,7 +473,7 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
 
   if (checking || restoreError) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[var(--background)] px-4 text-[var(--text-muted)]">
+      <main className="flex min-h-screen items-center justify-center px-4 text-[var(--text-muted)]">
         <div className="max-w-md text-center">
           <p role={restoreError ? "alert" : "status"}>
             {checking ? "Checking your session..." : restoreError}
@@ -483,7 +483,7 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
             <button
               type="button"
               onClick={() => setRestoreKey((value) => value + 1)}
-              className="mt-4 inline-flex h-10 items-center rounded-full bg-[var(--primary-strong)] px-5 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)]"
+              className="mt-4 inline-flex h-10 items-center rounded-xl bg-[var(--primary-strong)] px-5 text-[14px] font-semibold text-[var(--on-primary)]"
             >
               Retry
             </button>
@@ -522,22 +522,23 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--text)]">
-    <main className="flex flex-1 items-center justify-center px-4 py-10 sm:py-16">
-      <div className="grid w-full max-w-[1040px] overflow-hidden rounded-[28px] border border-[var(--border)] lg:grid-cols-2">
-        <aside className="relative hidden flex-col justify-between overflow-hidden p-10 lg:flex">
-          <span aria-hidden className="iris absolute inset-0 opacity-60" />
+    <div className="flex min-h-screen flex-col text-[var(--text)]">
+    <main id="main-content" className="flex flex-1 items-center justify-center px-4 py-10 sm:py-16">
+      <div className="grid w-full max-w-[1040px] overflow-hidden rounded-[28px] border border-[var(--border-glow)] shadow-floating lg:grid-cols-2">
+        <aside className="relative hidden flex-col justify-between overflow-hidden border-r border-[var(--border)] bg-[var(--surface-muted)] p-10 lg:flex">
+          <span aria-hidden className="absolute -left-20 -top-20 h-72 w-72 rounded-full bg-[#00d2ff] opacity-15 blur-3xl" />
+          <span aria-hidden className="absolute -bottom-24 -right-16 h-72 w-72 rounded-full bg-[#00f5d4] opacity-10 blur-3xl" />
           <div className="relative flex items-center gap-2.5">
             <BrandMark />
-            <span className="text-[12px] font-medium tracking-[0.32em] text-[#111111]">
-              TRACEMYASSETS
+            <span className="font-heading text-[17px] font-bold tracking-[-0.02em]">
+              TraceMyAssets
             </span>
           </div>
           <div className="relative flex justify-center">
             <GlassArt motif="shield" />
           </div>
-          <p className="relative font-heading text-[34px] font-light leading-[1.1] tracking-[-0.03em] text-[#111111]">
-            Your art, watched over.
+          <p className="relative font-heading text-[30px] font-bold leading-[1.1] tracking-[-0.03em]">
+            Your art, <span className="text-gradient">watched over.</span>
           </p>
         </aside>
 
@@ -552,7 +553,7 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
           </button>
         )}
 
-        <h1 className="font-heading text-[40px] font-light leading-[1.05] tracking-[-0.03em]">
+        <h1 className="font-heading text-[40px] font-semibold leading-[1.05] tracking-[-0.03em]">
           {mode === "login"
               ? "Sign in"
               : mode === "register"
@@ -582,7 +583,7 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
           <>
             <a
               href={googleStartHref(googleNext)}
-              className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[var(--line-strong)] text-[12px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)]"
+              className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[var(--line-strong)] text-[14px] font-semibold transition hover:bg-[var(--surface-muted)]"
             >
               <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4">
                 <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.3-1.6 3.8-5.4 3.8-3.2 0-5.9-2.7-5.9-6s2.7-6 5.9-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.4 14.6 2.4 12 2.4 6.7 2.4 2.4 6.7 2.4 12s4.3 9.6 9.6 9.6c5.5 0 9.2-3.9 9.2-9.4 0-.6-.1-1.1-.2-1.6H12z" />
@@ -612,7 +613,7 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
               disabled={busy}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="mt-2 h-12 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 text-[16px] outline-none focus:border-[var(--text)] disabled:opacity-50"
+              className="mt-2 h-12 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 text-[16px] outline-none focus:border-[var(--primary)] disabled:opacity-50"
             />
           </div>
 
@@ -679,7 +680,7 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
           <button
             type="submit"
             disabled={busy}
-            className="h-12 w-full rounded-full bg-[var(--primary-strong)] text-[12px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40"
+            className="btn-glow h-12 w-full rounded-xl bg-[var(--primary-strong)] text-[14px] font-semibold text-[var(--on-primary)] transition disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
           >
             {busy
               ? "Please wait…"
@@ -689,6 +690,20 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
                   ? "Create account"
                   : "Send reset link"}
           </button>
+
+          {mode === "register" && (
+            <p className="text-[12.5px] leading-5 text-[var(--text-muted)]">
+              By creating an account you agree to our{" "}
+              <a href="/terms" className="underline hover:text-[var(--text)]">
+                Terms of Use
+              </a>{" "}
+              and confirm you have read the{" "}
+              <a href="/privacy" className="underline hover:text-[var(--text)]">
+                Privacy Policy
+              </a>
+              .
+            </p>
+          )}
         </form>
 
         <button

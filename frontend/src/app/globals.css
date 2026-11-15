@@ -2,65 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Glass template palette (design/stitch-prompts.md, section 0). */
+/* Cyber dark palette (design/stitch cyber redesign). Dark is the default
+   and needs no class, so the page is dark before any script runs; the
+   "light" class (set by next-themes) switches to the light variant. */
 :root {
-  --background: #f5f4f0;
-  --surface: #ffffff;
-  --surface-muted: #eeece6;
-  --surface-raised: #e8e6e0;
-  --surface-strong: #e2e0da;
-  --glass: rgb(255 255 255 / 0.72);
+  color-scheme: dark;
 
-  --text: #111111;
-  --text-muted: #6b6a66;
-  --border: #e2e0da;
-  --line-strong: rgb(17 17 17 / 0.22);
+  --background: #0a0e17;
+  --surface: #131b2e;
+  --surface-muted: #0f1626;
+  --surface-raised: #1a253d;
+  --surface-strong: #24324f;
+  --glass: rgb(15 22 38 / 0.72);
+  --card: linear-gradient(135deg, rgb(19 27 46 / 0.88) 0%, rgb(15 22 38 / 0.96) 100%);
 
-  --primary: #111111;
-  --primary-strong: #111111;
-  --primary-soft: #ecebf6;
-  --on-primary: #ffffff;
+  --text: #f8fafc;
+  --text-muted: #9aa8bd;
+  --border: rgb(255 255 255 / 0.09);
+  --border-glow: rgb(0 210 255 / 0.3);
+  --line-strong: rgb(248 250 252 / 0.26);
 
-  --success: #2f7a55;
-  --success-soft: #e6f2ea;
+  --primary: #00d2ff;
+  --primary-strong: #00d2ff;
+  --primary-soft: rgb(0 210 255 / 0.12);
+  --on-primary: #04121c;
+  --accent: #00f5d4;
+  --glow: 0 0 22px -2px rgb(0 210 255 / 0.4);
+  --btn-gradient: linear-gradient(135deg, #00d2ff 0%, #0099ff 100%);
 
-  --warning: #9a5b12;
-  --warning-soft: #f7eedd;
+  --success: #34d399;
+  --success-soft: rgb(52 211 153 / 0.14);
 
-  --danger: #b4322b;
-  --danger-soft: #f8e5e3;
+  --warning: #fbbf24;
+  --warning-soft: rgb(245 158 11 / 0.16);
 
-  --iris: linear-gradient(120deg, #c9c3f5 0%, #bfd9f7 45%, #f3e9f7 100%);
+  --danger: #fb7185;
+  --danger-soft: rgb(244 63 94 / 0.16);
+
+  --iris: linear-gradient(120deg, #00d2ff 0%, #38a8ff 55%, #00f5d4 100%);
+  --grid-dot: rgb(0 210 255 / 0.07);
+  --tint: rgb(15 22 38 / 0.55);
 }
 
-.dark {
-  --background: #0e0e10;
-  --surface: #17171a;
-  --surface-muted: #1f1f23;
-  --surface-raised: #26262b;
-  --surface-strong: #2e2e33;
-  --glass: rgb(23 23 26 / 0.72);
+.light {
+  color-scheme: light;
 
-  --text: #f2f1ee;
-  --text-muted: #a3a19c;
-  --border: #2a2a2e;
-  --line-strong: rgb(242 241 238 / 0.24);
+  --background: #f3f6fb;
+  --surface: #ffffff;
+  --surface-muted: #e9eff7;
+  --surface-raised: #dde6f1;
+  --surface-strong: #cfdbea;
+  --glass: rgb(255 255 255 / 0.8);
+  --card: linear-gradient(135deg, rgb(255 255 255 / 0.92) 0%, rgb(247 250 253 / 0.96) 100%);
 
-  --primary: #f2f1ee;
-  --primary-strong: #f2f1ee;
-  --primary-soft: #26243a;
-  --on-primary: #111111;
+  --text: #0a0e17;
+  --text-muted: #4d5b73;
+  --border: #d3ddea;
+  --border-glow: rgb(3 105 161 / 0.35);
+  --line-strong: rgb(10 14 23 / 0.24);
 
-  --success: #6fcf9a;
-  --success-soft: #143323;
+  --primary: #03658f;
+  --primary-strong: #03658f;
+  --primary-soft: #dcf1fa;
+  --on-primary: #ffffff;
+  --accent: #047b6c;
+  --glow: 0 8px 22px -10px rgb(3 101 143 / 0.55);
+  --btn-gradient: linear-gradient(135deg, #0a7fa8 0%, #0559b8 100%);
 
-  --warning: #e7b56a;
-  --warning-soft: #3a2a12;
+  --success: #1c7a52;
+  --success-soft: #e0f3ea;
 
-  --danger: #f19a92;
-  --danger-soft: #3d1a17;
+  --warning: #92570c;
+  --warning-soft: #f8eeda;
 
-  --iris: linear-gradient(120deg, #4b4382 0%, #2f5a86 45%, #6a4d73 100%);
+  --danger: #b42339;
+  --danger-soft: #fbe4e8;
+
+  --iris: linear-gradient(120deg, #8fe5ff 0%, #a9ceff 55%, #96f3e2 100%);
+  --grid-dot: rgb(3 101 143 / 0.08);
+  --tint: rgb(233 239 247 / 0.7);
 }
 
 html,
@@ -71,9 +91,14 @@ body {
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
+  background-image:
+    radial-gradient(60rem 28rem at 50% -8rem, rgb(0 210 255 / 0.1), transparent 70%),
+    radial-gradient(var(--grid-dot) 1px, transparent 1px);
+  background-size: auto, 32px 32px;
+  background-repeat: no-repeat, repeat;
   color: var(--text);
-  font-family: var(--font-geist), Arial, sans-serif;
+  font-family: var(--font-heading), Arial, sans-serif;
   overscroll-behavior: none;
 }
 
@@ -150,9 +175,140 @@ html {
 
 /* Frosted glass surface used by the header, cards and panels. */
 .glass {
+  background: var(--card);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+}
+
+/* Alternate page bands: slightly tinted, the dot grid still shows through. */
+.section-tint {
+  background: var(--tint);
+  border-block: 1px solid var(--border);
+}
+
+/* Top bar: the same glass, a little more see-through. */
+.glass-nav {
   background: var(--glass);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+}
+
+/* Cards on the public pages lift slightly and pick up a rim light. */
+.card-hover {
+  transition:
+    border-color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.card-hover:hover {
+  border-color: var(--border-glow);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px -14px rgb(0 210 255 / 0.28);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-hover {
+    transition: none;
+  }
+
+  .card-hover:hover {
+    transform: none;
+  }
+}
+
+/* Main call-to-action buttons. */
+.btn-glow {
+  background-image: var(--btn-gradient);
+  box-shadow: var(--glow);
+}
+
+.btn-glow:hover {
+  filter: brightness(1.08);
+}
+
+/* Framed picture area inside a card: dark ground with a fine grid, so a
+   drawn scene or a photo sits in it the same way. */
+.visual-panel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background-color: var(--surface-muted);
+  background-image:
+    radial-gradient(28rem 14rem at 80% 0%, rgb(0 210 255 / 0.16), transparent 70%),
+    radial-gradient(22rem 12rem at 0% 100%, rgb(0 245 212 / 0.1), transparent 70%),
+    linear-gradient(var(--grid-dot) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-dot) 1px, transparent 1px);
+  background-size: auto, auto, 24px 24px, 24px 24px;
+}
+
+/* A slow sweep of light across a picture that is "being scanned". */
+@keyframes tma-beam {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+.scan-beam {
+  animation: tma-beam 4.5s linear infinite;
+}
+
+/* Radar rings on the scan pictures. */
+@keyframes tma-ring {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+.radar-ring {
+  animation: tma-ring 3.6s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-beam,
+  .radar-ring {
+    animation: none;
+  }
+
+  .scan-beam {
+    display: none;
+  }
+}
+
+/* Headline accent: cyan to teal text. */
+.text-gradient {
+  background: linear-gradient(100deg, var(--primary) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Visible only when reached with the keyboard ("Skip to content"). */
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -64px;
+  z-index: 200;
+  border-radius: 999px;
+  background: var(--primary-strong);
+  color: var(--on-primary);
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: 12px;
 }
 
 /* Iridescent accent for highlights, selected states and progress. */
@@ -162,9 +318,10 @@ html {
 
 /* Small uppercase label ("MONITORING", "STEP 2 OF 4"). */
 .label-caps {
+  font-family: var(--font-mono), monospace;
   font-size: 11px;
   font-weight: 500;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -178,7 +335,7 @@ html {
 }
 
 .iris-shimmer {
-  background: linear-gradient(90deg, #c9c3f5, #bfd9f7, #f3e9f7, #c9c3f5);
+  background: linear-gradient(90deg, #00d2ff, #38a8ff, #00f5d4, #00d2ff);
   background-size: 200% 100%;
   animation: tma-shimmer 2.4s linear infinite;
 }
@@ -276,17 +433,34 @@ html {
   }
 }
 
-/* Icon font (see layout.tsx). The font loads after the first paint, so an icon
-   is a fixed 1em box whose text stays invisible until html gets "icons-ready":
-   no flash of icon names and no layout shift when the font arrives. */
+/* Icon font: a subset of Material Symbols with only the icons the site uses,
+   served from our own domain (public/fonts, written by scripts/icons.mjs
+   --fetch). Nothing is requested from Google. An icon is a fixed 1em box that
+   clips its text, so the icon name never shows while the font loads. */
+@font-face {
+  font-family: "Material Symbols Outlined";
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: block;
+  src: url("/fonts/material-symbols-subset.woff2") format("woff2");
+}
+
 .material-symbols-outlined {
   display: inline-block;
   width: 1em;
   height: 1em;
   overflow: hidden;
   white-space: nowrap;
-}
-
-html:not(.icons-ready) .material-symbols-outlined {
-  color: transparent;
+  font-family: "Material Symbols Outlined";
+  font-style: normal;
+  font-weight: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "liga";
+  user-select: none;
 }

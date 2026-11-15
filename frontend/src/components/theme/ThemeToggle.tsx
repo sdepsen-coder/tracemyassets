@@ -56,7 +56,7 @@ export function ThemeToggle({
                 : "text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--text)]",
             ].join(" ")}
           >
-            <span className="material-symbols-outlined text-[18px]">
+            <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
               {option.icon}
             </span>
           </button>

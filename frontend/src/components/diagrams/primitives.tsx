@@ -71,9 +71,9 @@ export function Diagram({
 export function IrisGradient({ id }: { id: string }) {
   return (
     <linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" className="[stop-color:#c9c3f5] dark:[stop-color:#4b4382]" />
-      <stop offset="0.55" className="[stop-color:#bfd9f7] dark:[stop-color:#2f5a86]" />
-      <stop offset="1" className="[stop-color:#f3e9f7] dark:[stop-color:#6a4d73]" />
+      <stop offset="0" className="[stop-color:#a9e6fb] dark:[stop-color:#0b4a63]" />
+      <stop offset="0.55" className="[stop-color:#bcd6fb] dark:[stop-color:#12416e]" />
+      <stop offset="1" className="[stop-color:#b5f3e6] dark:[stop-color:#0b5a52]" />
     </linearGradient>
   );
 }

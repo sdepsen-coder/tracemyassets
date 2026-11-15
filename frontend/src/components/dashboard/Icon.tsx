@@ -3,8 +3,9 @@ type IconProps = {
   className?: string;
 };
 
-// The Material Symbols stylesheet sets its own font-size and loads after our
-// CSS, so a "text-[NNpx]" class alone can lose. The size is also set inline.
+// Icons are decoration next to a text label, so they are hidden from screen
+// readers (otherwise the icon name, such as "shield", is read aloud).
+// The icon class sets its own font-size, so the size is also set inline.
 function sizeFrom(className: string): string | undefined {
   return className.match(/(?:^|\s)text-\[(\d+(?:\.\d+)?px)\]/)?.[1];
 }
@@ -14,6 +15,7 @@ export function Icon({ name, className = "text-[18px]" }: IconProps) {
 
   return (
     <span
+      aria-hidden="true"
       className={`material-symbols-outlined ${className}`}
       style={size ? { fontSize: size } : undefined}
     >

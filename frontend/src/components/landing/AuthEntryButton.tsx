@@ -8,23 +8,25 @@ import { useAuthEntry, useOptionalAuth } from "@/components/AuthGate";
 type AuthEntryButtonProps = {
   mode: "login" | "register";
   variant?: "primary" | "ghost" | "onPrimary";
-  size?: "md" | "lg" | "nav";
+  size?: "md" | "lg" | "nav" | "menu";
   children: ReactNode;
 };
 
 const VARIANTS = {
   primary:
-    "bg-[var(--primary-strong)] text-[var(--on-primary)] hover:opacity-85",
+    "btn-glow bg-[var(--primary-strong)] font-semibold text-[var(--on-primary)]",
   ghost:
-    "text-[var(--text)] hover:bg-[var(--surface-muted)]",
+    "text-[var(--text)] hover:bg-[var(--surface-raised)]",
   onPrimary: "bg-white text-[#111111] hover:bg-white/90",
 } as const;
 
 const SIZES = {
-  md: "h-10 px-5 text-[11px]",
-  lg: "h-12 px-7 text-[12px]",
+  md: "h-10 px-5 text-[14px]",
+  lg: "h-12 px-6 text-[15px]",
   // Top bar: tighter on phones so both buttons fit next to the logo.
-  nav: "h-9 px-3 text-[11px] sm:h-10 sm:px-5",
+  nav: "h-9 px-3.5 text-[13px] sm:h-10 sm:px-5 sm:text-[14px]",
+  // A full-width row in the phone menu.
+  menu: "h-12 w-full px-4 text-[15px]",
 } as const;
 
 /**
@@ -41,7 +43,7 @@ export function AuthEntryButton({
 }: AuthEntryButtonProps) {
   const { openAuth } = useAuthEntry();
   const auth = useOptionalAuth();
-  const className = `inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium uppercase tracking-[0.08em] transition ${VARIANTS[variant]} ${SIZES[size]}`;
+  const className = `inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-semibold transition ${VARIANTS[variant]} ${SIZES[size]}`;
 
   if (auth) {
     if (mode === "login") {

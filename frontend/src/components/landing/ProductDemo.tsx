@@ -23,13 +23,13 @@ export function ProductDemo() {
     <section id="product-demo" aria-labelledby="product-demo-heading" className="scroll-mt-28">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--text-muted)]">See invisible watermarking in action</p>
-          <h2 id="product-demo-heading" className="font-heading text-[30px] font-light leading-tight tracking-[-0.03em] sm:text-[40px]"><span className="text-[#7761bb]">Invisible watermark.</span> Nothing covers your art.</h2>
+          <p className="label-caps mb-2 text-[var(--primary)]">See invisible watermarking in action</p>
+          <h2 id="product-demo-heading" className="font-heading text-[28px] font-bold leading-tight tracking-[-0.03em] sm:text-[38px]"><span className="text-gradient">Invisible watermark.</span> Nothing covers your art.</h2>
         </div>
         <span className="rounded-full border border-[var(--border)] px-3 py-1.5 text-[12px] text-[var(--text-muted)]">45 seconds · No sound needed</span>
       </div>
 
-      <div className="relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[#f7f6f3] shadow-[0_24px_70px_-30px_rgb(60_50_120/0.25)]">
+      <div className="relative overflow-hidden rounded-2xl border border-[var(--border-glow)] bg-[var(--surface)] shadow-floating">
         <video
           ref={video}
           controls={started}
@@ -44,7 +44,7 @@ export function ProductDemo() {
           <a href="/media/product-demo-45s.mp4">Download the product demo</a>
         </video>
         {!started && (
-          <button type="button" onClick={play} aria-label="Play the 45-second product demo" className="group absolute inset-0 flex items-center justify-center bg-black/5 transition hover:bg-black/10 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-[-4px] focus-visible:outline-[#7761bb]">
+          <button type="button" onClick={play} aria-label="Play the 45-second product demo" className="group absolute inset-0 flex items-center justify-center bg-black/5 transition hover:bg-black/10 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-[-4px] focus-visible:outline-[var(--primary)]">
             <span className="flex items-center gap-3 rounded-full border border-white/40 bg-[#222127]/90 px-6 py-4 text-sm font-medium text-white shadow-xl backdrop-blur-sm transition group-hover:scale-105">
               <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-current"><path d="M8 5v14l11-7z" /></svg>
               Watch the demo <span className="text-white/60">0:45</span>
@@ -56,6 +56,17 @@ export function ProductDemo() {
       <div className="mt-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <p id="product-demo-description" className="max-w-[620px] text-[13px] leading-6 text-[var(--text-muted)]">Recorded on TraceMyAssets using a sample image. Review possible matches, check the source, and choose your next step.</p>
+          {/* The video has no speech; this is the same content as text. */}
+          <details className="mt-2 max-w-[620px] text-[13px] leading-6 text-[var(--text-muted)]">
+            <summary className="cursor-pointer underline underline-offset-4">What the video shows, as text</summary>
+            <ol className="mt-2 list-decimal space-y-1 pl-5">
+              <li>An image is uploaded and registered.</li>
+              <li>A protected copy with an invisible watermark is created and can be downloaded.</li>
+              <li>Monitoring is switched on for the artwork.</li>
+              <li>A scan runs and lists possible matches.</li>
+              <li>A match is opened to compare both images, check the source and choose the next step.</li>
+            </ol>
+          </details>
           {youtubeUrl && <a href={youtubeUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-2 text-[13px] underline underline-offset-4">Watch the full walkthrough on YouTube <span aria-hidden="true">↗</span></a>}
         </div>
         <span className="shrink-0"><AuthEntryButton mode="register">Try it free</AuthEntryButton></span>

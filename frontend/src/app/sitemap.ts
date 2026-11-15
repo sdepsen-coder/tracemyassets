@@ -8,6 +8,7 @@ const PAGES: { path: string; priority: number; legal?: boolean }[] = [
   { path: "/", priority: 1 },
   { path: "/pricing", priority: 0.8 },
   { path: "/help", priority: 0.7 },
+  { path: "/about", priority: 0.6 },
   { path: "/for/etsy-sellers", priority: 0.6 },
   { path: "/for/photographers", priority: 0.6 },
   { path: "/for/illustrators", priority: 0.6 },

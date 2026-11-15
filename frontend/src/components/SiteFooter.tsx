@@ -4,75 +4,92 @@ import { Wordmark } from "@/components/app/brand";
 import { CookieSettingsLink } from "@/components/CookieSettingsLink";
 import { CONTACT_EMAIL, SITE_NAME } from "@/lib/site";
 
-type SiteFooterProps = {
-  /**
-   * "themed" follows the app's light/dark CSS variables (dashboard and
-   * public pages). "dark" is for the signed-out sign-in screen, which uses
-   * fixed dark colours instead of the theme variables.
-   */
-  tone?: "themed" | "dark";
-};
+const GROUPS: Array<{ title: string; links: Array<{ href: string; label: string }> }> = [
+  {
+    title: "Product",
+    links: [
+      { href: "/#how-it-works", label: "How it works" },
+      { href: "/pricing", label: "Pricing" },
+      { href: "/help", label: "Help" },
+      { href: "/support", label: "Support" },
+    ],
+  },
+  {
+    title: "Made for",
+    links: [
+      { href: "/for/illustrators", label: "Illustrators" },
+      { href: "/for/photographers", label: "Photographers" },
+      { href: "/for/etsy-sellers", label: "Etsy sellers" },
+    ],
+  },
+  {
+    title: "Learn",
+    links: [
+      { href: "/guides", label: "Guides" },
+      { href: "/blog", label: "Blog" },
+      { href: "/guides/what-an-invisible-watermark-survives", label: "Watermark test results" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { href: "/about", label: "About" },
+      { href: "/privacy", label: "Privacy" },
+      { href: "/terms", label: "Terms" },
+      { href: "/refunds", label: "Refunds" },
+    ],
+  },
+];
 
-export function SiteFooter({ tone = "themed" }: SiteFooterProps) {
-  const dark = tone === "dark";
-
-  const wrapper = dark
-    ? "border-t border-white/10 text-slate-400"
-    : "border-t border-[var(--border)] text-[var(--text-muted)]";
-
-  const linkClass = dark
-    ? "transition hover:text-slate-100"
-    : "transition hover:text-[var(--text)]";
+/** Footer for every page: grouped links, contact address and cookie settings. */
+export function SiteFooter() {
+  const linkClass = "transition hover:text-[var(--primary)]";
 
   return (
-    <footer className={wrapper}>
-      <div className="mx-auto flex max-w-[1200px] flex-col gap-4 px-4 py-10 text-[13px] sm:px-6">
-        <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
-          {dark ? <span>© 2026 {SITE_NAME}</span> : <Wordmark />}
-
-          <nav
-            aria-label="Legal and support"
-            className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1"
-          >
-            <Link href="/about" className={linkClass}>
-              About
-            </Link>
-            <Link href="/pricing" className={linkClass}>
-              Pricing
-            </Link>
-            <Link href="/guides" className={linkClass}>
-              Guides
-            </Link>
-            <Link href="/blog" className={linkClass}>
-              Blog
-            </Link>
-            <Link href="/help" className={linkClass}>
-              Help
-            </Link>
-            <Link href="/privacy" className={linkClass}>
-              Privacy
-            </Link>
-            <Link href="/terms" className={linkClass}>
-              Terms
-            </Link>
-            <Link href="/refunds" className={linkClass}>
-              Refunds
-            </Link>
-            <Link href="/support" className={linkClass}>
-              Support
-            </Link>
-            <CookieSettingsLink className={linkClass} />
+    <footer className="border-t border-[var(--border)] bg-[var(--tint)] px-4 text-[var(--text-muted)] sm:px-6">
+      <div className="mx-auto max-w-[1200px] py-12 text-[13px]">
+        <div className="grid gap-10 lg:grid-cols-[1.2fr_2fr]">
+          <div>
+            <Wordmark />
+            <p className="mt-4 max-w-[320px] leading-6">
+              A web watcher for your artwork. You decide what to do; we never
+              contact anyone for you.
+            </p>
             {CONTACT_EMAIL && (
-              <a href={`mailto:${CONTACT_EMAIL}`} className={linkClass}>
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                className={`mt-4 inline-block font-mono text-[12px] ${linkClass}`}
+              >
                 {CONTACT_EMAIL}
               </a>
             )}
+          </div>
+
+          <nav
+            aria-label="Footer"
+            className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4"
+          >
+            {GROUPS.map((group) => (
+              <div key={group.title}>
+                <p className="label-caps text-[var(--text)]">{group.title}</p>
+                <ul className="mt-3 space-y-2.5">
+                  {group.links.map((link) => (
+                    <li key={link.href}>
+                      <Link href={link.href} className={linkClass}>
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </nav>
         </div>
 
-        {!dark && (
-          <p className="text-center text-[12px] sm:text-left">© 2026 {SITE_NAME}</p>
-        )}
+        <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-[var(--border)] pt-6 text-[12px] sm:flex-row sm:items-center">
+          <p>© 2026 {SITE_NAME}</p>
+          <CookieSettingsLink className={linkClass} />
+        </div>
       </div>
     </footer>
   );

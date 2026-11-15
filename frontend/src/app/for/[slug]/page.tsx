@@ -33,7 +33,7 @@ export async function generateMetadata({
 }
 
 const CTA_CLASS =
-  "inline-flex h-12 items-center justify-center rounded-full bg-[var(--primary-strong)] px-7 text-[12px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85";
+  "inline-flex h-12 items-center justify-center rounded-xl bg-[var(--primary-strong)] px-7 text-[14px] font-semibold text-[var(--on-primary)] transition hover:opacity-85";
 
 export default async function UseCasePage({
   params,

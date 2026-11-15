@@ -10,6 +10,8 @@ const siteHost = new URL(siteUrl).host;
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Do not announce the framework in an "X-Powered-By" header.
+  poweredByHeader: false,
   outputFileTracingRoot: __dirname,
 
   // Basic security headers on every response. Not set on purpose: a
@@ -49,6 +51,22 @@ const nextConfig = {
     return [
       // Old or guessed address that some crawlers ask for.
       { source: "/home", destination: "/", permanent: true },
+      // Addresses people type by hand. Sign-in and sign-up open on the home
+      // page, and contact details are on the Support page.
+      ...["/login", "/signin", "/sign-in"].map((source) => ({
+        source,
+        destination: "/?auth=login",
+        permanent: false,
+      })),
+      ...["/signup", "/sign-up", "/register"].map((source) => ({
+        source,
+        destination: "/?auth=register",
+        permanent: false,
+      })),
+      { source: "/contact", destination: "/support", permanent: true },
+      { source: "/faq", destination: "/help", permanent: true },
+      // Browsers and crawlers that ask for the old icon address.
+      { source: "/favicon.ico", destination: "/icon.svg", permanent: false },
       {
         source: "/:path*",
         has: [{ type: "host", value: `www.${siteHost}` }],

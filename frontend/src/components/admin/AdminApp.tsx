@@ -51,7 +51,7 @@ export function AdminApp() {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--text)]">
+    <div className="flex min-h-screen flex-col text-[var(--text)]">
       <Topbar />
 
       <main className="mx-auto w-full max-w-[1280px] flex-1 px-4 py-8 sm:px-6 lg:px-12">

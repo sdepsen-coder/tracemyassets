@@ -412,7 +412,7 @@ export function ArtworkBox({
       </div>
 
       <div className="mt-4 flex items-start justify-between gap-2">
-        <h2 className="truncate font-heading text-[18px] font-normal" title={asset.title}>
+        <h2 className="truncate font-heading text-[18px] font-semibold" title={asset.title}>
           {asset.title}
         </h2>
         {copiesToReview > 0 && (

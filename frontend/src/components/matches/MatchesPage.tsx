@@ -393,7 +393,7 @@ export function MatchesPage() {
               setAssetFilter(event.target.value === "all" ? "all" : Number(event.target.value))
             }
             aria-label="Filter by artwork"
-            className="h-10 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 text-[14px]"
+            className="h-10 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 text-[14px]"
           >
             <option value="all">All artworks</option>
             {assetsWithMatches.map((asset) => (
@@ -406,7 +406,7 @@ export function MatchesPage() {
             value={strength}
             onChange={(event) => setStrength(event.target.value as Strength)}
             aria-label="Filter by strength"
-            className="h-10 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 text-[14px]"
+            className="h-10 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 text-[14px]"
           >
             <option value="all">All strengths</option>
             <option value="strong">Strong and above</option>
@@ -424,7 +424,7 @@ export function MatchesPage() {
           <div className="flex justify-center">
             <GlassArt motif="orb" size="sm" />
           </div>
-          <h2 className="mt-5 font-heading text-[22px] font-normal">
+          <h2 className="mt-5 font-heading text-[22px] font-semibold">
             {tab === "review" ? "Nothing to review" : "Nothing here yet"}
           </h2>
           <p className="mt-2 text-[15px] text-[var(--text-muted)]">
@@ -467,7 +467,7 @@ export function MatchesPage() {
                     </div>
 
                     <div className="mt-4 flex flex-wrap items-center gap-2">
-                      <h2 className="mr-1 font-heading text-[18px] font-normal">
+                      <h2 className="mr-1 font-heading text-[18px] font-semibold">
                         {asset?.title ?? "Artwork"}
                       </h2>
                       <Chip tone={strengthInfo.tone}>{strengthInfo.label}</Chip>
@@ -508,7 +508,7 @@ export function MatchesPage() {
               <Card className="lg:sticky lg:top-24">
                 <div className="flex items-center justify-between gap-3 border-b border-[var(--border)] px-5 py-4">
                   <div className="flex items-center gap-2">
-                    <h2 className="font-heading text-[18px] font-normal">
+                    <h2 className="font-heading text-[18px] font-semibold">
                       {openAsset?.title ?? "Artwork"} — possible copy
                     </h2>
                   </div>
@@ -712,7 +712,7 @@ export function MatchesPage() {
             ) : (
               <Card className="hidden h-full min-h-[320px] flex-col items-center justify-center p-10 text-center lg:flex">
                 <Icon name="compare" className="text-[40px] text-[var(--text-muted)]" />
-                <p className="mt-3 font-heading text-[18px] font-normal">Open a match to compare</p>
+                <p className="mt-3 font-heading text-[18px] font-semibold">Open a match to compare</p>
                 <p className="mt-1 max-w-[320px] text-[14px] text-[var(--text-muted)]">
                   You&apos;ll see both images side by side, where it was found, and what you can do.
                 </p>

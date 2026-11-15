@@ -1,14 +1,16 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { Wordmark } from "@/components/app/brand";
 import { SiteFooter } from "@/components/SiteFooter";
+import { SiteHeader } from "@/components/SiteHeader";
+import type { NavKey } from "@/lib/nav";
 
 type LegalPageProps = {
   title: string;
   updated?: string;
   /** Wider column, for pages with cards side by side. */
   wide?: boolean;
+  /** Which menu item to highlight. */
+  active?: NavKey;
   children: ReactNode;
 };
 
@@ -20,35 +22,17 @@ export function LegalPage({
   title,
   updated,
   wide = false,
+  active,
   children,
 }: LegalPageProps) {
   const width = wide ? "max-w-5xl" : "max-w-3xl";
 
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--text)]">
-      <header className="sticky top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4">
-        <div className="glass mx-auto flex h-16 max-w-[1200px] items-center justify-between rounded-2xl border border-[var(--border)] px-4 shadow-[0_10px_40px_rgb(0_0_0/0.05)] sm:px-5">
-          <Wordmark />
+    <div className="flex min-h-screen flex-col text-[var(--text)]">
+      <SiteHeader active={active} />
 
-          <nav className="flex items-center gap-1 sm:gap-2" aria-label="Main">
-            <Link
-              href="/pricing"
-              className="inline-flex h-10 items-center rounded-full px-3 text-[13px] transition hover:bg-[var(--surface-muted)] sm:px-4"
-            >
-              Pricing
-            </Link>
-            <Link
-              href="/"
-              className="inline-flex h-10 items-center rounded-full border border-[var(--line-strong)] px-5 text-[11px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)]"
-            >
-              Home
-            </Link>
-          </nav>
-        </div>
-      </header>
-
-      <main className={`mx-auto w-full ${width} flex-1 px-4 pb-20 pt-14 sm:px-6 sm:pt-20`}>
-        <h1 className="font-heading text-[44px] font-light leading-[1.05] tracking-[-0.03em] sm:text-[64px]">
+      <main id="main-content" className={`mx-auto w-full ${width} flex-1 px-4 pb-20 pt-14 sm:px-6 sm:pt-20`}>
+        <h1 className="font-heading text-[38px] font-bold leading-[1.08] tracking-[-0.03em] sm:text-[54px]">
           {title}
         </h1>
 
@@ -82,7 +66,7 @@ export function LegalSection({
     <section>
       <h2
         id={id || undefined}
-        className="scroll-mt-28 font-heading text-[26px] font-light tracking-[-0.02em]"
+        className="scroll-mt-28 font-heading text-[24px] font-semibold tracking-[-0.02em]"
       >
         {heading}
       </h2>

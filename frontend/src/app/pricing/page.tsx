@@ -53,7 +53,7 @@ const QUESTIONS: Array<{ question: string; answer: string }> = [
 
 export default function PricingPage() {
   return (
-    <LegalPage title="Pricing" wide>
+    <LegalPage title="Pricing" wide active="pricing">
       <p className="max-w-2xl text-[15px] leading-relaxed text-[var(--text-muted)]">
         Start free and see what {SITE_NAME} finds for your work. Paid plans
         add room for more artworks, more scans and the exact pages where your
@@ -63,7 +63,7 @@ export default function PricingPage() {
       <PlanCards />
 
       <section data-testid="credit-packs-section" className="space-y-3">
-        <h2 className="font-heading text-[26px] font-light tracking-[-0.02em] text-[var(--text)]">
+        <h2 className="font-heading text-[26px] font-semibold tracking-[-0.02em] text-[var(--text)]">
           Need more Deep scans?
         </h2>
         <p className="max-w-2xl text-[14px] leading-relaxed text-[var(--text-muted)]">

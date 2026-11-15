@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { AuthGate } from "@/components/AuthGate";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { JsonLd } from "@/components/JsonLd";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
+import { PLANS } from "@/lib/plans";
+import { CONTACT_EMAIL, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -19,6 +20,16 @@ const STRUCTURED_DATA = {
       name: SITE_NAME,
       url: SITE_URL,
       logo: `${SITE_URL}/icon.svg`,
+      ...(CONTACT_EMAIL
+        ? {
+            contactPoint: {
+              "@type": "ContactPoint",
+              contactType: "customer support",
+              email: CONTACT_EMAIL,
+              availableLanguage: "en",
+            },
+          }
+        : {}),
     },
     {
       "@type": "WebSite",
@@ -35,6 +46,14 @@ const STRUCTURED_DATA = {
       operatingSystem: "Web",
       description: SITE_DESCRIPTION,
       publisher: { "@id": `${SITE_URL}/#organization` },
+      // The plans from the Pricing page (monthly prices, US dollars).
+      offers: PLANS.map((plan) => ({
+        "@type": "Offer",
+        name: plan.name,
+        price: (plan.monthlyUsd ?? 0).toFixed(2),
+        priceCurrency: "USD",
+        url: `${SITE_URL}/pricing`,
+      })),
     },
   ],
 };

@@ -1,9 +1,7 @@
 import type { ReactNode } from "react";
 
-import { Wordmark } from "@/components/app/brand";
 import { SiteFooter } from "@/components/SiteFooter";
-import { TrackedLink } from "@/components/guides/TrackedLink";
-import Link from "next/link";
+import { SiteHeader } from "@/components/SiteHeader";
 
 /**
  * Page frame for the guides: same header and footer as the legal pages, with
@@ -17,44 +15,11 @@ export function GuideShell({
   /** Which menu item to highlight. */
   active?: "guides" | "blog";
 }) {
-  const on = "bg-[var(--surface-muted)]";
-  const off = "transition hover:bg-[var(--surface-muted)]";
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--text)]">
-      <header className="sticky top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4">
-        <div className="glass mx-auto flex h-16 max-w-[1200px] items-center justify-between rounded-2xl border border-[var(--border)] px-4 shadow-[0_10px_40px_rgb(0_0_0/0.05)] sm:px-5">
-          <Wordmark />
-          <nav className="flex items-center gap-1 sm:gap-2" aria-label="Main">
-            <Link
-              href="/pricing"
-              className="inline-flex h-10 items-center rounded-full px-3 text-[13px] transition hover:bg-[var(--surface-muted)] sm:px-4"
-            >
-              Pricing
-            </Link>
-            <Link
-              href="/guides"
-              className={`inline-flex h-10 items-center rounded-full px-3 text-[13px] sm:px-4 ${active === "guides" ? on : off}`}
-            >
-              Guides
-            </Link>
-            <Link
-              href="/blog"
-              className={`inline-flex h-10 items-center rounded-full px-3 text-[13px] sm:px-4 ${active === "blog" ? on : off}`}
-            >
-              Blog
-            </Link>
-            <TrackedLink
-              href="/?auth=register"
-              placement="header"
-              className="inline-flex h-10 items-center rounded-full bg-[var(--primary-strong)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85 sm:px-5"
-            >
-              Start free
-            </TrackedLink>
-          </nav>
-        </div>
-      </header>
+    <div className="flex min-h-screen flex-col text-[var(--text)]">
+      <SiteHeader active={active} />
 
-      <main className="w-full flex-1 px-4 pb-20 pt-12 sm:px-6 sm:pt-16">
+      <main id="main-content" className="w-full flex-1 px-4 pb-20 pt-12 sm:px-6 sm:pt-16">
         {children}
       </main>
 

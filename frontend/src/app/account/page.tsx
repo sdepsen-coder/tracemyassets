@@ -133,7 +133,7 @@ function SubscriptionSection({ planType }: { planType: string }) {
       data-testid="subscription-section"
       className="glass rounded-card border border-[var(--border)] p-6 sm:p-7"
     >
-      <h2 className="font-heading text-[24px] font-light tracking-[-0.02em]">Subscription</h2>
+      <h2 className="font-heading text-[24px] font-semibold tracking-[-0.02em]">Subscription</h2>
 
       {waiting ? (
         <p
@@ -182,7 +182,7 @@ function SubscriptionSection({ planType }: { planType: string }) {
             data-testid="manage-subscription"
             disabled={busy}
             onClick={() => void manage()}
-            className="inline-flex h-10 items-center rounded-full border border-[var(--line-strong)] px-5 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text)] transition hover:bg-[var(--surface-muted)] disabled:opacity-60"
+            className="inline-flex h-10 items-center rounded-xl border border-[var(--line-strong)] px-5 text-[14px] font-semibold text-[var(--text)] transition hover:bg-[var(--surface-muted)] disabled:opacity-60"
           >
             {busy ? "Opening..." : "Manage subscription"}
           </button>
@@ -279,7 +279,7 @@ function CreditsSection() {
       data-testid="credits-section"
       className="glass rounded-card border border-[var(--border)] p-6 sm:p-7"
     >
-      <h2 className="font-heading text-[24px] font-light tracking-[-0.02em]">Deep scan credits</h2>
+      <h2 className="font-heading text-[24px] font-semibold tracking-[-0.02em]">Deep scan credits</h2>
 
       {waiting ? (
         <p
@@ -351,7 +351,7 @@ function DownloadSection() {
 
   return (
     <section className="glass rounded-card border border-[var(--border)] p-6 sm:p-7">
-      <h2 className="font-heading text-[24px] font-light tracking-[-0.02em]">Download your data</h2>
+      <h2 className="font-heading text-[24px] font-semibold tracking-[-0.02em]">Download your data</h2>
       <p className="mt-2 max-w-2xl text-[14px] leading-6 text-[var(--text-muted)]">
         A ZIP file with everything we hold about your account: your account
         details, artworks (with your original files and protected copies),
@@ -364,7 +364,7 @@ function DownloadSection() {
         data-testid="download-data"
         disabled={busy}
         onClick={() => void download()}
-        className="mt-4 inline-flex h-10 items-center rounded-full bg-[var(--primary-strong)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 inline-flex h-10 items-center rounded-xl bg-[var(--primary-strong)] px-4 text-[14px] font-semibold text-[var(--on-primary)] transition hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {busy ? "Preparing your file..." : "Download my data"}
       </button>
@@ -414,7 +414,7 @@ function DeleteSection({ email, isAdmin }: { email: string; isAdmin: boolean }) 
 
   return (
     <section className="glass rounded-card border border-[var(--danger)] p-6 sm:p-7">
-      <h2 className="font-heading text-[24px] font-light tracking-[-0.02em] text-[var(--danger)]">
+      <h2 className="font-heading text-[24px] font-semibold tracking-[-0.02em] text-[var(--danger)]">
         Delete your account
       </h2>
 
@@ -465,7 +465,7 @@ function DeleteSection({ email, isAdmin }: { email: string; isAdmin: boolean }) 
             data-testid="delete-account"
             disabled={!matches || busy}
             onClick={() => void remove()}
-            className="inline-flex h-10 items-center rounded-full bg-[var(--danger)] px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-10 items-center rounded-xl bg-[var(--danger)] px-4 text-[14px] font-semibold text-[var(--on-primary)] transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busy ? "Deleting..." : "Delete my account permanently"}
           </button>
@@ -543,13 +543,13 @@ function PlanUsageSection({ planType }: { planType: string }) {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <span className="label-caps text-[var(--text-muted)]">Current plan</span>
-          <p className="mt-2 font-heading text-[36px] font-light leading-none tracking-[-0.02em]">
+          <p className="mt-2 font-heading text-[36px] font-semibold leading-none tracking-[-0.02em]">
             {planType}
           </p>
         </div>
         <Link
           href="/pricing"
-          className="inline-flex h-10 items-center rounded-full bg-[var(--primary-strong)] px-5 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85"
+          className="inline-flex h-10 items-center rounded-xl bg-[var(--primary-strong)] px-5 text-[14px] font-semibold text-[var(--on-primary)] transition hover:opacity-85"
         >
           {planType === "Free" ? "Upgrade" : "Compare plans"}
         </Link>
@@ -597,7 +597,7 @@ function SecuritySection({ email }: { email: string }) {
 
   return (
     <section className="glass rounded-card border border-[var(--border)] p-6 sm:p-7">
-      <h2 className="font-heading text-[24px] font-light tracking-[-0.02em]">Profile & security</h2>
+      <h2 className="font-heading text-[24px] font-semibold tracking-[-0.02em]">Profile & security</h2>
       <dl className="mt-5 text-[14px]">
         <dt className="label-caps text-[var(--text-muted)]">Email</dt>
         <dd className="mt-1 text-[16px]">{email}</dd>
@@ -608,14 +608,14 @@ function SecuritySection({ email }: { email: string }) {
           type="button"
           disabled={busy || sent}
           onClick={() => void sendPasswordLink()}
-          className="inline-flex h-10 items-center rounded-full border border-[var(--line-strong)] px-5 text-[11px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)] disabled:opacity-50"
+          className="inline-flex h-10 items-center rounded-xl border border-[var(--line-strong)] px-5 text-[14px] font-semibold transition hover:bg-[var(--surface-muted)] disabled:opacity-50"
         >
           {sent ? "Link sent" : busy ? "Sending…" : "Change password"}
         </button>
         <button
           type="button"
           onClick={() => void logoutEverywhere()}
-          className="inline-flex h-10 items-center rounded-full border border-[var(--line-strong)] px-5 text-[11px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)]"
+          className="inline-flex h-10 items-center rounded-xl border border-[var(--line-strong)] px-5 text-[14px] font-semibold transition hover:bg-[var(--surface-muted)]"
         >
           Sign out of all devices
         </button>

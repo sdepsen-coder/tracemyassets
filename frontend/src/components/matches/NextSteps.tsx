@@ -116,7 +116,7 @@ export function NextSteps({ match, artworkTitle }: Props) {
     >
       <summary className="cursor-pointer list-none font-semibold text-[var(--text)]">
         <span className="inline-flex items-center gap-2">
-          <span className="material-symbols-outlined text-[18px]">
+          <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
             help
           </span>
           What can I do about this?
@@ -172,7 +172,7 @@ export function NextSteps({ match, artworkTitle }: Props) {
                   aria-selected={item.kind === letter.kind}
                   onClick={() => setActive(item.kind)}
                   className={[
-                    "inline-flex h-8 items-center rounded-full border px-3 text-[11px] font-medium uppercase tracking-[0.08em] transition",
+                    "inline-flex h-8 items-center rounded-xl border px-3 text-[14px] font-semibold transition",
                     item.kind === letter.kind
                       ? "border-[var(--primary)] bg-[var(--primary-soft)] text-[var(--primary)]"
                       : "border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:text-[var(--text)]",
@@ -201,14 +201,14 @@ export function NextSteps({ match, artworkTitle }: Props) {
                 type="button"
                 data-testid="letter-copy"
                 onClick={() => void handleCopy()}
-                className="inline-flex h-9 items-center rounded-full bg-[var(--primary-strong)] px-3 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85"
+                className="inline-flex h-9 items-center rounded-xl bg-[var(--primary-strong)] px-3 text-[14px] font-semibold text-[var(--on-primary)] transition hover:opacity-85"
               >
                 {copied === letter.kind ? "Copied" : "Copy letter"}
               </button>
 
               <a
                 href={`mailto:?subject=${encodeURIComponent(letter.subject)}&body=${encodeURIComponent(letter.body)}`}
-                className="inline-flex h-9 items-center rounded-full border border-[var(--line-strong)] bg-[var(--surface)] px-3 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text)] transition hover:bg-[var(--surface-muted)]"
+                className="inline-flex h-9 items-center rounded-xl border border-[var(--line-strong)] bg-[var(--surface)] px-3 text-[14px] font-semibold text-[var(--text)] transition hover:bg-[var(--surface-muted)]"
               >
                 Open in email app
               </a>

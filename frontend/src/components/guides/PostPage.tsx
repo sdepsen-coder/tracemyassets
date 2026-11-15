@@ -11,7 +11,7 @@ import { TOPIC_LABEL, type Post } from "@/lib/guides";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 const CTA_CLASS =
-  "inline-flex h-12 items-center justify-center rounded-full bg-[var(--primary-strong)] px-7 text-[12px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85";
+  "btn-glow inline-flex h-12 items-center justify-center rounded-xl bg-[var(--primary-strong)] px-7 text-[14px] font-semibold text-[var(--on-primary)] transition";
 
 /**
  * One guide or blog post: header with illustration, the text, related posts,
@@ -96,7 +96,7 @@ export function PostPage({
                 timeZone: "UTC",
               })}
             </p>
-            <h1 className="mt-4 font-heading text-[36px] font-light leading-[1.1] tracking-[-0.03em] sm:text-[48px]">
+            <h1 className="mt-4 font-heading text-[36px] font-semibold leading-[1.1] tracking-[-0.03em] sm:text-[48px]">
               {post.title}
             </h1>
             <div
@@ -115,14 +115,14 @@ export function PostPage({
               <TrackedLink
                 href="/?auth=register"
                 placement="post-top"
-                className="inline-flex h-10 items-center justify-center rounded-full bg-[var(--primary-strong)] px-5 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)] transition hover:opacity-85"
+                className="btn-glow inline-flex h-10 items-center justify-center rounded-xl bg-[var(--primary-strong)] px-5 text-[14px] font-semibold text-[var(--on-primary)] transition"
               >
                 Start free
               </TrackedLink>
               <TrackedLink
                 href="/pricing"
                 placement="post-top-pricing"
-                className="inline-flex h-10 items-center justify-center rounded-full border border-[var(--line-strong)] px-5 text-[11px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)]"
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-[var(--line-strong)] px-5 text-[14px] font-semibold transition hover:bg-[var(--surface-muted)]"
               >
                 See pricing
               </TrackedLink>
@@ -135,7 +135,7 @@ export function PostPage({
 
           {related.length > 0 && (
             <section>
-              <h2 className="font-heading text-[26px] font-light tracking-[-0.02em]">
+              <h2 className="font-heading text-[26px] font-semibold tracking-[-0.02em]">
                 Related reading
               </h2>
               <ul className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -156,11 +156,12 @@ export function PostPage({
             </section>
           )}
 
-          <div className="rounded-[24px] p-6 sm:p-8" style={{ background: "var(--iris)" }}>
-            <h2 className="font-heading text-[24px] font-normal tracking-[-0.02em] text-[#111]">
+          <div className="glass relative overflow-hidden rounded-[24px] border border-[var(--border-glow)] p-6 sm:p-8">
+            <span aria-hidden className="iris absolute inset-x-0 top-0 h-1" />
+            <h2 className="font-heading text-[24px] font-semibold tracking-[-0.02em]">
               Protect your first artwork
             </h2>
-            <p className="mt-2 max-w-md text-[14px] leading-relaxed text-[#3b3a37]">
+            <p className="mt-2 max-w-md text-[14px] leading-relaxed text-[var(--text-muted)]">
               Register it, add an invisible watermark and review possible copies.
               You decide what to do. No credit card needed.
             </p>
@@ -171,7 +172,7 @@ export function PostPage({
               <TrackedLink
                 href="/pricing"
                 placement="post-end-pricing"
-                className="inline-flex h-12 items-center justify-center rounded-full border border-[#111]/30 px-7 text-[12px] font-medium uppercase tracking-[0.08em] text-[#111] transition hover:bg-black/5"
+                className="inline-flex h-12 items-center justify-center rounded-xl border border-[var(--line-strong)] px-7 text-[14px] font-semibold transition hover:border-[var(--border-glow)] hover:text-[var(--primary)]"
               >
                 See pricing
               </TrackedLink>

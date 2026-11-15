@@ -53,7 +53,7 @@ export function PostIndex({
         }}
       />
       <div className="mx-auto w-full max-w-[1100px]">
-        <h1 className="font-heading text-[44px] font-light leading-[1.05] tracking-[-0.03em] sm:text-[64px]">
+        <h1 className="font-heading text-[44px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-[64px]">
           {section.label}
         </h1>
         <p className="mt-4 max-w-xl text-[18px] leading-8 text-[var(--text-muted)]">
@@ -85,7 +85,7 @@ export function PostIndex({
               <p className="text-[13px] text-[var(--text-muted)]">
                 {TOPIC_LABEL[featured.topic]} · {formatDate(featured.datePublished)}
               </p>
-              <h2 className="mt-3 font-heading text-[28px] font-normal leading-tight tracking-[-0.02em] sm:text-[32px]">
+              <h2 className="mt-3 font-heading text-[28px] font-semibold leading-tight tracking-[-0.02em] sm:text-[32px]">
                 {featured.title}
               </h2>
               <p className="mt-4 text-[15px] leading-7 text-[var(--text-muted)]">
@@ -112,7 +112,7 @@ export function PostIndex({
                   <span className="mt-4 self-start rounded-full bg-[var(--surface-muted)] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.1em]">
                     {TOPIC_LABEL[post.topic]}
                   </span>
-                  <h2 className="mt-3 font-heading text-[20px] font-normal leading-snug tracking-[-0.01em]">
+                  <h2 className="mt-3 font-heading text-[20px] font-semibold leading-snug tracking-[-0.01em]">
                     {post.title}
                   </h2>
                   <p className="mt-auto pt-4 text-[13px] text-[var(--text-muted)]">
