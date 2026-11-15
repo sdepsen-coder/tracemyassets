@@ -73,8 +73,8 @@ function pillClass(
   size: NonNullable<PillProps["size"]>,
 ) {
   return [
-    "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full font-medium uppercase tracking-[0.08em] transition disabled:cursor-not-allowed",
-    size === "sm" ? "h-9 px-4 text-[11px]" : "h-11 px-6 text-[12px]",
+    "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl font-semibold transition disabled:cursor-not-allowed",
+    size === "sm" ? "h-9 px-4 text-[13px]" : "h-11 px-5 text-[14px]",
     PILL_VARIANTS[variant],
   ].join(" ");
 }
@@ -219,7 +219,7 @@ export function CostLine({ children }: { children: ReactNode }) {
 /** Small uppercase tag above a title ("MONITORING", "STEP 2 OF 4"). */
 export function Eyebrow({ children }: { children: ReactNode }) {
   return (
-    <span className="label-caps mb-4 inline-flex rounded-full border border-[var(--border-glow)] bg-[var(--primary-soft)] px-3 py-1 text-[var(--primary)]">
+    <span className="label-caps mb-4 inline-flex rounded-full border border-[rgb(0_245_212/0.3)] bg-[rgb(0_245_212/0.08)] px-3 py-1 text-[var(--accent)]">
       {children}
     </span>
   );

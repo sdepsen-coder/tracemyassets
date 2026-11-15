@@ -287,7 +287,7 @@ export function MonitoringPage() {
               })}
             </div>
 
-            <label className="mb-3 flex h-10 items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 sm:w-64">
+            <label className="mb-3 flex h-10 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 sm:w-64">
               <Icon name="search" className="text-[18px] text-[var(--text-muted)]" />
               <input
                 value={query}

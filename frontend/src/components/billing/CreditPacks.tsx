@@ -164,7 +164,7 @@ export function CreditPacks({
               data-testid={`credit-pack-${pack.credits}`}
               disabled={busy !== null}
               onClick={() => void buy(pack)}
-              className="inline-flex h-8 items-center rounded-full border border-[var(--primary)]/40 bg-[var(--surface)] px-3 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text)] transition hover:bg-[var(--surface-muted)] disabled:opacity-60"
+              className="inline-flex h-8 items-center rounded-xl border border-[var(--primary)]/40 bg-[var(--surface)] px-3 text-[14px] font-semibold text-[var(--text)] transition hover:bg-[var(--surface-muted)] disabled:opacity-60"
             >
               {pack.credits} credits · {usd(pack.amount)}
             </button>
@@ -190,7 +190,7 @@ export function CreditPacks({
                 data-testid={`credit-pack-${pack.credits}`}
                 disabled={busy !== null}
                 onClick={() => void buy(pack)}
-                className="btn-glow mt-4 inline-flex h-10 items-center justify-center rounded-full bg-[var(--primary-strong)] px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--on-primary)] transition disabled:opacity-60"
+                className="btn-glow mt-4 inline-flex h-10 items-center justify-center rounded-xl bg-[var(--primary-strong)] px-4 text-[14px] font-semibold text-[var(--on-primary)] transition disabled:opacity-60"
               >
                 {busy === pack.price_id ? "Opening..." : "Buy credits"}
               </button>

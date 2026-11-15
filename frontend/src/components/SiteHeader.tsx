@@ -37,7 +37,7 @@ export function SiteHeader({
               href={link.href}
               aria-current={active === link.key ? "page" : undefined}
               className={[
-                "inline-flex h-9 items-center rounded-full px-3.5 transition hover:text-[var(--primary)]",
+                "inline-flex h-9 items-center rounded-lg px-3.5 font-medium transition hover:text-[var(--primary)]",
                 active === link.key
                   ? "bg-[var(--primary-soft)] text-[var(--primary)]"
                   : "",
@@ -53,14 +53,14 @@ export function SiteHeader({
             <>
               <Link
                 href="/?auth=login"
-                className="hidden h-10 items-center rounded-full px-4 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text)] transition hover:bg-[var(--surface-raised)] sm:inline-flex"
+                className="hidden h-10 items-center rounded-xl px-4 text-[14px] font-semibold text-[var(--text)] transition hover:bg-[var(--surface-raised)] sm:inline-flex"
               >
                 Sign in
               </Link>
               <TrackedLink
                 href="/?auth=register"
                 placement="header"
-                className="btn-glow inline-flex h-9 items-center whitespace-nowrap rounded-full bg-[var(--primary-strong)] px-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--on-primary)] transition sm:h-10 sm:px-5"
+                className="btn-glow inline-flex h-9 items-center whitespace-nowrap rounded-xl bg-[var(--primary-strong)] px-4 text-[14px] font-semibold text-[var(--on-primary)] transition sm:h-10 sm:px-5"
               >
                 Start free
               </TrackedLink>

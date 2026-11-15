@@ -52,7 +52,7 @@ export function MobileMenu({
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((value) => !value)}
-        className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] text-[var(--text)] transition hover:border-[var(--border-glow)]"
+        className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border)] text-[var(--text)] transition hover:border-[var(--border-glow)]"
       >
         <Icon name={open ? "close" : "menu"} className="text-[22px]" />
       </button>

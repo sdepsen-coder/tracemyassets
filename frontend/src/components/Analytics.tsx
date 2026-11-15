@@ -256,9 +256,9 @@ export function Analytics() {
       role="dialog"
       aria-label="Cookie preferences"
       data-testid="cookie-banner"
-      className="fixed inset-x-0 bottom-0 z-[100] p-3 sm:p-4"
+      className="fixed inset-x-0 bottom-0 z-[100] p-3 sm:inset-x-auto sm:right-0 sm:w-[440px] sm:p-4"
     >
-      <div className="glass mx-auto flex max-w-3xl flex-col gap-3 rounded-2xl border border-[var(--border-glow)] p-3.5 text-[12px] leading-snug text-[var(--text)] shadow-floating sm:flex-row sm:items-center sm:gap-5 sm:p-4 sm:text-[13px] sm:leading-relaxed">
+      <div className="glass flex flex-col gap-3 rounded-2xl border border-[var(--border-glow)] p-3.5 text-[12px] leading-snug text-[var(--text)] shadow-floating sm:p-4 sm:text-[13px] sm:leading-relaxed">
         <p className="flex-1 text-[var(--text-muted)]">
           May we use analytics cookies? If you accept, Google Analytics counts
           page views and Microsoft Clarity records clicks and scrolling on our
@@ -275,7 +275,7 @@ export function Analytics() {
             type="button"
             data-testid="cookie-decline"
             onClick={() => decide("denied")}
-            className="h-10 flex-1 rounded-full border border-[var(--line-strong)] px-5 font-semibold text-[var(--text)] transition hover:border-[var(--border-glow)] hover:text-[var(--primary)] sm:flex-none"
+            className="h-10 flex-1 rounded-xl border border-[var(--line-strong)] px-5 font-semibold text-[var(--text)] transition hover:border-[var(--border-glow)] hover:text-[var(--primary)]"
           >
             Decline
           </button>
@@ -283,7 +283,7 @@ export function Analytics() {
             type="button"
             data-testid="cookie-accept"
             onClick={() => decide("granted")}
-            className="h-10 flex-1 rounded-full border border-[var(--line-strong)] px-5 font-semibold text-[var(--text)] transition hover:border-[var(--border-glow)] hover:text-[var(--primary)] sm:flex-none"
+            className="h-10 flex-1 rounded-xl border border-[var(--line-strong)] px-5 font-semibold text-[var(--text)] transition hover:border-[var(--border-glow)] hover:text-[var(--primary)]"
           >
             Accept
           </button>

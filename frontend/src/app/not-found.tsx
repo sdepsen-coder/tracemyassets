@@ -32,7 +32,7 @@ export default function NotFound() {
           <li key={link.href}>
             <Link
               href={link.href}
-              className="inline-flex h-11 items-center rounded-full border border-[var(--line-strong)] px-5 text-[12px] font-medium uppercase tracking-[0.08em] transition hover:border-[var(--border-glow)] hover:text-[var(--primary)]"
+              className="inline-flex h-11 items-center rounded-xl border border-[var(--line-strong)] px-5 text-[14px] font-semibold transition hover:border-[var(--border-glow)] hover:text-[var(--primary)]"
             >
               {link.label}
             </Link>

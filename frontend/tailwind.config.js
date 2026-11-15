@@ -8,7 +8,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-sans)", "Arial", "sans-serif"],
+        sans: ["var(--font-heading)", "Arial", "sans-serif"],
         heading: ["var(--font-heading)", "Arial", "sans-serif"],
         mono: ["var(--font-mono)", "monospace"],
       },

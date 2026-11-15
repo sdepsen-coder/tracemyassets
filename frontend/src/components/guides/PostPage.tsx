@@ -11,7 +11,7 @@ import { TOPIC_LABEL, type Post } from "@/lib/guides";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 const CTA_CLASS =
-  "btn-glow inline-flex h-12 items-center justify-center rounded-full bg-[var(--primary-strong)] px-7 text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--on-primary)] transition";
+  "btn-glow inline-flex h-12 items-center justify-center rounded-xl bg-[var(--primary-strong)] px-7 text-[14px] font-semibold text-[var(--on-primary)] transition";
 
 /**
  * One guide or blog post: header with illustration, the text, related posts,
@@ -115,14 +115,14 @@ export function PostPage({
               <TrackedLink
                 href="/?auth=register"
                 placement="post-top"
-                className="btn-glow inline-flex h-10 items-center justify-center rounded-full bg-[var(--primary-strong)] px-5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--on-primary)] transition"
+                className="btn-glow inline-flex h-10 items-center justify-center rounded-xl bg-[var(--primary-strong)] px-5 text-[14px] font-semibold text-[var(--on-primary)] transition"
               >
                 Start free
               </TrackedLink>
               <TrackedLink
                 href="/pricing"
                 placement="post-top-pricing"
-                className="inline-flex h-10 items-center justify-center rounded-full border border-[var(--line-strong)] px-5 text-[11px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)]"
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-[var(--line-strong)] px-5 text-[14px] font-semibold transition hover:bg-[var(--surface-muted)]"
               >
                 See pricing
               </TrackedLink>
@@ -172,7 +172,7 @@ export function PostPage({
               <TrackedLink
                 href="/pricing"
                 placement="post-end-pricing"
-                className="inline-flex h-12 items-center justify-center rounded-full border border-[var(--line-strong)] px-7 text-[12px] font-medium uppercase tracking-[0.08em] transition hover:border-[var(--border-glow)] hover:text-[var(--primary)]"
+                className="inline-flex h-12 items-center justify-center rounded-xl border border-[var(--line-strong)] px-7 text-[14px] font-semibold transition hover:border-[var(--border-glow)] hover:text-[var(--primary)]"
               >
                 See pricing
               </TrackedLink>

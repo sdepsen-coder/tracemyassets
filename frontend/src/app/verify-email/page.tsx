@@ -88,7 +88,7 @@ function VerifyEmail() {
       {state !== "working" && (
         <Link
           href="/"
-          className="mt-6 inline-flex h-12 items-center rounded-full bg-[var(--primary-strong)] px-7 text-[12px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)]"
+          className="mt-6 inline-flex h-12 items-center rounded-xl bg-[var(--primary-strong)] px-7 text-[14px] font-semibold text-[var(--on-primary)]"
         >
           {state === "done" ? "Open the dashboard" : "Open TraceMyAssets"}
         </Link>

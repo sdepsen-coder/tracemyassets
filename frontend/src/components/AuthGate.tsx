@@ -440,7 +440,7 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
           <button
             type="button"
             onClick={() => setRestoreKey((value) => value + 1)}
-            className="rounded-full border border-[var(--line-strong)] px-4 py-1 text-[11px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)]"
+            className="rounded-xl border border-[var(--line-strong)] px-4 py-1 text-[14px] font-semibold transition hover:bg-[var(--surface-muted)]"
           >
             Retry
           </button>
@@ -483,7 +483,7 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
             <button
               type="button"
               onClick={() => setRestoreKey((value) => value + 1)}
-              className="mt-4 inline-flex h-10 items-center rounded-full bg-[var(--primary-strong)] px-5 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--on-primary)]"
+              className="mt-4 inline-flex h-10 items-center rounded-xl bg-[var(--primary-strong)] px-5 text-[14px] font-semibold text-[var(--on-primary)]"
             >
               Retry
             </button>
@@ -583,7 +583,7 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
           <>
             <a
               href={googleStartHref(googleNext)}
-              className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[var(--line-strong)] text-[12px] font-medium uppercase tracking-[0.08em] transition hover:bg-[var(--surface-muted)]"
+              className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[var(--line-strong)] text-[14px] font-semibold transition hover:bg-[var(--surface-muted)]"
             >
               <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4">
                 <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.3-1.6 3.8-5.4 3.8-3.2 0-5.9-2.7-5.9-6s2.7-6 5.9-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.4 14.6 2.4 12 2.4 6.7 2.4 2.4 6.7 2.4 12s4.3 9.6 9.6 9.6c5.5 0 9.2-3.9 9.2-9.4 0-.6-.1-1.1-.2-1.6H12z" />
@@ -680,7 +680,7 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
           <button
             type="submit"
             disabled={busy}
-            className="btn-glow h-12 w-full rounded-full bg-[var(--primary-strong)] text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--on-primary)] transition disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+            className="btn-glow h-12 w-full rounded-xl bg-[var(--primary-strong)] text-[14px] font-semibold text-[var(--on-primary)] transition disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
           >
             {busy
               ? "Please wait…"

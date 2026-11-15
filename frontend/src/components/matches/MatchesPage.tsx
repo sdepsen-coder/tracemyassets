@@ -393,7 +393,7 @@ export function MatchesPage() {
               setAssetFilter(event.target.value === "all" ? "all" : Number(event.target.value))
             }
             aria-label="Filter by artwork"
-            className="h-10 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 text-[14px]"
+            className="h-10 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 text-[14px]"
           >
             <option value="all">All artworks</option>
             {assetsWithMatches.map((asset) => (
@@ -406,7 +406,7 @@ export function MatchesPage() {
             value={strength}
             onChange={(event) => setStrength(event.target.value as Strength)}
             aria-label="Filter by strength"
-            className="h-10 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 text-[14px]"
+            className="h-10 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 text-[14px]"
           >
             <option value="all">All strengths</option>
             <option value="strong">Strong and above</option>

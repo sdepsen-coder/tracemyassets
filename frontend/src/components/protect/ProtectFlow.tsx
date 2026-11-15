@@ -665,7 +665,7 @@ export function ProtectFlow() {
                         aria-pressed={frequency === option}
                         title={locked ? "Daily scans come with Extra" : undefined}
                         className={[
-                          "inline-flex h-9 items-center gap-1 rounded-full px-4 text-[14px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-50",
+                          "inline-flex h-9 items-center gap-1 rounded-xl px-4 text-[14px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-50",
                           frequency === option
                             ? "bg-[var(--primary-strong)] text-[var(--on-primary)]"
                             : "bg-[var(--surface-muted)] text-[var(--text-muted)] hover:text-[var(--text)]",

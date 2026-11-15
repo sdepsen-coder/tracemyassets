@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 
 import { Analytics } from "@/components/Analytics";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
@@ -11,16 +11,11 @@ import {
 } from "@/lib/site";
 import "./globals.css";
 
-// Body text.
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
-
-// Headings.
+// One family for text and headings (the design uses Plus Jakarta Sans
+// throughout); the weight carries the hierarchy.
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-heading",
 });
 
@@ -79,7 +74,6 @@ export default function RootLayout({
 
       <body
         className={[
-          inter.variable,
           jakarta.variable,
           jetbrainsMono.variable,
           "font-sans",
