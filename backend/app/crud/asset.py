@@ -6,6 +6,7 @@ from app.crud.monitoring import (
     count_enabled_monitoring_for_user,
     delete_monitoring_preference_for_asset,
 )
+from app.crud.scan_diagnostic import delete_scan_diagnostics_for_asset
 from app.crud.scan_job import delete_scan_jobs_for_asset
 from app.models.asset import Asset
 
@@ -71,7 +72,7 @@ def delete_asset(
     it never retrofits a constraint onto ones that already exist in
     production. Child rows are therefore deleted explicitly here, in
     FK-safe order: match records (which may reference a scan job)
-    before scan jobs, then the monitoring preference, then the asset
+    and scan diagnostics before scan jobs, then the monitoring preference, then the asset
     row itself.
 
     Does not touch on-disk files and does not commit -- the caller
@@ -80,6 +81,7 @@ def delete_asset(
     orphaned database row.
     """
     delete_match_records_for_asset(db, asset_id=asset.id)
+    delete_scan_diagnostics_for_asset(db, asset_id=asset.id)
     delete_scan_jobs_for_asset(db, asset_id=asset.id)
     delete_monitoring_preference_for_asset(db, asset_id=asset.id)
 

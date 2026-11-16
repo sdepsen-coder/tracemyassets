@@ -15,6 +15,7 @@ def initialize_database() -> None:
         paddle,
         password_reset,
         provider_usage,
+        scan_diagnostic,
         scan_job,
         session_cutoff,
         signup_attribution,

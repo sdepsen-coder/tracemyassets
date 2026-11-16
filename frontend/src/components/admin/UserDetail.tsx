@@ -16,6 +16,8 @@ import {
   formatDateTime,
   formatMoney,
   SCAN_TONE,
+  diagnosticsLine,
+  scanKindLabel,
   scanSummary,
   subscriptionLabel,
   subscriptionTone,
@@ -549,15 +551,26 @@ export function UserDetailView({
                         className={`ml-2 whitespace-nowrap ${SCAN_TONE[summary.tone]}`}
                       >
                         {summary.text}
-                        {asset.scans > 0 && asset.candidates > 0 && (
-                          <span className="text-[var(--text-muted)]">
-                            {" "}
-                            · {asset.candidates} looked at
-                          </span>
-                        )}
+                        {!asset.last_scan_diagnostics &&
+                          asset.scans > 0 &&
+                          asset.candidates > 0 && (
+                            <span className="text-[var(--text-muted)]">
+                              {" "}
+                              · {asset.candidates} looked at
+                            </span>
+                          )}
                       </span>
                     );
                   })()}
+                  {asset.last_scan_diagnostics && (
+                    <span
+                      data-testid={`asset-${asset.id}-why`}
+                      className="mt-0.5 block text-[12px] text-[var(--text-muted)]"
+                    >
+                      {scanKindLabel(asset.last_scan_provider)} scan:{" "}
+                      {diagnosticsLine(asset.last_scan_diagnostics)}
+                    </span>
+                  )}
                 </span>
                 <span className="whitespace-nowrap text-[var(--text-muted)]">
                   {formatDateTime(asset.created_at)}

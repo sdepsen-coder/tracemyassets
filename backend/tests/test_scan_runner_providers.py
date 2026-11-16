@@ -20,6 +20,7 @@ from app.models.asset import Asset
 from app.models.base import Base
 from app.models.match_record import MatchRecord
 from app.models.monitoring import MonitoringPreference
+from app.models.scan_diagnostic import ScanDiagnostic
 from app.models.user import User
 from app.services.asset_ingestion import DEFAULT_STORAGE_ROOT
 from app.services.asset_paths import load_watermark_secret
@@ -187,6 +188,79 @@ class RunScanForAssetMultiProviderTests(unittest.TestCase):
             )
         )
         self.assertEqual(len(stored_matches), 1)
+
+    def _scan(self, providers):
+        return run_scan_for_asset(
+            self.db,
+            asset=self.asset,
+            user_id=self.user_id,
+            preference=self.preference,
+            reference_path=self.image_path,
+            watermarked_path=None,
+            watermark_secret=load_watermark_secret(),
+            providers=providers,
+        )
+
+    def _diagnostics_of(self, outcome) -> ScanDiagnostic:
+        return self.db.scalar(
+            select(ScanDiagnostic).where(
+                ScanDiagnostic.scan_job_id == outcome.scan_job.id
+            )
+        )
+
+    def test_a_finished_scan_keeps_why_candidates_were_dropped(self) -> None:
+        copy = DiscoveredCandidate(
+            source_name="Shop",
+            source_url="https://shop.example.com/a",
+            candidate_image_url=None,
+            candidate_page_url="https://shop.example.com/a",
+            candidate_image_bytes=self.image_path.read_bytes(),
+        )
+        unreachable = DiscoveredCandidate(
+            source_name="Blog",
+            source_url="https://blog.example.com/b",
+            candidate_image_url="https://blog.example.com/b.jpg",
+            candidate_page_url="https://blog.example.com/b",
+        )
+
+        with mock.patch(
+            "app.services.scan_runner.fetch_candidate_bytes",
+            return_value=None,
+        ):
+            outcome = self._scan(
+                [_WorkingProvider("working", [copy, unreachable])]
+            )
+
+        row = self._diagnostics_of(outcome)
+
+        self.assertIsNotNone(row)
+        self.assertEqual(row.candidates, 2)
+        self.assertEqual(row.recorded, 1)
+        self.assertEqual(row.image_unreachable, 1)
+        self.assertEqual(row.below_threshold, 0)
+        self.assertEqual((row.providers_asked, row.provider_failures), (1, 0))
+        # Counts only: nothing in the row can hold an address.
+        self.assertFalse(
+            any("http" in str(v) for v in vars(row).values() if v is not None)
+        )
+
+    def test_a_scan_where_every_provider_failed_says_so(self) -> None:
+        outcome = self._scan([_FailingProvider()])
+        row = self._diagnostics_of(outcome)
+
+        self.assertEqual(row.candidates, 0)
+        self.assertEqual((row.providers_asked, row.provider_failures), (1, 1))
+
+    def test_deleting_the_asset_deletes_its_diagnostics(self) -> None:
+        from app.crud.asset import delete_asset
+
+        outcome = self._scan([_WorkingProvider("working", [])])
+        self.assertIsNotNone(self._diagnostics_of(outcome))
+
+        delete_asset(self.db, asset=self.asset)
+        self.db.commit()
+
+        self.assertEqual(list(self.db.scalars(select(ScanDiagnostic))), [])
 
 
 if __name__ == "__main__":

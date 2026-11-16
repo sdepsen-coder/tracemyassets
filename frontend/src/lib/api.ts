@@ -77,6 +77,21 @@ export type AdminEvent = {
   created_at: string;
 };
 
+export type AdminScanDiagnostics = {
+  candidates: number;
+  image_unreachable: number;
+  no_image_address: number;
+  not_comparable: number;
+  below_threshold: number;
+  page_unreadable: number;
+  page_unrelated: number;
+  page_gone: number;
+  recorded: number;
+  best_similarity_percent: number | null;
+  providers_asked: number;
+  provider_failures: number;
+};
+
 export type AdminUserRow = {
   id: number;
   email: string;
@@ -192,6 +207,10 @@ export type AdminUserDetail = {
     matches: number;
     last_scan_status: string | null;
     last_scan_at: string | null;
+    /** "google-vision" is a Standard scan, "serpapi-lens" a Deep scan. */
+    last_scan_provider: string | null;
+    /** Why the newest scan's candidates did or did not become matches. */
+    last_scan_diagnostics: AdminScanDiagnostics | null;
   }>;
   credit_entries: Array<{
     id: number;

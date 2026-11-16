@@ -81,6 +81,9 @@ honesty work).
   2026-11-16 (was 5/3, 30/10, 100/40); prices unchanged, so no Paddle change.
 - Credit packs (one-time, never expire, spent after plan credits): 10 for
   $4.99, 25 for $9.99, 60 for $19.99.
+- Each finished scan keeps why its candidates did or did not become matches
+  (counts only, no addresses) in `scan_diagnostics`; the admin shows it under
+  each artwork. Scans from before 2026-11-16 and failed scans have none.
 - Credits are an append-only ledger (`CreditEntry`). A Deep scan costs 1
   credit and is refunded if the search could not run.
 - Paddle: the webhook (`POST /api/v1/billing/webhook`) verifies the
