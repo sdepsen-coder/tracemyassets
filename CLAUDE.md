@@ -84,6 +84,13 @@ honesty work).
 - Each finished scan keeps why its candidates did or did not become matches
   (counts only, no addresses) in `scan_diagnostics`; the admin shows it under
   each artwork. Scans from before 2026-11-16 and failed scans have none.
+- Feedback reward: written feedback of 60+ characters earns 2 Deep credits
+  once per account (ledger reason `feedback`), only after a finished scan.
+  It must never depend on what the feedback says (no sentiment check, no
+  public-review condition): rewarded reviews are restricted in the UK and US.
+  Public reviews and quotes are asked for separately, with permission and no
+  reward. Every new ledger reason must also be added to `CreditEntryRead` in
+  `endpoints/credits.py` (a test covers it), or that user's balance 500s.
 - Credits are an append-only ledger (`CreditEntry`). A Deep scan costs 1
   credit and is refunded if the search could not run.
 - Paddle: the webhook (`POST /api/v1/billing/webhook`) verifies the

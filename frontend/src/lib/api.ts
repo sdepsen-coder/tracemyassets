@@ -405,6 +405,7 @@ export type CreditsInfo = {
     delta: number;
     reason:
       | "welcome"
+      | "feedback"
       | "grant"
       | "deep_scan"
       | "refund"
@@ -835,7 +836,7 @@ export const api = {
     feedback: FeedbackSubmission,
     signal?: AbortSignal,
   ) =>
-    request<{ id: number }>("/api/v1/feedback", {
+    request<{ id: number; credits_granted?: number }>("/api/v1/feedback", {
       method: "POST",
       body: JSON.stringify(feedback),
       signal,

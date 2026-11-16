@@ -26,6 +26,8 @@ class CreditEntry(Base):
       removal    credits taken back by hand (admin), never below zero
       deep_scan  one credit taken when a deep scan starts (delta -1)
       refund     that credit given back because no search could be made
+      feedback   a one-time thank-you for written feedback (see
+                 services.credits.grant_feedback_reward)
 
     grant_key makes a once-only grant impossible to repeat: (user_id,
     grant_key) is unique, so two requests racing to give the welcome

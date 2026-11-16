@@ -11,6 +11,7 @@ from app.crud.feedback import (
 )
 from app.models.user import User
 from app.schemas.feedback import FeedbackCreate, FeedbackRead
+from app.services import credits as credit_service
 from app.services import user_events
 
 
@@ -54,6 +55,15 @@ def submit_feedback(
         answers=request.answers,
     )
 
+    # A thank-you in credits for written feedback, once per account. It is
+    # the same whatever the feedback says (see services.credits).
+    written = len(request.message or "") + sum(
+        len(answer) for answer in (request.answers or {}).values()
+    )
+    granted = credit_service.grant_feedback_reward(
+        db, user.id, feedback_length=written
+    )
+
     db.commit()
 
     user_events.record_event(
@@ -62,7 +72,10 @@ def submit_feedback(
         user_events.FEEDBACK,
         user_id=user.id,
         email=user.email,
-        detail=f"{request.kind} #{entry.id}",
+        detail=(
+            f"{request.kind} #{entry.id}"
+            + (f" (+{granted} credits)" if granted else "")
+        ),
     )
 
-    return FeedbackRead(id=entry.id)
+    return FeedbackRead(id=entry.id, credits_granted=granted)

@@ -24,7 +24,10 @@ from app.crud.feedback import (
 from app.models.asset import Asset
 from app.models.base import Base
 from app.models.feedback import FeedbackEntry
+from app.models.credit_entry import CreditEntry
 from app.models.match_record import MatchRecord
+from app.models.scan_job import ScanJob
+from app.services import credits
 from app.models.user import User
 from app.schemas.feedback import FeedbackCreate
 
@@ -349,7 +352,9 @@ class FeedbackSchemaTests(unittest.TestCase):
             FeedbackCreate(kind="match_verdict", message="x")
 
 
-class FeedbackEndpointTests(FeedbackDataTestCase):
+class FeedbackEndpointBase(FeedbackDataTestCase):
+    """The app and client for tests that go through the feedback routes."""
+
     def setUp(self) -> None:
         super().setUp()
 
@@ -375,6 +380,8 @@ class FeedbackEndpointTests(FeedbackDataTestCase):
 
         self.client = TestClient(app)
 
+
+class FeedbackEndpointTests(FeedbackEndpointBase):
     def test_verdict_round_trip_shows_up_on_the_match_list(self) -> None:
         response = self.client.put(
             f"/api/v1/matches/{self.match.id}/feedback",
@@ -504,3 +511,121 @@ class FeedbackEndpointTests(FeedbackDataTestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FeedbackRewardTests(FeedbackEndpointBase):
+    """A one-time thank-you in credits for written feedback."""
+
+    LONG = "It found nothing for an image I know is online, which confused me."
+
+    def _scan(self, status: str = "completed") -> None:
+        with self.session_factory() as db:
+            db.add(ScanJob(asset_id=self.asset.id, provider="fake", status=status))
+            db.commit()
+
+    def _feedback(self, **body):
+        return self.client.post(
+            "/api/v1/feedback", json={"kind": "general", **body}
+        )
+
+    def _balance(self) -> int:
+        with self.session_factory() as db:
+            return credits.get_balance(db, self.user.id)
+
+    def test_written_feedback_after_a_scan_earns_credits_once(self) -> None:
+        self._scan()
+
+        first = self._feedback(message=self.LONG)
+        self.assertEqual(first.status_code, 201, first.text)
+        self.assertEqual(first.json()["credits_granted"], 2)
+        self.assertEqual(self._balance(), 2)
+
+        second = self._feedback(message=self.LONG)
+        self.assertEqual(second.json()["credits_granted"], 0)
+        self.assertEqual(self._balance(), 2)
+
+    def test_it_does_not_depend_on_what_the_feedback_says(self) -> None:
+        self._scan()
+
+        praise = "Brilliant, I love it and it found my art right away, thanks!!"
+        complaint = "Useless. It found nothing and I think it is not worth paying."
+
+        self.current_user = self.user
+        self.assertEqual(self._feedback(message=praise).json()["credits_granted"], 2)
+
+        other_scan = self._other_user_with_scan()
+        self.current_user = other_scan
+        self.assertEqual(
+            self._feedback(message=complaint).json()["credits_granted"], 2
+        )
+
+    def _other_user_with_scan(self) -> User:
+        with self.session_factory() as db:
+            other = db.get(User, self.other_user.id)
+            asset = Asset(
+                user_id=other.id,
+                title="Other",
+                original_url="other/original.png",
+                status="active",
+            )
+            db.add(asset)
+            db.flush()
+            db.add(ScanJob(asset_id=asset.id, provider="fake", status="completed"))
+            db.commit()
+            db.refresh(other)
+            db.expunge(other)
+            return other
+
+    def test_no_credits_without_a_finished_scan(self) -> None:
+        response = self._feedback(message=self.LONG)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()["credits_granted"], 0)
+        self._scan(status="failed")
+        self.assertEqual(
+            self._feedback(message=self.LONG).json()["credits_granted"], 0
+        )
+        self.assertEqual(self._balance(), 0)
+
+    def test_short_feedback_earns_nothing_and_is_still_saved(self) -> None:
+        self._scan()
+
+        response = self._feedback(message="nice")
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()["credits_granted"], 0)
+        self.assertEqual(self._balance(), 0)
+
+        # A later, longer note still earns it: the short one did not use it up.
+        self.assertEqual(
+            self._feedback(message=self.LONG).json()["credits_granted"], 2
+        )
+
+    def test_survey_answers_count_towards_the_length(self) -> None:
+        self._scan()
+
+        response = self.client.post(
+            "/api/v1/feedback",
+            json={
+                "kind": "beta_survey",
+                "answers": {
+                    "check_today": "I would check my shop images every week.",
+                    "would_pay": "Maybe ten dollars if it finds real copies.",
+                },
+            },
+        )
+
+        self.assertEqual(response.json()["credits_granted"], 2)
+
+    def test_the_credits_are_a_ledger_line_with_its_own_reason(self) -> None:
+        self._scan()
+        self._feedback(message=self.LONG)
+
+        with self.session_factory() as db:
+            rows = list(
+                db.scalars(
+                    select(CreditEntry).where(CreditEntry.user_id == self.user.id)
+                )
+            )
+
+        self.assertEqual([(r.reason, r.delta) for r in rows], [("feedback", 2)])

@@ -26,7 +26,9 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.models.asset import Asset
 from app.models.credit_entry import CreditEntry
+from app.models.scan_job import ScanJob
 from app.models.user import User
 from app.services.email_verification import is_verified
 from app.services.plan_credits import grant_due_plan_credits
@@ -34,6 +36,14 @@ from app.services.plan_credits import grant_due_plan_credits
 WELCOME_CREDITS = 5
 WELCOME_GRANT_KEY = "welcome"
 DEEP_SCAN_COST = 1
+
+# A one-time thank-you for written feedback. It does not depend on what the
+# feedback says: praise and complaints earn the same, so it cannot buy good
+# words. Once per account, only after the person has actually used the
+# product, and only for feedback long enough to say something.
+FEEDBACK_REWARD_CREDITS = 2
+FEEDBACK_GRANT_KEY = "feedback"
+MIN_REWARDED_FEEDBACK_CHARS = 60
 
 
 class InsufficientCredits(Exception):
@@ -93,6 +103,48 @@ def ensure_welcome_grant(db: Session, user_id: int) -> None:
     except IntegrityError:
         # Another request gave them first -- exactly what we want.
         pass
+
+
+def grant_feedback_reward(
+    db: Session, user_id: int, *, feedback_length: int
+) -> int:
+    """
+    Thank a person for written feedback with a few Deep scan credits, once.
+    Returns the credits given (0 if none this time). Safe to call from
+    requests that race: the unique (user_id, grant_key) pair lets one win.
+    """
+    if feedback_length < MIN_REWARDED_FEEDBACK_CHARS:
+        return 0
+
+    if not is_verified(db, user_id):
+        return 0
+
+    # Only for someone who has really tried it: at least one finished scan.
+    scanned = db.scalar(
+        select(ScanJob.id)
+        .join(Asset, Asset.id == ScanJob.asset_id)
+        .where(Asset.user_id == user_id, ScanJob.status == "completed")
+        .limit(1)
+    )
+
+    if scanned is None:
+        return 0
+
+    try:
+        with db.begin_nested():
+            db.add(
+                CreditEntry(
+                    user_id=user_id,
+                    delta=FEEDBACK_REWARD_CREDITS,
+                    reason="feedback",
+                    grant_key=FEEDBACK_GRANT_KEY,
+                    note="Thank you for your feedback",
+                )
+            )
+    except IntegrityError:
+        return 0
+
+    return FEEDBACK_REWARD_CREDITS
 
 
 def get_credit_summary(db: Session, user_id: int) -> int:

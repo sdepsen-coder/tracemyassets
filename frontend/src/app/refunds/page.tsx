@@ -52,7 +52,7 @@ export default function RefundsPage() {
             "Monthly plans: within 14 days of a payment (the first one or a renewal), you can ask for a refund of that payment if you have not used any Deep scan credits from it. Cancel before the renewal date if you do not want to be charged again.",
             "Yearly plans: within 14 days of a payment (the first one or a renewal), you can ask for a full refund if you have not used any Deep scan credits from it. After that, cancelling stops the next renewal and the plan stays active until the end of the year you paid for; the unused months are not refunded.",
             "Scans that fail or return an error do not use credits, so there is nothing to refund; credits taken by a failed scan are returned automatically.",
-            "Free welcome credits have no cash value and are not refunded.",
+            "Free credits (welcome credits and thank-you credits for feedback) have no cash value and are not refunded.",
             "If we close your account for a reason that is not your fault, or the service cannot do what we described, we will refund unused paid credits.",
           ]}
         />

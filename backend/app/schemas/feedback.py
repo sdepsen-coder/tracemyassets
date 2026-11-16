@@ -67,3 +67,5 @@ class FeedbackCreate(BaseModel):
 
 class FeedbackRead(BaseModel):
     id: int
+    # Credits given as a thank-you for this feedback (0 if none).
+    credits_granted: int = 0

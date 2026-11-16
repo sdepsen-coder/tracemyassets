@@ -205,6 +205,30 @@ class CreditsEndpointTests(base.EndpointTestCase):
             [(credits.WELCOME_CREDITS, "welcome")],
         )
 
+    def test_every_reason_the_ledger_can_hold_can_be_read(self) -> None:
+        # Each reason the code writes. One missing from the response schema
+        # makes the whole balance request fail with a 500 for that person.
+        reasons = [
+            "welcome", "grant", "removal", "deep_scan", "refund", "plan",
+            "expiry", "purchase", "purchase_refund", "feedback",
+        ]
+
+        for number, reason in enumerate(reasons):
+            self.db.add(
+                CreditEntry(
+                    user_id=self.owner.id,
+                    delta=1 if reason != "removal" else -1,
+                    reason=reason,
+                    grant_key=f"test-{number}",
+                )
+            )
+
+        self.db.commit()
+
+        response = self._client(credits_router).get("/api/v1/credits")
+
+        self.assertEqual(response.status_code, 200, response.text)
+
     def test_it_never_exposes_admin_notes(self) -> None:
         credits.grant_credits(
             self.db, user_id=self.owner.id, amount=2, note="internal remark"

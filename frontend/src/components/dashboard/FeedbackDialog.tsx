@@ -31,6 +31,7 @@ export function FeedbackDialog({ open, onClose }: Props) {
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");
   const [error, setError] = useState("");
+  const [granted, setGranted] = useState(0);
 
   const firstFieldRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -63,6 +64,7 @@ export function FeedbackDialog({ open, onClose }: Props) {
     if (status === "sent") {
       setAnswers({});
       setMessage("");
+      setGranted(0);
       setStatus("idle");
     }
 
@@ -98,7 +100,8 @@ export function FeedbackDialog({ open, onClose }: Props) {
     setError("");
 
     try {
-      await api.sendFeedback(submission);
+      const result = await api.sendFeedback(submission);
+      setGranted(result.credits_granted ?? 0);
       setStatus("sent");
     } catch (err) {
       setStatus("idle");
@@ -147,6 +150,16 @@ export function FeedbackDialog({ open, onClose }: Props) {
               built next.
             </p>
 
+            {granted > 0 && (
+              <p
+                data-testid="feedback-credits-granted"
+                className="mx-auto mt-3 max-w-sm rounded-lg border border-[var(--border-glow)] bg-[var(--primary-soft)] px-3 py-2 text-[13px] leading-6"
+              >
+                We added {granted} Deep scan credits to your account as a
+                thank-you.
+              </p>
+            )}
+
             <button
               type="button"
               onClick={close}
@@ -166,6 +179,12 @@ export function FeedbackDialog({ open, onClose }: Props) {
                 <p className="mt-1 text-[13px] leading-6 text-[var(--text-muted)]">
                   Three short questions. Answer any you like, or just leave a
                   note.
+                </p>
+
+                <p className="mt-1 text-[12px] leading-5 text-[var(--text-muted)]">
+                  Honest feedback of any kind, good or bad, earns 2 free Deep
+                  scan credits, once per account, after your first finished
+                  scan. We do not ask for praise.
                 </p>
               </div>
 
