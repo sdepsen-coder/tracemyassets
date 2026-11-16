@@ -31,7 +31,7 @@ from app.models.user import User
 from app.services.email_verification import is_verified
 from app.services.plan_credits import grant_due_plan_credits
 
-WELCOME_CREDITS = 3
+WELCOME_CREDITS = 5
 WELCOME_GRANT_KEY = "welcome"
 DEEP_SCAN_COST = 1
 

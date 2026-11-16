@@ -11,6 +11,7 @@ from sqlalchemy import select
 import test_deep_scan_endpoint as base
 from app.api.v1.endpoints.billing import router as billing_router
 from app.core.config import settings
+from app.core.plan_limits import get_plan_limits
 from app.models.credit_entry import CreditEntry
 from app.models.paddle import PaddleEvent, PaddleSubscription
 from app.models import (  # noqa: F401
@@ -25,6 +26,9 @@ SECRET = "pdl_ntfset_test_secret"
 PRO_MONTH = "pri_pro_month"
 PRO_YEAR = "pri_pro_year"
 EXTRA_MONTH = "pri_extra_month"
+# The credits a paid plan adds each month (core/plan_limits.py).
+PRO_CREDITS = get_plan_limits("Pro").monthly_deep_scan_credits
+EXTRA_CREDITS = get_plan_limits("Extra").monthly_deep_scan_credits
 
 
 def sign(body: bytes, *, ts: int | None = None, secret: str = SECRET) -> str:
@@ -145,7 +149,7 @@ class SubscriptionTests(PaddleCase):
         self.apply(event("subscription.created", user_id=self.user.id))
 
         self.assertEqual(self.refresh().plan_type, "Pro")
-        self.assertEqual(self.balance(), 10)
+        self.assertEqual(self.balance(), PRO_CREDITS)
 
         row = self.db.get(PaddleSubscription, "sub_1")
         self.assertEqual((row.plan, row.interval), ("Pro", "month"))
@@ -156,7 +160,7 @@ class SubscriptionTests(PaddleCase):
         self.apply(payload)
 
         self.assertEqual(self.apply(payload), "duplicate")
-        self.assertEqual(self.balance(), 10)
+        self.assertEqual(self.balance(), PRO_CREDITS)
         self.assertEqual(len(list(self.db.scalars(select(PaddleEvent)))), 1)
 
     def test_an_older_event_arriving_late_is_ignored(self) -> None:
@@ -312,21 +316,25 @@ class MonthlyCreditTests(PaddleCase):
         self.start(started="2026-01-15T10:00:00Z")
         # The real clock is months past the start: one grant for "now".
         first = self.balance()
-        self.assertEqual(first, 10)
+        self.assertEqual(first, PRO_CREDITS)
 
         # Spend 4 of them, then move to a later month.
         for _ in range(4):
             credits.charge_for_deep_scan(self.db, user_id=self.user.id, asset_id=1)
-        # 10 plan + 3 welcome - 4 spent
-        self.assertEqual(self.balance(), 9)
+        # plan credits + welcome credits - 4 spent
+        self.assertEqual(
+            self.balance(), PRO_CREDITS + credits.WELCOME_CREDITS - 4
+        )
 
         later = datetime.now(timezone.utc) + timedelta(days=40)
         plan_credits.grant_due_plan_credits(self.db, self.user.id, now=later)
         self.db.commit()
 
-        # The 6 unused plan credits expire, the 3 welcome ones stay, and
-        # 10 new arrive: 3 + 10, not 9 + 10.
-        self.assertEqual(self.balance(), 13)
+        # The unused plan credits expire, the welcome ones stay, and a new
+        # month's plan credits arrive: welcome + plan, not what was left + plan.
+        self.assertEqual(
+            self.balance(), credits.WELCOME_CREDITS + PRO_CREDITS
+        )
 
         reasons = [
             row.reason
@@ -355,12 +363,12 @@ class MonthlyCreditTests(PaddleCase):
         plan_credits.grant_due_plan_credits(self.db, self.user.id, now=later)
         self.db.commit()
 
-        # 5 by hand + 10 of this month; last month's 10 expired.
-        self.assertEqual(self.balance(), 15)
+        # 5 by hand + this month's plan credits; last month's expired.
+        self.assertEqual(self.balance(), 5 + PRO_CREDITS)
 
     def test_a_yearly_plan_still_gets_credits_monthly(self) -> None:
         self.start(price=PRO_YEAR)
-        self.assertEqual(self.balance(), 10)
+        self.assertEqual(self.balance(), PRO_CREDITS)
 
     def test_two_subscriptions_give_only_the_best_plans_credits(self) -> None:
         self.start(price=PRO_MONTH)
@@ -385,13 +393,13 @@ class MonthlyCreditTests(PaddleCase):
             )
         )
 
-        # 40 (Extra) only; not 10 + 10 + 40.
-        self.assertEqual(self.balance(), 40)
+        # Extra's credits only; not Pro + Pro + Extra.
+        self.assertEqual(self.balance(), EXTRA_CREDITS)
         self.assertEqual(self.refresh().plan_type, "Extra")
 
-    def test_extra_gets_forty(self) -> None:
+    def test_extra_gets_its_monthly_credits(self) -> None:
         self.start(price=EXTRA_MONTH)
-        self.assertEqual(self.balance(), 40)
+        self.assertEqual(self.balance(), EXTRA_CREDITS)
 
     def test_no_credits_after_the_subscription_ends(self) -> None:
         self.start()
@@ -424,8 +432,11 @@ class MonthlyCreditTests(PaddleCase):
         self.db.add(row)
         self.db.commit()
 
-        # welcome 3 + this month's plan 10
-        self.assertEqual(credits.get_credit_summary(self.db, self.user.id), 13)
+        # welcome credits + this month's plan credits
+        self.assertEqual(
+            credits.get_credit_summary(self.db, self.user.id),
+            credits.WELCOME_CREDITS + PRO_CREDITS,
+        )
 
 
 class EndpointTests(PaddleCase):

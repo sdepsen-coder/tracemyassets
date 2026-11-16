@@ -51,7 +51,7 @@ production-ready. The sections below describe the current state.
   - Deep scan: Google Lens exact matches through SerpApi, paid for with
     credits.
 - Deep-scan credits: an append-only ledger. A Deep scan costs 1 credit and
-  is refunded if the search could not run. New accounts get 3 welcome
+  is refunded if the search could not run. New accounts get 5 welcome
   credits once; Pro and Extra add monthly credits; one-time credit packs
   can be bought.
 - Billing on Paddle (currently the sandbox): subscriptions for Pro and
@@ -166,9 +166,9 @@ Enforced in `app/core/plan_limits.py`, not hardcoded elsewhere:
 
 | Plan | Price | Monitored assets | Scan frequencies | Manual Standard scans / month | Deep-scan credits | Match source shown |
 |---|---|---|---|---|---|---|
-| Free | $0 | up to 3 | weekly, monthly | 5 | 3 welcome credits, once | No — match strength stays visible, the source site is redacted |
-| Pro | $12.99/mo or $120/yr | up to 40 | daily, weekly, monthly | 30 | 10 per month | Yes |
-| Extra | $29.99/mo or $240/yr | up to 100 | daily, weekly, monthly | 100 | 40 per month | Yes |
+| Free | $0 | up to 3 | weekly, monthly | 10 | 5 welcome credits, once | No — match strength stays visible, the source site is redacted |
+| Pro | $12.99/mo or $120/yr | up to 40 | daily, weekly, monthly | 40 | 15 per month | Yes |
+| Extra | $29.99/mo or $240/yr | up to 100 | daily, weekly, monthly | 100 | 100 per month | Yes |
 
 Scheduled scans never count against the manual-scan limit. Monthly plan
 credits do not carry over. Prices are recognised by amount and interval in

@@ -18,7 +18,7 @@ class PlanTests(unittest.TestCase):
         free, pro, extra = (get_plan_limits(n) for n in ("Free", "Pro", "Extra"))
 
         self.assertIn("Extra", PLAN_LIMITS)
-        self.assertEqual(free.manual_scans_per_month, 5)
+        self.assertEqual(free.manual_scans_per_month, 10)
         self.assertLess(pro.manual_scans_per_month, extra.manual_scans_per_month)
         self.assertLess(pro.max_monitored_assets, extra.max_monitored_assets)
         self.assertTrue(extra.reveals_match_source)
@@ -62,18 +62,18 @@ class ManualScanQuotaTests(base.EndpointTestCase):
     def usage(self) -> dict:
         return self.client.get("/api/v1/usage").json()
 
-    def test_a_free_account_gets_five_manual_scans_a_month(self) -> None:
-        self.assertEqual(self.usage()["manual_scans"]["remaining"], 5)
+    def test_a_free_account_gets_ten_manual_scans_a_month(self) -> None:
+        self.assertEqual(self.usage()["manual_scans"]["remaining"], 10)
 
-        for _ in range(5):
+        for _ in range(10):
             self.assertEqual(self.scan().status_code, 200)
 
         usage = self.usage()["manual_scans"]
-        self.assertEqual((usage["used"], usage["limit"], usage["remaining"]), (5, 5, 0))
+        self.assertEqual((usage["used"], usage["limit"], usage["remaining"]), (10, 10, 0))
 
         blocked = self.scan()
         self.assertEqual(blocked.status_code, 429)
-        self.assertIn("5 Standard scans", blocked.json()["detail"])
+        self.assertIn("10 Standard scans", blocked.json()["detail"])
         self.assertIn("reset on", blocked.json()["detail"])
 
     def test_deep_scans_and_scheduled_scans_do_not_use_the_allowance(self) -> None:
@@ -115,7 +115,7 @@ class ManualScanQuotaTests(base.EndpointTestCase):
         asset = self._asset(user=pro)
 
         self.assertEqual(self.usage()["plan_type"], "Pro")
-        self.assertEqual(self.usage()["manual_scans"]["limit"], 30)
+        self.assertEqual(self.usage()["manual_scans"]["limit"], 40)
         self.assertEqual(
             self.client.post(f"/api/v1/assets/{asset.id}/scan").status_code, 200
         )

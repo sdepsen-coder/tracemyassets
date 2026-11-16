@@ -303,7 +303,9 @@ class AccountDataTests(unittest.TestCase):
     def test_registering_again_does_not_give_welcome_credits_twice(self):
         first = self.signup("me@example.com")
         with self.Session() as db:
-            self.assertEqual(credits.get_credit_summary(db, first), 3)
+            self.assertEqual(
+                credits.get_credit_summary(db, first), credits.WELCOME_CREDITS
+            )
 
         self.signin("me@example.com")
         self.assertEqual(
@@ -325,7 +327,9 @@ class AccountDataTests(unittest.TestCase):
         self.client.cookies.clear()
         fresh = self.signup("new@example.com")
         with self.Session() as db:
-            self.assertEqual(credits.get_credit_summary(db, fresh), 3)
+            self.assertEqual(
+                credits.get_credit_summary(db, fresh), credits.WELCOME_CREDITS
+            )
 
     def test_the_fingerprint_holds_no_address_and_expires(self):
         uid = self.signup("me@example.com")
