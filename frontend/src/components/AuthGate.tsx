@@ -574,7 +574,7 @@ export function AuthGate({ children, landing, googleNext }: AuthGateProps) {
           {mode === "forgot"
             ? "Enter your email and we will send you a link to choose a new password."
             : mode === "register"
-              ? "Free plan: 3 artworks, 10 hand-started scans a month and 5 Deep scan credits. No credit card needed. Next, you upload an artwork and run your first scan."
+              ? "Free plan: automatic monitoring for 3 artworks, 10 hand-started scans a month and 5 Deep scan credits, for any artwork. No credit card needed. Next, you upload an artwork and run your first scan."
               : "Welcome back."}
         </p>
 
