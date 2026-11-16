@@ -95,6 +95,7 @@ export default function TermsPage() {
             "Credits are a right to use the Deep scan feature of the service. They have no cash value, cannot be transferred or sold, and cannot be exchanged for money except as set out in the Refund Policy.",
             "Paid plans add the number of Deep scan credits shown on the Pricing page at the start of each billing month (on a yearly plan too: monthly, not all at once). These monthly credits do not carry over to the next month.",
             "Free welcome credits are given once per person and expire only if the account is closed. Credits you buy do not expire while your account is open.",
+            "We may also give a few free credits as a thank-you for written feedback, once per account. They are given for honest feedback of any kind, whether it is positive or negative, and never depend on what the feedback says. They have no cash value either.",
           ]}
         />
       </LegalSection>

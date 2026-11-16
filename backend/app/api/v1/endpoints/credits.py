@@ -21,6 +21,7 @@ class CreditEntryRead(BaseModel):
     delta: int
     reason: Literal[
         "welcome",
+        "feedback",
         "grant",
         "deep_scan",
         "refund",
@@ -28,6 +29,7 @@ class CreditEntryRead(BaseModel):
         "expiry",
         "purchase",
         "purchase_refund",
+        "removal",
     ]
     created_at: datetime
 

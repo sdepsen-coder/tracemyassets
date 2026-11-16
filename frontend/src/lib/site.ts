@@ -22,7 +22,7 @@ export const CONTACT_EMAIL: string =
 export const ETSY_TRADEMARK_NOTICE =
   "Etsy is a trademark of Etsy, Inc. TraceMyAssets is not affiliated with or endorsed by Etsy.";
 
-export const LEGAL_LAST_UPDATED = "15 November 2026";
+export const LEGAL_LAST_UPDATED = "16 November 2026";
 
 /**
  * When the public marketing and help pages last changed in a way worth telling
