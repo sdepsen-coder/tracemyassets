@@ -17,7 +17,7 @@ const QUESTIONS: Array<{ question: string; answer: string }> = [
   {
     question: "Can I use it for free?",
     answer:
-      "Yes. The Free plan needs no card. You can register up to 3 artworks and start 10 Standard scans a month yourself.",
+      "Yes. The Free plan needs no card. You can upload your artworks and start 10 Standard scans a month yourself, on any of them. Automatic monitoring covers up to 3 artworks at a time; the Deep scan credits can be used on any artwork too.",
   },
   {
     question: "When can I upgrade?",
@@ -27,7 +27,7 @@ const QUESTIONS: Array<{ question: string; answer: string }> = [
   {
     question: "What is a Deep scan, and what are credits?",
     answer:
-      "A Deep scan searches further than a Standard scan, using Google Lens for exact matches of your image. Each Deep scan uses one credit. New accounts get 5 credits once, Pro adds 15 every month and Extra adds 100. You can also buy packs of 10, 25 or 60 credits. Pack credits never expire, while monthly plan credits do not carry over.",
+      "A Deep scan searches further than a Standard scan, using Google Lens for exact matches of your image. Each Deep scan uses one credit. New accounts get 5 credits once, Pro adds 15 every month and Extra adds 50. You can also buy packs of 10, 25 or 60 credits. Pack credits never expire, while monthly plan credits do not carry over.",
   },
   {
     question: "How often are my artworks scanned automatically?",

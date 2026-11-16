@@ -168,7 +168,7 @@ Enforced in `app/core/plan_limits.py`, not hardcoded elsewhere:
 |---|---|---|---|---|---|---|
 | Free | $0 | up to 3 | weekly, monthly | 10 | 5 welcome credits, once | No — match strength stays visible, the source site is redacted |
 | Pro | $12.99/mo or $120/yr | up to 40 | daily, weekly, monthly | 40 | 15 per month | Yes |
-| Extra | $29.99/mo or $240/yr | up to 100 | daily, weekly, monthly | 100 | 100 per month | Yes |
+| Extra | $29.99/mo or $240/yr | up to 100 | daily, weekly, monthly | 100 | 50 per month | Yes |
 
 Scheduled scans never count against the manual-scan limit. Monthly plan
 credits do not carry over. Prices are recognised by amount and interval in

@@ -84,7 +84,7 @@ PLAN_LIMITS: dict[str, PlanLimits] = {
         reveals_match_source=True,
         allows_deep_scan=True,
         manual_scans_per_month=100,
-        monthly_deep_scan_credits=100,
+        monthly_deep_scan_credits=50,
     ),
     "Internal": PlanLimits(
         max_monitored_assets=9999,

@@ -126,9 +126,9 @@ export default async function UseCasePage({
 
       <LegalSection heading="Plans">
         <p>
-          The Free plan covers up to 3 artworks with no card. Pro and Extra
-          add more artworks, more Deep scan credits and the page where each match
-          was found. Extra adds daily scans.{" "}
+          The Free plan monitors up to 3 artworks automatically, with no card.
+          Pro and Extra monitor more artworks and add more Deep scan credits and
+          the page where each match was found. Extra adds daily scans.{" "}
           <Link href="/pricing" className="text-[var(--primary)] underline">
             Compare the plans
           </Link>
