@@ -90,6 +90,9 @@ export type AdminUserRow = {
   email_verified: boolean;
   /** The "?ref=" tag of the link the person signed up from, if any. */
   signup_ref: string | null;
+  /** Possible matches across all artworks, and finished scans. */
+  matches: number;
+  scans: number;
   subscription_status: string | null;
   subscription_plan: string | null;
   subscription_interval: string | null;
@@ -183,6 +186,12 @@ export type AdminUserDetail = {
     title: string;
     status: string;
     created_at: string;
+    /** Finished scans, candidates looked at, possible matches found. */
+    scans: number;
+    candidates: number;
+    matches: number;
+    last_scan_status: string | null;
+    last_scan_at: string | null;
   }>;
   credit_entries: Array<{
     id: number;

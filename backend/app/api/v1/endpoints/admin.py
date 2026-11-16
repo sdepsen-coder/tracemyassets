@@ -24,6 +24,7 @@ from app.models.asset import Asset
 from app.models.credit_entry import CreditEntry
 from app.models.email_verification import VerifiedUser
 from app.models.feedback import FeedbackEntry
+from app.models.match_record import MatchRecord
 from app.models.paddle import (
     PaddleAdjustment,
     PaddleSubscription,
@@ -164,6 +165,11 @@ class UserRow(BaseModel):
     email_verified: bool = True
     # The "?ref=" tag of the link the person signed up from, if any.
     signup_ref: str | None = None
+    # Possible matches found across all of the user's artworks, and how many
+    # scans finished: "0 matches after 2 scans" is a different story from
+    # "no scan has run yet".
+    matches: int = 0
+    scans: int = 0
     # The user's current Paddle subscription, if any.
     subscription_status: str | None = None
     subscription_plan: str | None = None
@@ -207,6 +213,13 @@ class AssetRow(BaseModel):
     title: str
     status: str
     created_at: datetime
+    # Scans that finished, how many candidate images they looked at, and how
+    # many became possible matches. Only counts: the admin sees no addresses.
+    scans: int = 0
+    candidates: int = 0
+    matches: int = 0
+    last_scan_status: str | None = None
+    last_scan_at: datetime | None = None
 
 
 class CreditRow(BaseModel):
@@ -498,6 +511,70 @@ def _revenue(
     return sorted(rows.values(), key=lambda entry: -entry.total)
 
 
+def _scan_counts(
+    db: Session, asset_ids: list[int]
+) -> dict[int, dict[str, int]]:
+    """Per artwork: finished scans, candidates looked at, possible matches."""
+    if not asset_ids:
+        return {}
+
+    counts: dict[int, dict[str, int]] = {
+        asset_id: {"scans": 0, "candidates": 0, "matches": 0}
+        for asset_id in asset_ids
+    }
+
+    for asset_id, scans, candidates in db.execute(
+        select(
+            ScanJob.asset_id,
+            func.count(ScanJob.id),
+            func.coalesce(func.sum(ScanJob.candidate_count), 0),
+        )
+        .where(
+            ScanJob.asset_id.in_(asset_ids),
+            ScanJob.status == "completed",
+        )
+        .group_by(ScanJob.asset_id)
+    ).all():
+        counts[asset_id]["scans"] = int(scans)
+        counts[asset_id]["candidates"] = int(candidates)
+
+    for asset_id, matches in db.execute(
+        select(MatchRecord.asset_id, func.count(MatchRecord.id))
+        .where(MatchRecord.asset_id.in_(asset_ids))
+        .group_by(MatchRecord.asset_id)
+    ).all():
+        counts[asset_id]["matches"] = int(matches)
+
+    return counts
+
+
+def _last_scans(
+    db: Session, asset_ids: list[int]
+) -> dict[int, tuple[str, datetime | None]]:
+    """The newest scan of each artwork: its status and when it started."""
+    if not asset_ids:
+        return {}
+
+    newest = (
+        select(ScanJob.asset_id, func.max(ScanJob.id).label("job_id"))
+        .where(ScanJob.asset_id.in_(asset_ids))
+        .group_by(ScanJob.asset_id)
+        .subquery()
+    )
+
+    return {
+        asset_id: (status_value, started_at or created_at)
+        for asset_id, status_value, started_at, created_at in db.execute(
+            select(
+                ScanJob.asset_id,
+                ScanJob.status,
+                ScanJob.started_at,
+                ScanJob.created_at,
+            ).join(newest, ScanJob.id == newest.c.job_id)
+        ).all()
+    }
+
+
 def _user_rows(db: Session, users: list[User]) -> list[UserRow]:
     ids = [user.id for user in users]
 
@@ -518,6 +595,21 @@ def _user_rows(db: Session, users: list[User]) -> list[UserRow]:
             .group_by(Asset.user_id)
         ).all()
     )
+    scan_totals: dict[int, dict[str, int]] = {}
+    for user_id, scans in db.execute(
+        select(Asset.user_id, func.count(ScanJob.id))
+        .join(ScanJob, ScanJob.asset_id == Asset.id)
+        .where(Asset.user_id.in_(ids), ScanJob.status == "completed")
+        .group_by(Asset.user_id)
+    ).all():
+        scan_totals.setdefault(user_id, {})["scans"] = int(scans)
+    for user_id, matches in db.execute(
+        select(Asset.user_id, func.count(MatchRecord.id))
+        .join(MatchRecord, MatchRecord.asset_id == Asset.id)
+        .where(Asset.user_id.in_(ids))
+        .group_by(Asset.user_id)
+    ).all():
+        scan_totals.setdefault(user_id, {})["matches"] = int(matches)
     last_in = dict(
         db.execute(
             select(UserEvent.user_id, func.max(UserEvent.created_at))
@@ -584,6 +676,8 @@ def _user_rows(db: Session, users: list[User]) -> list[UserRow]:
                 or not settings.email_verification_required
             ),
             signup_ref=signup_refs.get(user.id),
+            matches=scan_totals.get(user.id, {}).get("matches", 0),
+            scans=scan_totals.get(user.id, {}).get("scans", 0),
             **subscription_fields(user.id),
         )
         for user in users
@@ -927,6 +1021,10 @@ def read_user(user_id: int, db: Session = Depends(get_db)) -> UserDetail:
         )
     )
 
+    asset_ids = [a.id for a in assets]
+    asset_counts = _scan_counts(db, asset_ids)
+    last_scans = _last_scans(db, asset_ids)
+
     now = _utc_now()
     subscriptions = sorted(
         db.scalars(
@@ -1041,6 +1139,15 @@ def read_user(user_id: int, db: Session = Depends(get_db)) -> UserDetail:
                 title=a.title,
                 status=a.status,
                 created_at=a.created_at,
+                scans=asset_counts[a.id]["scans"],
+                candidates=asset_counts[a.id]["candidates"],
+                matches=asset_counts[a.id]["matches"],
+                last_scan_status=(
+                    last_scans[a.id][0] if a.id in last_scans else None
+                ),
+                last_scan_at=(
+                    last_scans[a.id][1] if a.id in last_scans else None
+                ),
             )
             for a in assets
         ],

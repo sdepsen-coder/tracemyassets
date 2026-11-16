@@ -11,6 +11,8 @@ import {
 import { Panel } from "@/components/ui/Panel";
 import {
   formatDateTime,
+  SCAN_TONE,
+  scanSummary,
   subscriptionLabel,
   subscriptionTone,
 } from "./format";
@@ -32,6 +34,23 @@ const SUBSCRIPTION_FILTERS: Array<[string, string]> = [
 ];
 
 type Filters = Omit<AdminUserFilters, "offset">;
+
+/** Matches found across the user's artworks, with how many scans ran. */
+function MatchesCell({ scans, matches }: { scans: number; matches: number }) {
+  const summary = scanSummary(scans, matches);
+
+  return (
+    <span className={SCAN_TONE[summary.tone]} title={summary.text}>
+      {scans === 0 ? "-" : matches}
+      {scans > 0 && (
+        <span className="text-[var(--text-muted)]">
+          {" "}
+          / {scans} {scans === 1 ? "scan" : "scans"}
+        </span>
+      )}
+    </span>
+  );
+}
 
 function SubscriptionCell({ user }: { user: AdminUserRow }) {
   if (!user.subscription_status) {
@@ -200,6 +219,7 @@ export function UsersTab() {
                 <th className="px-4 py-2 font-semibold">Renews / ends</th>
                 <th className="px-4 py-2 font-semibold">Credits</th>
                 <th className="px-4 py-2 font-semibold">Artworks</th>
+                <th className="px-4 py-2 font-semibold">Matches</th>
                 <th className="px-4 py-2 font-semibold">Source</th>
                 <th className="px-4 py-2 font-semibold">Joined</th>
                 <th className="px-4 py-2 font-semibold">Last sign-in</th>
@@ -253,6 +273,9 @@ export function UsersTab() {
                   </td>
                   <td className="px-4 py-2">{user.credits}</td>
                   <td className="px-4 py-2">{user.assets}</td>
+                  <td className="whitespace-nowrap px-4 py-2">
+                    <MatchesCell scans={user.scans} matches={user.matches} />
+                  </td>
                   <td className="whitespace-nowrap px-4 py-2 text-[var(--text-muted)]">
                     {user.signup_ref ?? "-"}
                   </td>
