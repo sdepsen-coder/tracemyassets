@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { Wordmark } from "@/components/app/brand";
-import { TrackedLink } from "@/components/guides/TrackedLink";
+import { HeaderAuthActions } from "@/components/HeaderAuthActions";
 import { MobileMenu } from "@/components/MobileMenu";
 import { NAV_LINKS, type NavKey } from "@/lib/nav";
 
@@ -49,23 +49,7 @@ export function SiteHeader({
         </nav>
 
         <div className="flex items-center gap-2">
-          {actions ?? (
-            <>
-              <Link
-                href="/?auth=login"
-                className="hidden h-10 items-center rounded-xl px-4 text-[14px] font-semibold text-[var(--text)] transition hover:bg-[var(--surface-raised)] sm:inline-flex"
-              >
-                Sign in
-              </Link>
-              <TrackedLink
-                href="/?auth=register"
-                placement="header"
-                className="btn-glow inline-flex h-9 items-center whitespace-nowrap rounded-xl bg-[var(--primary-strong)] px-4 text-[14px] font-semibold text-[var(--on-primary)] transition sm:h-10 sm:px-5"
-              >
-                Start free
-              </TrackedLink>
-            </>
-          )}
+          {actions ?? <HeaderAuthActions />}
           <MobileMenu active={active} signIn={mobileSignIn} />
         </div>
       </div>
