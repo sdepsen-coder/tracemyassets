@@ -17,6 +17,7 @@ from app.models.asset import Asset
 from app.models.base import Base
 from app.models.credit_entry import CreditEntry
 from app.models.feedback import FeedbackEntry
+from app.models.match_record import MatchRecord
 from app.models.scan_job import ScanJob
 from app.models.user import User
 from app.models.user_event import UserEvent
@@ -330,6 +331,82 @@ class AdminTests(unittest.TestCase):
         self.assertEqual(detail["events"][0]["event_type"], "register")
 
         self.assertEqual(self.get("/users/9999").status_code, 404)
+
+    def test_users_and_artworks_show_scans_and_matches(self):
+        ann = self.ids["ann@example.com"]
+        bob = self.ids["bob@example.com"]
+
+        with self.Session() as db:
+            found = Asset(user_id=ann, title="Found", original_url="u1")
+            nothing = Asset(user_id=ann, title="Nothing", original_url="u2")
+            unscanned = Asset(user_id=bob, title="Unscanned", original_url="u3")
+            db.add_all([found, nothing, unscanned])
+            db.flush()
+
+            hit = ScanJob(
+                asset_id=found.id,
+                provider="fake",
+                status="completed",
+                candidate_count=7,
+                match_count=2,
+            )
+            empty = ScanJob(
+                asset_id=nothing.id,
+                provider="fake",
+                status="completed",
+                candidate_count=4,
+                match_count=0,
+            )
+            broken = ScanJob(
+                asset_id=nothing.id, provider="fake", status="failed"
+            )
+            db.add_all([hit, empty])
+            db.flush()
+            db.add(broken)
+            db.flush()
+
+            for n in range(2):
+                db.add(
+                    MatchRecord(
+                        asset_id=found.id,
+                        scan_job_id=hit.id,
+                        source_name="Web",
+                        source_url=f"https://example.com/{n}",
+                        similarity_percent=90.0,
+                    )
+                )
+
+            db.commit()
+
+        users = {
+            u["email"]: u for u in self.get("/users").json()["items"]
+        }
+        self.assertEqual(users["ann@example.com"]["matches"], 2)
+        self.assertEqual(users["ann@example.com"]["scans"], 2)
+        # Bob has an artwork and no scan: nothing to count yet.
+        self.assertEqual(users["bob@example.com"]["matches"], 0)
+        self.assertEqual(users["bob@example.com"]["scans"], 0)
+
+        detail = self.get(f"/users/{ann}").json()
+        rows = {a["title"]: a for a in detail["assets_list"]}
+        self.assertEqual(rows["Found"]["scans"], 1)
+        self.assertEqual(rows["Found"]["candidates"], 7)
+        self.assertEqual(rows["Found"]["matches"], 2)
+        self.assertEqual(rows["Found"]["last_scan_status"], "completed")
+        # A finished scan with nothing found, then a failed one: the failure
+        # is what the admin should see, and only finished scans are counted.
+        self.assertEqual(rows["Nothing"]["scans"], 1)
+        self.assertEqual(rows["Nothing"]["candidates"], 4)
+        self.assertEqual(rows["Nothing"]["matches"], 0)
+        self.assertEqual(rows["Nothing"]["last_scan_status"], "failed")
+
+        bob_rows = self.get(f"/users/{bob}").json()["assets_list"]
+        self.assertEqual(bob_rows[0]["scans"], 0)
+        self.assertIsNone(bob_rows[0]["last_scan_status"])
+        self.assertIsNone(bob_rows[0]["last_scan_at"])
+
+        # Only counts are exposed, never the addresses where copies were found.
+        self.assertNotIn("example.com/0", self.get(f"/users/{ann}").text)
 
     def test_feedback_list_shows_who_wrote_it(self):
         with self.Session() as db:

@@ -15,6 +15,8 @@ import { FeedbackItem } from "./FeedbackTab";
 import {
   formatDateTime,
   formatMoney,
+  SCAN_TONE,
+  scanSummary,
   subscriptionLabel,
   subscriptionTone,
 } from "./format";
@@ -531,9 +533,31 @@ export function UserDetailView({
                 key={asset.id}
                 className="flex justify-between gap-3 border-t border-[var(--border)] py-1.5 first:border-t-0"
               >
-                <span>
+                <span className="min-w-0">
                   #{asset.id} {asset.title}
                   {asset.status !== "active" && ` (${asset.status})`}
+                  {(() => {
+                    const summary = scanSummary(
+                      asset.scans,
+                      asset.matches,
+                      asset.last_scan_status,
+                    );
+
+                    return (
+                      <span
+                        data-testid={`asset-${asset.id}-scans`}
+                        className={`ml-2 whitespace-nowrap ${SCAN_TONE[summary.tone]}`}
+                      >
+                        {summary.text}
+                        {asset.scans > 0 && asset.candidates > 0 && (
+                          <span className="text-[var(--text-muted)]">
+                            {" "}
+                            · {asset.candidates} looked at
+                          </span>
+                        )}
+                      </span>
+                    );
+                  })()}
                 </span>
                 <span className="whitespace-nowrap text-[var(--text-muted)]">
                   {formatDateTime(asset.created_at)}

@@ -106,3 +106,52 @@ export function subscriptionTone(
 
   return "bg-[var(--surface-muted)] text-[var(--text-muted)]";
 }
+
+/**
+ * What happened with an artwork's scans, in one short line. "0 matches after
+ * 2 scans" and "no scan yet" are different situations, and a failed last scan
+ * is not the same as a clean one that found nothing.
+ */
+export function scanSummary(
+  scans: number,
+  matches: number,
+  lastStatus?: string | null,
+): { text: string; tone: "good" | "none" | "warn" | "muted" } {
+  if (lastStatus === "failed") {
+    return {
+      text:
+        scans > 0
+          ? `Last scan failed · ${matches} found in ${scans} earlier`
+          : "Scan failed",
+      tone: "warn",
+    };
+  }
+
+  if (scans === 0) {
+    return {
+      text:
+        lastStatus === "queued" || lastStatus === "running"
+          ? "Scan running"
+          : "Not scanned yet",
+      tone: "muted",
+    };
+  }
+
+  const scanWord = scans === 1 ? "scan" : "scans";
+
+  if (matches > 0) {
+    return {
+      text: `${matches} ${matches === 1 ? "match" : "matches"} · ${scans} ${scanWord}`,
+      tone: "good",
+    };
+  }
+
+  return { text: `No matches · ${scans} ${scanWord}`, tone: "none" };
+}
+
+export const SCAN_TONE: Record<"good" | "none" | "warn" | "muted", string> = {
+  good: "text-[var(--success)]",
+  none: "text-[var(--text-muted)]",
+  warn: "text-[var(--warning)]",
+  muted: "text-[var(--text-muted)]",
+};
