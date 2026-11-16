@@ -1,3 +1,5 @@
+import type { AdminScanDiagnostics } from "@/lib/api";
+
 export function formatDateTime(value: string | null | undefined): string {
   if (!value) return "—";
 
@@ -155,3 +157,58 @@ export const SCAN_TONE: Record<"good" | "none" | "warn" | "muted", string> = {
   warn: "text-[var(--warning)]",
   muted: "text-[var(--text-muted)]",
 };
+
+/** "Deep" for a Google Lens scan, "Standard" otherwise (or both, if mixed). */
+export function scanKindLabel(provider: string | null | undefined): string {
+  if (!provider) return "";
+
+  const names = provider.split(",").map((name) => name.trim());
+  const deep = names.some((name) => name.includes("serpapi"));
+  const standard = names.some((name) => !name.includes("serpapi"));
+
+  return deep && standard ? "Standard + Deep" : deep ? "Deep" : "Standard";
+}
+
+/**
+ * Why a scan's candidates did or did not become matches, in one line:
+ * "9 looked at · 7 below threshold (best 61%) · 2 images unreachable".
+ * This is what tells "the search found nothing" from "it found pages but
+ * they were dropped".
+ */
+export function diagnosticsLine(
+  d: AdminScanDiagnostics | null | undefined,
+): string {
+  if (!d) return "";
+
+  if (d.providers_asked > 0 && d.provider_failures >= d.providers_asked) {
+    return "The search did not run (every source failed)";
+  }
+
+  if (d.candidates === 0) {
+    return "The search returned no pages";
+  }
+
+  const parts = [`${d.candidates} looked at`];
+  const add = (count: number, text: string) => {
+    if (count > 0) parts.push(`${count} ${text}`);
+  };
+
+  add(
+    d.below_threshold,
+    d.best_similarity_percent !== null
+      ? `below threshold (best ${Math.round(d.best_similarity_percent)}%)`
+      : "below threshold",
+  );
+  add(d.image_unreachable, d.image_unreachable === 1 ? "image unreachable" : "images unreachable");
+  add(d.no_image_address, "without an image address");
+  add(d.not_comparable, "not comparable");
+  add(d.page_unreadable, d.page_unreadable === 1 ? "page unreadable" : "pages unreadable");
+  add(d.page_unrelated, "unrelated pages");
+  add(d.page_gone, d.page_gone === 1 ? "page gone" : "pages gone");
+
+  if (d.provider_failures > 0) {
+    parts.push(`${d.provider_failures} of ${d.providers_asked} sources failed`);
+  }
+
+  return parts.join(" · ");
+}

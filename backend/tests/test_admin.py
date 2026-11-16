@@ -18,6 +18,7 @@ from app.models.base import Base
 from app.models.credit_entry import CreditEntry
 from app.models.feedback import FeedbackEntry
 from app.models.match_record import MatchRecord
+from app.models.scan_diagnostic import ScanDiagnostic
 from app.models.scan_job import ScanJob
 from app.models.user import User
 from app.models.user_event import UserEvent
@@ -404,6 +405,57 @@ class AdminTests(unittest.TestCase):
         self.assertEqual(bob_rows[0]["scans"], 0)
         self.assertIsNone(bob_rows[0]["last_scan_status"])
         self.assertIsNone(bob_rows[0]["last_scan_at"])
+
+        # The newest scan's source and, when it was kept, why candidates were
+        # dropped.
+        rows = {
+            a["title"]: a
+            for a in self.get(f"/users/{ann}").json()["assets_list"]
+        }
+        # The newest scan of "Nothing" failed and kept no diagnostics.
+        self.assertIsNone(rows["Nothing"]["last_scan_diagnostics"])
+        self.assertEqual(rows["Nothing"]["last_scan_provider"], "fake")
+
+        with self.Session() as db:
+            quiet = db.scalar(select(Asset).where(Asset.title == "Nothing"))
+            db.add(
+                ScanJob(
+                    asset_id=quiet.id,
+                    provider="google-vision",
+                    status="completed",
+                    candidate_count=9,
+                    match_count=0,
+                )
+            )
+            db.flush()
+            newest = db.scalar(
+                select(ScanJob)
+                .where(ScanJob.asset_id == quiet.id)
+                .order_by(ScanJob.id.desc())
+            )
+            db.add(
+                ScanDiagnostic(
+                    scan_job_id=newest.id,
+                    candidates=9,
+                    image_unreachable=2,
+                    below_threshold=7,
+                    best_similarity_percent=61.0,
+                    providers_asked=1,
+                )
+            )
+            db.commit()
+
+        rows = {
+            a["title"]: a
+            for a in self.get(f"/users/{ann}").json()["assets_list"]
+        }
+        shown = rows["Nothing"]["last_scan_diagnostics"]
+        self.assertEqual(rows["Nothing"]["last_scan_provider"], "google-vision")
+        self.assertEqual(
+            (shown["candidates"], shown["image_unreachable"], shown["below_threshold"]),
+            (9, 2, 7),
+        )
+        self.assertEqual(shown["best_similarity_percent"], 61.0)
 
         # Only counts are exposed, never the addresses where copies were found.
         self.assertNotIn("example.com/0", self.get(f"/users/{ann}").text)

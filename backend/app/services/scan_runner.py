@@ -20,6 +20,7 @@ from app.crud.match_record import (
     find_existing_match_for_dedup,
     record_or_touch_match,
 )
+from app.crud.scan_diagnostic import record_scan_diagnostics
 from app.crud.scan_job import (
     create_scan_job,
     mark_scan_job_completed,
@@ -684,6 +685,25 @@ def run_scan_for_asset(
         scan_job,
         candidate_count=diagnostics.candidates,
         match_count=len(matches),
+    )
+
+    # Keep why candidates did or did not become matches (counts only), so
+    # "0 matches" can later be told apart from "nothing was searched".
+    record_scan_diagnostics(
+        db,
+        scan_job_id=scan_job.id,
+        candidates=diagnostics.candidates,
+        no_image_address=diagnostics.no_image_address,
+        image_unreachable=diagnostics.image_unreachable,
+        not_comparable=diagnostics.not_comparable,
+        below_threshold=diagnostics.below_threshold,
+        page_gone=diagnostics.page_gone,
+        page_unrelated=diagnostics.page_unrelated,
+        page_unreadable=diagnostics.page_unreadable,
+        recorded=diagnostics.recorded,
+        best_similarity_percent=diagnostics.best_similarity_percent,
+        providers_asked=diagnostics.providers_asked,
+        provider_failures=diagnostics.provider_failures,
     )
 
     return ScanOutcome(

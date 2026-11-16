@@ -30,6 +30,7 @@ from app.models.paddle import (
     PaddleSubscription,
     PaddleTransaction,
 )
+from app.models.scan_diagnostic import ScanDiagnostic
 from app.models.scan_job import ScanJob
 from app.models.signup_attribution import SignupAttribution
 from app.models.user import User
@@ -208,6 +209,23 @@ class IpRow(BaseModel):
     last_seen: datetime
 
 
+class ScanDiagnosticRow(BaseModel):
+    """Why the candidates of one scan did or did not become matches."""
+
+    candidates: int
+    image_unreachable: int
+    no_image_address: int
+    not_comparable: int
+    below_threshold: int
+    page_unreadable: int
+    page_unrelated: int
+    page_gone: int
+    recorded: int
+    best_similarity_percent: float | None
+    providers_asked: int
+    provider_failures: int
+
+
 class AssetRow(BaseModel):
     id: int
     title: str
@@ -220,6 +238,10 @@ class AssetRow(BaseModel):
     matches: int = 0
     last_scan_status: str | None = None
     last_scan_at: datetime | None = None
+    # The newest scan's search source ("google-vision" is a Standard scan,
+    # "serpapi-lens" a Deep scan) and, when it was kept, its breakdown.
+    last_scan_provider: str | None = None
+    last_scan_diagnostics: ScanDiagnosticRow | None = None
 
 
 class CreditRow(BaseModel):
@@ -550,8 +572,8 @@ def _scan_counts(
 
 def _last_scans(
     db: Session, asset_ids: list[int]
-) -> dict[int, tuple[str, datetime | None]]:
-    """The newest scan of each artwork: its status and when it started."""
+) -> dict[int, tuple[ScanJob, ScanDiagnostic | None]]:
+    """The newest scan of each artwork, with its diagnostics if any."""
     if not asset_ids:
         return {}
 
@@ -562,17 +584,61 @@ def _last_scans(
         .subquery()
     )
 
-    return {
-        asset_id: (status_value, started_at or created_at)
-        for asset_id, status_value, started_at, created_at in db.execute(
-            select(
-                ScanJob.asset_id,
-                ScanJob.status,
-                ScanJob.started_at,
-                ScanJob.created_at,
-            ).join(newest, ScanJob.id == newest.c.job_id)
-        ).all()
+    jobs = list(
+        db.scalars(select(ScanJob).join(newest, ScanJob.id == newest.c.job_id))
+    )
+    diagnostics = {
+        row.scan_job_id: row
+        for row in db.scalars(
+            select(ScanDiagnostic).where(
+                ScanDiagnostic.scan_job_id.in_([job.id for job in jobs])
+            )
+        )
     }
+
+    return {job.asset_id: (job, diagnostics.get(job.id)) for job in jobs}
+
+
+def _diagnostic_row(row: ScanDiagnostic | None) -> ScanDiagnosticRow | None:
+    if row is None:
+        return None
+
+    return ScanDiagnosticRow(
+        candidates=row.candidates,
+        image_unreachable=row.image_unreachable,
+        no_image_address=row.no_image_address,
+        not_comparable=row.not_comparable,
+        below_threshold=row.below_threshold,
+        page_unreadable=row.page_unreadable,
+        page_unrelated=row.page_unrelated,
+        page_gone=row.page_gone,
+        recorded=row.recorded,
+        best_similarity_percent=row.best_similarity_percent,
+        providers_asked=row.providers_asked,
+        provider_failures=row.provider_failures,
+    )
+
+
+def _asset_row(
+    asset: Asset,
+    counts: dict[str, int],
+    last: tuple[ScanJob, ScanDiagnostic | None] | None,
+) -> AssetRow:
+    job, diagnostics = last if last is not None else (None, None)
+
+    return AssetRow(
+        id=asset.id,
+        title=asset.title,
+        status=asset.status,
+        created_at=asset.created_at,
+        scans=counts["scans"],
+        candidates=counts["candidates"],
+        matches=counts["matches"],
+        last_scan_status=job.status if job else None,
+        last_scan_at=(job.started_at or job.created_at) if job else None,
+        last_scan_provider=job.provider if job else None,
+        last_scan_diagnostics=_diagnostic_row(diagnostics),
+    )
 
 
 def _user_rows(db: Session, users: list[User]) -> list[UserRow]:
@@ -1134,21 +1200,7 @@ def read_user(user_id: int, db: Session = Depends(get_db)) -> UserDetail:
         paid_totals=sorted(totals.values(), key=lambda entry: -entry.total),
         suspension_reason=suspension.reason if suspension else None,
         assets_list=[
-            AssetRow(
-                id=a.id,
-                title=a.title,
-                status=a.status,
-                created_at=a.created_at,
-                scans=asset_counts[a.id]["scans"],
-                candidates=asset_counts[a.id]["candidates"],
-                matches=asset_counts[a.id]["matches"],
-                last_scan_status=(
-                    last_scans[a.id][0] if a.id in last_scans else None
-                ),
-                last_scan_at=(
-                    last_scans[a.id][1] if a.id in last_scans else None
-                ),
-            )
+            _asset_row(a, asset_counts[a.id], last_scans.get(a.id))
             for a in assets
         ],
         credit_entries=[
