@@ -69,6 +69,30 @@ function titleFromFileName(name: string): string {
   return base ? base.charAt(0).toUpperCase() + base.slice(1) : "";
 }
 
+/** A name straight from a camera or a screenshot: "IMG 4528", "DSC 0012". */
+function looksLikeCameraName(title: string): boolean {
+  return /^(img|dsc|dscn|dcim|pxl|mvimg|screenshot|image|photo)\s*[-_ ]?\s*\d{2,}/i.test(
+    title.trim(),
+  );
+}
+
+/** What the search did, in one sentence, from the scan's own counts. */
+function noCopiesLine(diagnostics: AssetScan["diagnostics"]): string {
+  const asked = diagnostics?.providers_asked ?? 0;
+  const failed = diagnostics?.provider_failures ?? 0;
+  const looked = diagnostics?.candidates ?? 0;
+
+  if (asked > 0 && failed >= asked) {
+    return "The search could not run just now, so nothing was checked. Please try again in a little while.";
+  }
+
+  if (looked > 0) {
+    return `We checked ${looked} ${looked === 1 ? "page" : "pages"} that show your image or similar ones. None was close enough to count as a copy.`;
+  }
+
+  return "The search did not return any pages that show your image.";
+}
+
 function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
@@ -478,8 +502,16 @@ export function ProtectFlow() {
                     className="mt-2 h-12 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 text-[16px] outline-none focus:border-[var(--primary-strong)]"
                   />
                   <p className="mt-2 text-[13px] text-[var(--text-muted)]">
-                    Only you see this title.
+                    Only you see this title. It can also be used as a search
+                    keyword on shop sites, so a descriptive name works better
+                    than a file name.
                   </p>
+                  {looksLikeCameraName(title) && (
+                    <p className="mt-1 text-[13px] text-[var(--warning)]">
+                      This looks like a file name. A name a shop would use,
+                      such as &ldquo;Blue ceramic gourd mug&rdquo;, finds more.
+                    </p>
+                  )}
                 </div>
               </div>
             ) : (
@@ -517,6 +549,17 @@ export function ProtectFlow() {
                   }
                 />
               </label>
+            )}
+
+            {!file && (
+              <p className="mt-4 flex items-start gap-2 text-[14px] leading-6 text-[var(--text-muted)]">
+                <Icon name="info" className="mt-0.5 shrink-0 text-[18px]" />
+                <span>
+                  Not sure yet? Try an image you know is online first, to see
+                  how matches look. A picture that has never been posted
+                  anywhere will have no copies to find.
+                </span>
+              </p>
             )}
 
             {error && <div className="mt-6"><Notice tone="error">{error}</Notice></div>}
@@ -814,9 +857,38 @@ export function ProtectFlow() {
                   No copies found right now
                 </h1>
                 <p className="mt-3 max-w-[520px] text-[16px] text-[var(--text-muted)]">
+                  {noCopiesLine(scan.diagnostics)}
+                </p>
+                <p className="mt-3 max-w-[520px] text-[15px] text-[var(--text-muted)]">
                   {monitoring?.enabled
-                    ? "Good news. We'll keep watching and show you if anything appears."
-                    : "Good news. Turn on automatic scans on the Monitoring page to keep watching."}
+                    ? "We'll keep watching and show you if anything appears."
+                    : "Turn on automatic scans on the Monitoring page to keep watching."}
+                </p>
+                {scanKind === "standard" && deepAvailable && (
+                  <div className="mt-6 w-full max-w-[520px] rounded-card border border-[var(--border-glow)] bg-[var(--primary-soft)] p-4 text-left">
+                    <p className="text-[14px] leading-6">
+                      A Standard scan checks a smaller set of pages. A Deep
+                      scan asks Google Lens for exact matches and can find
+                      copies the Standard scan misses.
+                    </p>
+                    <div className="mt-3">
+                      <Pill
+                        size="sm"
+                        onClick={() => {
+                          setScanKind("deep");
+                          setStep("scan");
+                        }}
+                      >
+                        Run a Deep scan · {credits?.deep_scan_cost ?? 1}{" "}
+                        {(credits?.deep_scan_cost ?? 1) === 1 ? "credit" : "credits"}
+                      </Pill>
+                    </div>
+                  </div>
+                )}
+                <p className="mt-4 max-w-[520px] text-[13px] text-[var(--text-muted)]">
+                  A picture that has never been posted online has no copies to
+                  find. To see how matches look, try an image you know is
+                  online.
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <Pill variant="secondary" onClick={startOver}>

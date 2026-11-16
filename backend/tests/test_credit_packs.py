@@ -3,6 +3,7 @@
 import unittest
 from unittest import mock
 
+from app.core.plan_limits import get_plan_limits
 from sqlalchemy import select
 
 from app.core.config import settings
@@ -209,8 +210,10 @@ class PurchaseTests(PaddleCase):
                 .order_by(CreditEntry.id)
             )
         ]
+        # Extra adds its monthly credits (plan_limits) on top of the 10 bought.
+        extra = get_plan_limits("Extra").monthly_deep_scan_credits
         self.assertIn(("expiry", -40), reasons)
-        self.assertEqual(self.balance(), 50)
+        self.assertEqual(self.balance(), 10 + extra)
 
 
 class RefundTests(PaddleCase):

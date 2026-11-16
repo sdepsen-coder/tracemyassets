@@ -44,8 +44,8 @@ class CreditServiceTests(base.EndpointTestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0].reason, "welcome")
 
-    def test_the_welcome_credits_are_three(self) -> None:
-        self.assertEqual(credits.WELCOME_CREDITS, 3)
+    def test_the_welcome_credits_are_five(self) -> None:
+        self.assertEqual(credits.WELCOME_CREDITS, 5)
 
     def test_welcome_is_per_account(self) -> None:
         other = self._user("other@example.com", "Free")

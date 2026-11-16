@@ -10,6 +10,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.api.deps import get_db
 from app.core.config import settings
+from app.services.credits import WELCOME_CREDITS
 from app.main import app
 from app.models.base import Base
 from app.models.email_verification import (
@@ -250,7 +251,7 @@ class EmailVerificationTests(Base_):
         self.assertEqual(r.status_code, 200, r.text)
 
         self.assertTrue(self.me(headers)["email_verified"])
-        self.assertEqual(self.credits(headers)["balance"], 3)
+        self.assertEqual(self.credits(headers)["balance"], WELCOME_CREDITS)
 
     def test_a_link_works_once_and_only_while_fresh(self):
         self.session()
@@ -316,7 +317,7 @@ class EmailVerificationTests(Base_):
             headers = self.session("bob@example.com")
 
             self.assertTrue(self.me(headers)["email_verified"])
-            self.assertEqual(self.credits(headers)["balance"], 3)
+            self.assertEqual(self.credits(headers)["balance"], WELCOME_CREDITS)
             self.assertEqual(self.sent, [])
 
     def test_admin_can_confirm_an_address(self):
@@ -333,7 +334,7 @@ class EmailVerificationTests(Base_):
             )
 
         self.assertEqual(r.status_code, 200, r.text)
-        self.assertEqual(self.credits(headers)["balance"], 3)
+        self.assertEqual(self.credits(headers)["balance"], WELCOME_CREDITS)
 
         with self.Session() as db:
             self.assertIsNotNone(db.get(VerifiedUser, user_id))

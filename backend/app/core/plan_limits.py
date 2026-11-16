@@ -66,15 +66,15 @@ PLAN_LIMITS: dict[str, PlanLimits] = {
         allowed_scan_frequencies=frozenset({"weekly", "monthly"}),
         reveals_match_source=False,
         allows_deep_scan=True,
-        manual_scans_per_month=5,
+        manual_scans_per_month=10,
     ),
     "Pro": PlanLimits(
         max_monitored_assets=40,
         allowed_scan_frequencies=frozenset({"weekly", "monthly"}),
         reveals_match_source=True,
         allows_deep_scan=True,
-        manual_scans_per_month=30,
-        monthly_deep_scan_credits=10,
+        manual_scans_per_month=40,
+        monthly_deep_scan_credits=15,
     ),
     "Extra": PlanLimits(
         max_monitored_assets=100,
@@ -84,7 +84,7 @@ PLAN_LIMITS: dict[str, PlanLimits] = {
         reveals_match_source=True,
         allows_deep_scan=True,
         manual_scans_per_month=100,
-        monthly_deep_scan_credits=40,
+        monthly_deep_scan_credits=100,
     ),
     "Internal": PlanLimits(
         max_monitored_assets=9999,

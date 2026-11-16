@@ -73,10 +73,12 @@ See `docs/next-steps.md` (agreed plan, launch blockers and the copy and
 honesty work).
 
 ## Domain rules worth knowing
-- Plans: Free $0 (3 artworks, 5 manual Standard scans a month, source links
-  hidden, 3 welcome Deep-scan credits once), Pro $12.99/mo or $120/yr (up to
-  40 artworks, 10 credits a month), Extra $29.99/mo or $240/yr (up to 100
-  artworks, 40 credits a month). Monthly plan credits do not carry over.
+- Plans: Free $0 (3 artworks, 10 manual Standard scans a month, source links
+  hidden, 5 welcome Deep-scan credits once), Pro $12.99/mo or $120/yr (up to
+  40 artworks, 40 manual Standard scans, 15 Deep credits a month), Extra
+  $29.99/mo or $240/yr (up to 100 artworks, 100 manual Standard scans, 100
+  Deep credits a month). Monthly plan credits do not carry over. Raised on
+  2026-11-16 (was 5/3, 30/10, 100/40); prices unchanged, so no Paddle change.
 - Credit packs (one-time, never expire, spent after plan credits): 10 for
   $4.99, 25 for $9.99, 60 for $19.99.
 - Credits are an append-only ledger (`CreditEntry`). A Deep scan costs 1
